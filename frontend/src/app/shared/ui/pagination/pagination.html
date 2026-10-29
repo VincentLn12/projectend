@@ -1,13 +1,13 @@
-<div class="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+<div class="flex flex-col items-center gap-4 pt-4 sm:flex-row sm:justify-between">
   <p class="text-base text-slate-700">{{ summary() }}</p>
 
   @if (totalPages() > 1) {
-    <nav aria-label="แบ่งหน้า" class="flex items-center gap-2">
+    <nav aria-label="แบ่งหน้า" class="flex items-center gap-3">
       <button
         type="button"
         app-button
         variant="secondary"
-        class="h-10 gap-1 px-3! text-base!"
+        class="h-11 gap-2 px-4! text-base!"
         [disabled]="page() <= 1"
         (click)="go(page() - 1)"
       >
@@ -18,11 +18,11 @@
       </button>
 
       <!-- Phones have no room for every page number: show "page X of Y" instead -->
-      <span class="min-w-20 text-center text-base font-medium text-slate-800 sm:hidden">
+      <span class="min-w-24 px-1 text-center text-base font-medium text-slate-800 sm:hidden">
         หน้า {{ page() }} / {{ totalPages() }}
       </span>
 
-      <div class="hidden items-center gap-1.5 sm:flex">
+      <div class="hidden items-center gap-2 sm:flex">
         @for (item of pages(); track $index) {
           @if (item === null) {
             <span class="w-6 text-center text-slate-500" aria-hidden="true">…</span>
@@ -31,7 +31,7 @@
               type="button"
               app-button
               [variant]="item === page() ? 'primary' : 'secondary'"
-              class="size-10 p-0! text-base!"
+              class="size-11 p-0! text-base!"
               [attr.aria-current]="item === page() ? 'page' : null"
               [attr.aria-label]="'หน้า ' + item"
               (click)="go(item)"
@@ -46,7 +46,7 @@
         type="button"
         app-button
         variant="secondary"
-        class="h-10 gap-1 px-3! text-base!"
+        class="h-11 gap-2 px-4! text-base!"
         [disabled]="page() >= totalPages()"
         (click)="go(page() + 1)"
       >
