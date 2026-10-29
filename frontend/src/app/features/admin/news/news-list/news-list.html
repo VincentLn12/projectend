@@ -1,15 +1,13 @@
 <section class="space-y-4">
   <div class="flex flex-wrap items-center justify-between gap-3">
     <h1 class="text-xl font-semibold text-slate-900">จัดการข่าว</h1>
-    <div class="flex items-center gap-3">
-      <div class="w-64">
-        <app-search-box placeholder="ค้นหาหัวข้อข่าว" (searchChange)="list.setSearch($event)" />
-      </div>
-      <a app-button routerLink="/admin/news/new">เพิ่มข่าว</a>
-    </div>
+    <a app-button routerLink="/admin/news/new">เพิ่มข่าว</a>
   </div>
 
   <div class="flex flex-wrap items-end gap-3">
+    <div class="min-w-60 flex-1">
+      <app-search-box placeholder="ค้นหาหัวข้อข่าว" (searchChange)="list.setSearch($event)" />
+    </div>
     <div class="w-44">
       <app-select-input
         label="สถานะ"
