@@ -13,7 +13,7 @@
     <div class="w-44">
       <app-select-input
         label="สถานะ"
-        shape="pill"
+        shape="soft"
         placeholder="ทุกสถานะ"
         [options]="statusOptions"
         [formControl]="statusControl"
@@ -22,7 +22,7 @@
     <div class="w-44">
       <app-date-input
         label="เผยแพร่ตั้งแต่วันที่"
-        shape="pill"
+        shape="soft"
         [max]="publishedToControl.value"
         [formControl]="publishedFromControl"
       />
@@ -30,13 +30,13 @@
     <div class="w-44">
       <app-date-input
         label="ถึงวันที่"
-        shape="pill"
+        shape="soft"
         [min]="publishedFromControl.value"
         [formControl]="publishedToControl"
       />
     </div>
     @if (hasFilters()) {
-      <button type="button" app-button variant="ghost" class="rounded-full" (click)="clearFilters()">ล้างตัวกรอง</button>
+      <button type="button" app-button variant="ghost" class="rounded-lg" (click)="clearFilters()">ล้างตัวกรอง</button>
     }
   </div>
 

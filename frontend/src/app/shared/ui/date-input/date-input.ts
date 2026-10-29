@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, signal } from '@angular/core';
 import { FormControlBase } from '../../forms/form-control-base';
 import { Field } from '../field/field';
-import { inputClass, pillInputClass } from '../styles';
+import { inputClass, softInputClass } from '../styles';
 
 const LONG_DATE = new Intl.DateTimeFormat('th-TH-u-ca-buddhist', { day: 'numeric', month: 'long', year: 'numeric' });
 const MONTH_AND_YEAR = new Intl.DateTimeFormat('th-TH-u-ca-buddhist', { month: 'long', year: 'numeric' });
@@ -53,10 +53,10 @@ export class DateInput extends FormControlBase<string> {
   readonly type = input<'date' | 'datetime-local'>('date');
   readonly min = input<string | null>(null);
   readonly max = input<string | null>(null);
-  readonly shape = input<'default' | 'pill'>('default');
+  readonly shape = input<'default' | 'soft'>('default');
 
   protected readonly controlClass = computed(() =>
-    this.shape() === 'pill' ? pillInputClass(!!this.errorMessage()) : inputClass(!!this.errorMessage()),
+    this.shape() === 'soft' ? softInputClass(!!this.errorMessage()) : inputClass(!!this.errorMessage()),
   );
   protected readonly weekdayNames = WEEKDAY_NAMES;
   protected readonly isOpen = signal(false);

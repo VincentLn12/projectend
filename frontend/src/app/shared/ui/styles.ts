@@ -8,7 +8,7 @@ export function inputClass(invalid: boolean): string {
     : `${base} border-slate-400 focus:border-brand-700 focus:ring-brand-700/25`;
 }
 
-// The rounded, taller look of the search box, for filters that sit beside it (shape="pill").
-export function pillInputClass(invalid: boolean): string {
-  return `${inputClass(invalid)} h-11 rounded-full! px-4 shadow-sm`;
+// The gently rounded, taller look of the search box, for filters that sit beside it (shape="soft").
+export function softInputClass(invalid: boolean): string {
+  return `${inputClass(invalid)} h-11 rounded-lg! px-4 shadow-sm`;
 }
