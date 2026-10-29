@@ -1,0 +1,21 @@
+<div class="relative">
+  <input
+    type="search"
+    [value]="text()"
+    [placeholder]="placeholder()"
+    [attr.aria-label]="placeholder()"
+    [class]="inputClass(false)"
+    (input)="onInput($event)"
+    (keydown.enter)="submitNow()"
+  />
+  @if (text()) {
+    <button
+      type="button"
+      (click)="clear()"
+      class="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-slate-700"
+      aria-label="ล้างคำค้นหา"
+    >
+      ✕
+    </button>
+  }
+</div>

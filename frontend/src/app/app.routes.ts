@@ -13,7 +13,13 @@ export const routes: Routes = [
       { path: 'login', loadComponent: () => import('./features/public/login/login').then((m) => m.Login) },
       // Component showcase, only reachable while developing
       ...(isDevMode()
-        ? [{ path: 'dev/components', loadComponent: () => import('./features/dev/ui-gallery/ui-gallery').then((m) => m.UiGallery) }]
+        ? [
+            { path: 'dev/components', loadComponent: () => import('./features/dev/ui-gallery/ui-gallery').then((m) => m.UiGallery) },
+            {
+              path: 'dev/components/display',
+              loadComponent: () => import('./features/dev/ui-gallery-display/ui-gallery-display').then((m) => m.UiGalleryDisplay),
+            },
+          ]
         : []),
     ],
   },

@@ -1,0 +1,83 @@
+<div class="space-y-10">
+  <div class="flex items-baseline justify-between gap-3">
+    <h1 class="text-xl font-semibold text-slate-900">ปุ่ม ตาราง และกล่องข้อความ</h1>
+    <a routerLink="/dev/components" class="text-sm text-slate-600 underline hover:text-slate-900">← ชุดฟอร์ม</a>
+  </div>
+
+  <section class="space-y-3 rounded-xl bg-white p-6 shadow-sm">
+    <h2 class="font-semibold text-slate-900">ปุ่ม</h2>
+    <div class="flex flex-wrap items-center gap-3">
+      <button type="button" app-button>หลัก</button>
+      <button type="button" app-button variant="secondary">รอง</button>
+      <button type="button" app-button variant="danger">ลบ</button>
+      <button type="button" app-button variant="ghost">เบา</button>
+      <button type="button" app-button size="sm">เล็ก</button>
+      <button type="button" app-button disabled>ปิดใช้งาน</button>
+      <button type="button" app-button [loading]="saving()" (click)="simulateSave()">
+        {{ saving() ? 'กำลังบันทึก…' : 'บันทึก (จำลอง)' }}
+      </button>
+    </div>
+  </section>
+
+  <section class="space-y-3 rounded-xl bg-white p-6 shadow-sm">
+    <h2 class="font-semibold text-slate-900">กล่องยืนยันและข้อความแจ้งเตือน</h2>
+    <div class="flex flex-wrap items-center gap-3">
+      <button type="button" app-button variant="secondary" (click)="toast.success('บันทึกเรียบร้อย')">สำเร็จ</button>
+      <button type="button" app-button variant="secondary" (click)="toast.info('มีข่าวใหม่ 3 รายการ')">ข้อมูล</button>
+      <button type="button" app-button variant="secondary" (click)="toast.error('บันทึกไม่สำเร็จ กรุณาลองใหม่')">ผิดพลาด</button>
+    </div>
+    <p class="text-sm text-slate-500">คำตอบล่าสุดของกล่องยืนยัน: {{ lastAnswer() }}</p>
+  </section>
+
+  <section class="space-y-3 rounded-xl bg-white p-6 shadow-sm">
+    <h2 class="font-semibold text-slate-900">ตัวแสดงสถานะ</h2>
+    <div class="flex flex-wrap gap-2 text-sm">
+      <button type="button" app-button size="sm" variant="secondary" (click)="stateLoading.set(!stateLoading())">กำลังโหลด</button>
+      <button type="button" app-button size="sm" variant="secondary" (click)="stateError.set(stateError() ? null : 'โหลดข้อมูลไม่สำเร็จ')">ผิดพลาด</button>
+      <button type="button" app-button size="sm" variant="secondary" (click)="stateEmpty.set(!stateEmpty())">ว่าง</button>
+    </div>
+    <app-data-state
+      [loading]="stateLoading()"
+      [error]="stateError()"
+      [empty]="stateEmpty()"
+      emptyMessage="ยังไม่มีข่าว"
+      (retry)="stateError.set(null)"
+    >
+      <p class="rounded-lg bg-slate-50 p-4 text-slate-600">เนื้อหาปกติ (แสดงเมื่อไม่มีสถานะอื่น)</p>
+    </app-data-state>
+  </section>
+
+  <section class="space-y-4 rounded-xl bg-white p-6 shadow-sm">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h2 class="font-semibold text-slate-900">ตาราง + ค้นหา + แบ่งหน้า</h2>
+      <div class="flex items-center gap-2">
+        <button type="button" app-button size="sm" variant="secondary" (click)="loadWithError()">จำลองโหลดล้มเหลว</button>
+        <div class="w-56"><app-search-box placeholder="ค้นหาหัวข้อ" (searchChange)="onSearch($event)" /></div>
+      </div>
+    </div>
+    <p class="text-xs text-slate-500">ข้อความค้นหาที่ส่งออกไป (หลังหยุดพิมพ์ 0.3 วินาที): {{ searchLog().join(' → ') || '—' }}</p>
+
+    <app-data-table
+      [columns]="columns"
+      [rows]="list.items()"
+      [trackBy]="rowKey"
+      [loading]="list.loading()"
+      [error]="list.error()"
+      emptyMessage="ไม่พบข่าวที่ค้นหา"
+      (retry)="list.reload()"
+    >
+      <ng-template appCell="status" let-row>
+        <span
+          class="rounded-full px-2 py-0.5 text-xs"
+          [class]="row.status === 'เผยแพร่' ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'"
+          >{{ row.status }}</span
+        >
+      </ng-template>
+      <ng-template appCell="actions" let-row>
+        <button type="button" app-button size="sm" variant="ghost" (click)="askToDelete(row)">ลบ</button>
+      </ng-template>
+    </app-data-table>
+
+    <app-pagination [page]="list.page()" [pageSize]="list.pageSize" [total]="list.total()" (pageChange)="list.setPage($event)" />
+  </section>
+</div>

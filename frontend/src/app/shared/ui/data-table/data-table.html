@@ -1,0 +1,39 @@
+<app-data-state
+  [loading]="loading()"
+  [error]="error()"
+  [empty]="rows().length === 0"
+  [emptyMessage]="emptyMessage()"
+  (retry)="retry.emit()"
+>
+  <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50">
+        <tr>
+          @for (column of columns(); track column.key) {
+            <th scope="col" class="px-4 py-3 font-semibold text-slate-700" [class]="alignClass(column)">
+              {{ column.header }}
+            </th>
+          }
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        @for (row of rows(); track trackBy()(row, $index); let index = $index) {
+          <tr class="hover:bg-slate-50">
+            @for (column of columns(); track column.key) {
+              <td class="px-4 py-3 text-slate-700" [class]="alignClass(column)">
+                @if (templateFor(column.key); as cell) {
+                  <ng-container
+                    [ngTemplateOutlet]="cell"
+                    [ngTemplateOutletContext]="{ $implicit: row, row: row, index: index }"
+                  />
+                } @else {
+                  {{ display(column, row) }}
+                }
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</app-data-state>

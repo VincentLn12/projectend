@@ -1,6 +1,9 @@
 <div class="grid gap-8 lg:grid-cols-[1fr_20rem]">
   <form [formGroup]="form" class="space-y-5 rounded-xl bg-white p-6 shadow-sm">
-    <h1 class="text-xl font-semibold text-slate-900">ชุด component ฟอร์ม</h1>
+    <div class="flex items-baseline justify-between gap-3">
+      <h1 class="text-xl font-semibold text-slate-900">ชุด component ฟอร์ม</h1>
+      <a routerLink="/dev/components/display" class="text-sm text-slate-600 underline hover:text-slate-900">ปุ่ม ตาราง กล่องข้อความ →</a>
+    </div>
 
     <div class="flex flex-wrap gap-2 text-sm">
       <button

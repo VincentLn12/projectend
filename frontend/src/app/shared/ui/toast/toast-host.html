@@ -1,0 +1,19 @@
+<div class="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex flex-col items-end gap-2 p-4" aria-live="polite">
+  @for (toast of toastService.toasts(); track toast.id) {
+    <div
+      class="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border px-4 py-3 text-sm shadow-lg"
+      [class]="styleFor(toast.kind)"
+      [attr.role]="toast.kind === 'error' ? 'alert' : 'status'"
+    >
+      <p class="flex-1">{{ toast.message }}</p>
+      <button
+        type="button"
+        class="text-xs opacity-60 hover:opacity-100"
+        aria-label="ปิดข้อความ"
+        (click)="toastService.dismiss(toast.id)"
+      >
+        ✕
+      </button>
+    </div>
+  }
+</div>

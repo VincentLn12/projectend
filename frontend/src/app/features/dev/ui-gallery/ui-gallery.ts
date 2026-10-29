@@ -2,6 +2,7 @@ import { JsonPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { applyServerErrors } from '../../../shared/forms/server-errors';
 import { urlValidator } from '../../../shared/forms/validators';
 import {
@@ -20,6 +21,7 @@ import {
   selector: 'app-ui-gallery',
   imports: [
     ReactiveFormsModule,
+    RouterLink,
     JsonPipe,
     TextInput,
     TextArea,

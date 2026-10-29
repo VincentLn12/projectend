@@ -64,3 +64,52 @@ API ส่ง token ใน body (ไม่ใช้ cookie) แอปเก็�
 - `FormControlBase` คลาสแม่สำหรับสร้าง component ฟอร์มใหม่ (ดูตัวอย่างจาก `text-input`)
 
 ดูและลองใช้ทั้งชุดได้ที่ `/dev/components` (เปิดเฉพาะตอน `npm start` ใน build จริงไม่มีเส้นทางนี้ แต่ไฟล์ของหน้าตัวอย่างราว 8 kB ยังถูกรวมอยู่ในผลลัพธ์ โดยไม่ถูกโหลดถ้าไม่มีใครเข้าหน้านั้น) ช่องอัปโหลดต้องล็อกอินก่อน เพราะ `POST /api/files` ต้องมี token
+
+## Component แสดงผลและโต้ตอบ (`src/app/shared/ui`, `src/app/shared/data`)
+
+```html
+<!-- ปุ่ม: ใส่แอตทริบิวต์ app-button ให้ <button> หรือ <a> จริง จึงใช้ type, disabled, routerLink ได้ตามปกติ -->
+<button type="submit" app-button [loading]="saving()">บันทึก</button>
+<button type="button" app-button variant="danger" size="sm" (click)="remove(row)">ลบ</button>
+
+<!-- ค้นหา + ตาราง + แบ่งหน้า (สถานะโหลด/ว่าง/ผิดพลาดอยู่ในตารางเอง) -->
+<app-search-box placeholder="ค้นหาข่าว" (searchChange)="list.setSearch($event)" />
+<app-data-table [columns]="columns" [rows]="list.items()" [loading]="list.loading()" [error]="list.error()"
+                emptyMessage="ยังไม่มีข่าว" (retry)="list.reload()">
+  <ng-template appCell="actions" let-row> <button app-button size="sm" variant="ghost" (click)="remove(row)">ลบ</button> </ng-template>
+</app-data-table>
+<app-pagination [page]="list.page()" [pageSize]="list.pageSize" [total]="list.total()" (pageChange)="list.setPage($event)" />
+```
+
+```ts
+// ในคลาส component ของหน้า
+protected readonly list = createPagedList((q) => this.api.getNews(q), 10);  // q = { page, pageSize, search }
+private readonly confirm = inject(ConfirmService);
+private readonly toast = inject(ToastService);
+
+constructor() { this.list.load(); }
+
+async remove(row: News) {
+  if (!(await this.confirm.ask({ title: `ลบ "${row.title}" ?`, danger: true, confirmText: 'ลบ' }))) return;
+  this.api.delete(row.id).subscribe({
+    next: () => { this.toast.success('ลบแล้ว'); this.list.reload(); },
+    error: (e) => this.toast.error(describeHttpError(e)),
+  });
+}
+```
+
+| ชิ้นส่วน | หน้าที่ |
+|---|---|
+| `button[app-button]` | `variant`: primary, secondary, danger, ghost / `size`: sm, md / `loading` แสดงวงกลมหมุนและกดซ้ำไม่ได้ / `disabled` |
+| `app-data-state` | ห่อเนื้อหาที่รอข้อมูล: กำลังโหลด, ผิดพลาด (มีปุ่มลองใหม่), ว่าง, หรือแสดงเนื้อหา |
+| `app-data-table` | `columns` (`key`, `header`, `value`, `align`) และ `rows` ช่องที่ต้องการวาดเองใช้ `<ng-template appCell="key" let-row>` |
+| `app-pagination` | หน้าเริ่มที่ 1 เหมือน API แสดงช่วงแถวและเลขหน้า พร้อม … เมื่อมีหลายหน้า |
+| `app-search-box` | รอให้หยุดพิมพ์ 0.3 วินาทีก่อนส่งคำค้น (Enter ส่งทันที) มีปุ่มล้าง |
+| `PagedList` / `createPagedList` | สถานะของหน้ารายการ: แถว หน้า คำค้น กำลังโหลด ข้อผิดพลาด คำขอล่าสุดเท่านั้นที่มีผล และถ้าหน้าปัจจุบันว่างหลังลบแถวสุดท้ายจะถอยไปหน้าก่อนหน้าเอง |
+| `ConfirmService.ask(...)` | กล่องยืนยันแบบ `<dialog>` ของ browser (Esc, คลิกพื้นหลัง = ไม่ยืนยัน) โฟกัสเริ่มที่ปุ่มยกเลิก คืนค่า `Promise<boolean>` |
+| `ToastService.success/info/error(...)` | ข้อความมุมจอ หายเองใน 4 วินาที (ข้อผิดพลาด 7 วินาที) หรือกดปิด แสดงสูงสุด 5 ข้อความ |
+| `describeHttpError(error)` | ข้อความไทยสั้นๆ สำหรับคำขอที่ล้มเหลวนอกฟอร์ม |
+
+`ConfirmDialog` และ `ToastHost` วางไว้ครั้งเดียวใน `app.ts` หน้าไหนก็เรียกบริการได้เลย ดูทุกชิ้นทำงานได้ที่ `/dev/components/display`
+
+ข้อควรระวังขนาดไฟล์: ในไฟล์รากของแอป (`app.ts`, `app.config.ts`) ให้ import ตรงจากไฟล์ของ component (เช่น `./shared/ui/toast/toast-host`) ไม่ผ่าน `shared/ui/index.ts` เพราะไฟล์รวมลากทุก component เข้าไฟล์เริ่มต้น (วัดแล้วเพิ่มราว 60 kB) ส่วนหน้าที่โหลดแบบ lazy import ผ่านไฟล์รวมได้
