@@ -132,7 +132,11 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// Development serves plain http so the Angular dev server proxy can reach it whichever launch profile is used
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors();
 app.UseRateLimiter();
 app.UseAuthentication();
