@@ -83,7 +83,7 @@ API ส่ง token ใน body (ไม่ใช้ cookie) แอปเก็�
 
 ```ts
 // ในคลาส component ของหน้า
-protected readonly list = createPagedList((q) => this.api.getNews(q), 10);  // q = { page, pageSize, search }
+protected readonly list = createPagedList((q) => this.api.getNews(q), 10);  // q = { page, pageSize, search, sort?, filters? }
 private readonly confirm = inject(ConfirmService);
 private readonly toast = inject(ToastService);
 
@@ -102,10 +102,10 @@ async remove(row: News) {
 |---|---|
 | `button[app-button]` | `variant`: primary, secondary, danger, ghost / `size`: sm, md / `loading` แสดงวงกลมหมุนและกดซ้ำไม่ได้ / `disabled` |
 | `app-data-state` | ห่อเนื้อหาที่รอข้อมูล: กำลังโหลด, ผิดพลาด (มีปุ่มลองใหม่), ว่าง, หรือแสดงเนื้อหา |
-| `app-data-table` | `columns` (`key`, `header`, `value`, `align`) และ `rows` ช่องที่ต้องการวาดเองใช้ `<ng-template appCell="key" let-row>` |
+| `app-data-table` | `columns` (`key`, `header`, `value`, `align`, `sortable`) และ `rows` ช่องที่ต้องการวาดเองใช้ `<ng-template appCell="key" let-row>` คอลัมน์ที่ `sortable` หัวตารางเป็นปุ่ม: ส่ง `[sort]="list.sort()"` เพื่อแสดงลูกศรกับ `aria-sort` และรับ `(sortChange)="list.toggleSort($event)"` (บนมือถือหัวตารางถูกซ่อน จึงยังไม่มีปุ่มเรียง) |
 | `app-pagination` | หน้าเริ่มที่ 1 เหมือน API แสดงช่วงแถวและเลขหน้า พร้อม … เมื่อมีหลายหน้า |
 | `app-search-box` | รอให้หยุดพิมพ์ 0.3 วินาทีก่อนส่งคำค้น (Enter ส่งทันที) มีปุ่มล้าง |
-| `PagedList` / `createPagedList` | สถานะของหน้ารายการ: แถว หน้า คำค้น กำลังโหลด ข้อผิดพลาด คำขอล่าสุดเท่านั้นที่มีผล และถ้าหน้าปัจจุบันว่างหลังลบแถวสุดท้ายจะถอยไปหน้าก่อนหน้าเอง |
+| `PagedList` / `createPagedList` | สถานะของหน้ารายการ: แถว หน้า คำค้น การเรียง (`toggleSort(key)`: คลิกแรกน้อยไปมาก คลิกถัดไปมากไปน้อย) ตัวกรอง (`setFilter(name, value)` ค่าว่างคือเอาตัวกรองออก) ทั้งสองอย่างกลับไปหน้า 1 และถูกส่งใน query เป็น `sort` / `filters` เมื่อมีเท่านั้น กำลังโหลด ข้อผิดพลาด คำขอล่าสุดเท่านั้นที่มีผล และถ้าหน้าปัจจุบันว่างหลังลบแถวสุดท้ายจะถอยไปหน้าก่อนหน้าเอง |
 | `ConfirmService.ask(...)` | กล่องยืนยันแบบ `<dialog>` ของ browser (Esc, คลิกพื้นหลัง = ไม่ยืนยัน) โฟกัสเริ่มที่ปุ่มยกเลิก คืนค่า `Promise<boolean>` |
 | `ToastService.success/info/error(...)` | ข้อความมุมจอ หายเองใน 4 วินาที (ข้อผิดพลาด 7 วินาที) หรือกดปิด แสดงสูงสุด 5 ข้อความ |
 | `describeHttpError(error)` | ข้อความไทยสั้นๆ สำหรับคำขอที่ล้มเหลวนอกฟอร์ม |

@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
+import { SortState } from '../data/paged-list';
 import { Button } from './button/button';
 import { CellTemplate } from './data-table/cell-template';
 import { DataState } from './data-state/data-state';
@@ -189,8 +190,10 @@ interface Row {
       [trackBy]="rowKey"
       [loading]="loading()"
       [error]="error()"
+      [sort]="sort()"
       emptyMessage="ไม่พบข่าว"
       (retry)="retries = retries + 1"
+      (sortChange)="sortedBy.push($event)"
     >
       <ng-template appCell="actions" let-row let-index="index">
         <button type="button" class="delete" (click)="deleted.push(row.id)">ลบ {{ row.title }} ({{ index }})</button>
@@ -201,7 +204,7 @@ interface Row {
 class TableHost {
   columns: TableColumn<Row>[] = [
     { key: 'id', header: '#', align: 'right', value: (row) => row.id },
-    { key: 'title', header: 'หัวข้อ', value: (row) => row.title },
+    { key: 'title', header: 'หัวข้อ', value: (row) => row.title, sortable: true },
     { key: 'note', header: 'หมายเหตุ', value: (row) => row.note },
     { key: 'actions', header: '' },
   ];
@@ -212,8 +215,10 @@ class TableHost {
   rowKey = (row: Row) => row.id;
   loading = signal(false);
   error = signal<string | null>(null);
+  sort = signal<SortState | null>(null);
   retries = 0;
   deleted: number[] = [];
+  sortedBy: string[] = [];
 }
 
 describe('DataTable', () => {
@@ -221,7 +226,7 @@ describe('DataTable', () => {
     const fixture = TestBed.createComponent(TableHost);
     await settle(fixture);
 
-    expect(queryAll(fixture, 'th').map((th) => th.textContent?.trim())).toEqual(['#', 'หัวข้อ', 'หมายเหตุ', '']);
+    expect(queryAll(fixture, 'th').map((th) => th.textContent?.trim())).toEqual(['#', 'หัวข้อ ↕', 'หมายเหตุ', '']);
     expect(queryAll(fixture, 'tbody tr').length).toBe(2);
     expect(queryAll(fixture, 'tbody tr')[0].textContent).toContain('ข่าวแรก');
   });
@@ -244,6 +249,33 @@ describe('DataTable', () => {
 
     buttons[1].click();
     expect(fixture.componentInstance.deleted).toEqual([2]);
+  });
+
+  it('makes only the sortable headers buttons, and tells the page which column was clicked', async () => {
+    const fixture = TestBed.createComponent(TableHost);
+    await settle(fixture);
+
+    const headerButtons = queryAll<HTMLButtonElement>(fixture, 'thead th button');
+    expect(headerButtons.map((button) => button.textContent?.trim())).toEqual(['หัวข้อ ↕']);
+
+    headerButtons[0].click();
+    expect(fixture.componentInstance.sortedBy).toEqual(['title']);
+  });
+
+  it('marks the sorted column with an arrow and aria-sort', async () => {
+    const fixture = TestBed.createComponent(TableHost);
+    fixture.componentInstance.sort.set({ key: 'title', direction: 'asc' });
+    await settle(fixture);
+
+    const titleHeader = queryAll(fixture, 'thead th')[1];
+    expect(titleHeader.getAttribute('aria-sort')).toBe('ascending');
+    expect(titleHeader.textContent).toContain('▲');
+
+    fixture.componentInstance.sort.set({ key: 'title', direction: 'desc' });
+    await settle(fixture);
+    expect(titleHeader.getAttribute('aria-sort')).toBe('descending');
+    expect(titleHeader.textContent).toContain('▼');
+    expect(queryAll(fixture, 'thead th')[0].hasAttribute('aria-sort')).toBe(false);
   });
 
   it('shows the empty message instead of an empty table', async () => {

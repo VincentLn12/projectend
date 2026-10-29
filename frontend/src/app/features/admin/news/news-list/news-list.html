@@ -9,13 +9,43 @@
     </div>
   </div>
 
+  <div class="flex flex-wrap items-end gap-3">
+    <div class="w-44">
+      <app-select-input
+        label="สถานะ"
+        placeholder="ทุกสถานะ"
+        [options]="statusOptions"
+        [formControl]="statusControl"
+      />
+    </div>
+    <div class="w-44">
+      <app-date-input
+        label="เผยแพร่ตั้งแต่วันที่"
+        [max]="publishedToControl.value"
+        [formControl]="publishedFromControl"
+      />
+    </div>
+    <div class="w-44">
+      <app-date-input
+        label="ถึงวันที่"
+        [min]="publishedFromControl.value"
+        [formControl]="publishedToControl"
+      />
+    </div>
+    @if (hasFilters()) {
+      <button type="button" app-button variant="ghost" (click)="clearFilters()">ล้างตัวกรอง</button>
+    }
+  </div>
+
   <app-data-table
     [columns]="columns"
     [rows]="list.items()"
     [trackBy]="rowKey"
     [loading]="list.loading()"
     [error]="list.error()"
-    emptyMessage="ยังไม่มีข่าว"
+    [sort]="list.sort()"
+    [emptyMessage]="hasFilters() || list.search() ? 'ไม่พบข่าวที่ตรงกับตัวกรอง' : 'ยังไม่มีข่าว'"
+    (sortChange)="list.toggleSort($event)"
     (retry)="list.reload()"
   >
     <ng-template appCell="title" let-row>

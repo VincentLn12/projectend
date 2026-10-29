@@ -1,6 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, TemplateRef, computed, contentChildren, input, output } from '@angular/core';
 import { DataState } from '../data-state/data-state';
+import { SortState } from '../../data/paged-list';
 import { CellTemplate } from './cell-template';
 
 export interface TableColumn<T> {
@@ -9,6 +10,8 @@ export interface TableColumn<T> {
   // Text for the cell. Leave it out when the column is drawn by an appCell template.
   value?: (row: T) => string | number | null | undefined;
   align?: 'left' | 'center' | 'right';
+  // The header becomes a button that announces the column key through (sortChange).
+  sortable?: boolean;
 }
 
 // A plain table with built-in loading / error / empty states. Pagination and search are separate components.
@@ -25,7 +28,9 @@ export class DataTable<T> {
   readonly loading = input(false);
   readonly error = input<string | null>(null);
   readonly emptyMessage = input('ไม่มีข้อมูล');
+  readonly sort = input<SortState | null>(null);
   readonly retry = output<void>();
+  readonly sortChange = output<string>();
 
   private readonly cellTemplates = contentChildren(CellTemplate);
   private readonly templatesByKey = computed(() => {
@@ -38,6 +43,14 @@ export class DataTable<T> {
 
   protected templateFor(key: string): TemplateRef<unknown> | null {
     return this.templatesByKey().get(key) ?? null;
+  }
+
+  protected ariaSort(column: TableColumn<T>): 'ascending' | 'descending' | null {
+    const sort = this.sort();
+    if (!column.sortable || sort?.key !== column.key) {
+      return null;
+    }
+    return sort.direction === 'asc' ? 'ascending' : 'descending';
   }
 
   protected display(column: TableColumn<T>, row: T): string {

@@ -55,6 +55,26 @@ describe('admin news', () => {
       searched.flush({ items: [], total: 0, page: 1, pageSize: 10 });
     });
 
+    it('sends the sort order and the filters as query parameters', () => {
+      TestBed.inject(AdminNewsApi)
+        .list({
+          page: 1,
+          pageSize: 10,
+          search: '',
+          sort: { key: 'publishedAt', direction: 'desc' },
+          filters: { isPublished: 'true', publishedFrom: '2026-10-01', publishedTo: '2026-10-31' },
+        })
+        .subscribe();
+
+      const request = http.expectOne((r) => r.url === '/api/admin/news');
+      expect(request.request.params.get('sortBy')).toBe('publishedAt');
+      expect(request.request.params.get('sortDescending')).toBe('true');
+      expect(request.request.params.get('isPublished')).toBe('true');
+      expect(request.request.params.get('publishedFrom')).toBe('2026-10-01');
+      expect(request.request.params.get('publishedTo')).toBe('2026-10-31');
+      request.flush({ items: [], total: 0, page: 1, pageSize: 10 });
+    });
+
     it('publishes through the PATCH endpoint', () => {
       TestBed.inject(AdminNewsApi).setPublished('n1', true).subscribe();
       const request = http.expectOne('/api/admin/news/n1/published');
@@ -66,6 +86,36 @@ describe('admin news', () => {
 
   describe('NewsList', () => {
     beforeEach(() => setup());
+
+    it('asks the API again when the status or a date is chosen, and clears them together', () => {
+      const fixture = TestBed.createComponent(NewsList);
+      fixture.detectChanges();
+      http.expectOne((r) => r.url === '/api/admin/news').flush({ items: [], total: 0, page: 1, pageSize: 10 });
+
+      const page = fixture.componentInstance as unknown as {
+        statusControl: import('@angular/forms').FormControl<boolean | null>;
+        publishedFromControl: import('@angular/forms').FormControl<string | null>;
+        clearFilters(): void;
+      };
+
+      page.statusControl.setValue(false);
+      const byStatus = http.expectOne((r) => r.url === '/api/admin/news');
+      expect(byStatus.request.params.get('isPublished')).toBe('false');
+      byStatus.flush({ items: [], total: 0, page: 1, pageSize: 10 });
+
+      page.publishedFromControl.setValue('2026-10-01');
+      const byDate = http.expectOne((r) => r.url === '/api/admin/news');
+      expect(byDate.request.params.get('isPublished')).toBe('false');
+      expect(byDate.request.params.get('publishedFrom')).toBe('2026-10-01');
+      byDate.flush({ items: [], total: 0, page: 1, pageSize: 10 });
+
+      page.clearFilters();
+      const requests = http.match((r) => r.url === '/api/admin/news');
+      const last = requests[requests.length - 1];
+      expect(last.request.params.has('isPublished')).toBe(false);
+      expect(last.request.params.has('publishedFrom')).toBe(false);
+      last.flush({ items: [], total: 0, page: 1, pageSize: 10 });
+    });
 
     it('does not delete when the confirmation is declined, and deletes when accepted', async () => {
       const fixture = TestBed.createComponent(NewsList);
