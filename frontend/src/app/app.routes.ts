@@ -35,6 +35,9 @@ export const routes: Routes = [
       { path: 'projects', loadComponent: () => import('./features/admin/projects/project-list/project-list').then((m) => m.ProjectList) },
       { path: 'projects/new', loadComponent: () => import('./features/admin/projects/project-edit/project-edit').then((m) => m.ProjectEdit) },
       { path: 'projects/:id', loadComponent: () => import('./features/admin/projects/project-edit/project-edit').then((m) => m.ProjectEdit) },
+      { path: 'lecturers', loadComponent: () => import('./features/admin/lecturers/lecturer-list/lecturer-list').then((m) => m.LecturerList) },
+      { path: 'lecturers/new', loadComponent: () => import('./features/admin/lecturers/lecturer-edit/lecturer-edit').then((m) => m.LecturerEdit) },
+      { path: 'lecturers/:id', loadComponent: () => import('./features/admin/lecturers/lecturer-edit/lecturer-edit').then((m) => m.LecturerEdit) },
     ],
   },
   {

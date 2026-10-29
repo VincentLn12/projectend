@@ -22,5 +22,6 @@ export class AdminLayout {
     { label: 'แดชบอร์ด', path: '/admin', exact: true },
     { label: 'ข่าว', path: '/admin/news', exact: false },
     { label: 'โครงงาน', path: '/admin/projects', exact: false },
+    { label: 'อาจารย์', path: '/admin/lecturers', exact: false },
   ];
 }
