@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using ComSci.Application.Abstractions;
 using ComSci.Application.Dtos.Common;
 using ComSci.Application.Dtos.News;
@@ -9,135 +8,351 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ComSci.Infrastructure.Services;
 
-public class NewsService(AppDbContext db, ICurrentUser currentUser) : INewsService
+/// <summary>
+/// จัดการข่าวประชาสัมพันธ์ ทั้งส่วนสาธารณะและส่วนผู้ดูแล
+/// กติกา: ข่าวที่คนทั่วไปเห็นต้องเผยแพร่แล้ว (IsPublished) และถึงเวลาเผยแพร่แล้ว (PublishedAt)
+/// </summary>
+public class NewsService : INewsService
 {
-    private static readonly Expression<Func<News, AdminNewsDto>> AdminProjection = n => new AdminNewsDto(
-        n.Id, n.Title, n.SubTitle, n.Body, n.PublishedAt, n.IsPublished, n.Author.FullName, n.CreatedAt, n.UpdatedAt,
-        n.Files.OrderBy(f => f.SortOrder).Select(f => new NewsFileDto(f.FileId, f.IsMain, f.SortOrder)).ToList());
+    private readonly AppDbContext _dbContext;
+    private readonly ICurrentUser _currentUser;
 
-    // ---------- public ----------
-
-    public async Task<PagedResult<NewsListItemDto>> GetPublishedAsync(PageQuery q, CancellationToken ct = default)
+    public NewsService(AppDbContext dbContext, ICurrentUser currentUser)
     {
-        var query = Search(PublishedNews(), q.Search);
-        var total = await query.CountAsync(ct);
-        var items = await query
-            .OrderByDescending(n => n.PublishedAt)
-            .Skip((q.Page - 1) * q.PageSize).Take(q.PageSize)
-            .Select(n => new NewsListItemDto(
-                n.Id, n.Title, n.SubTitle, n.PublishedAt,
-                n.Files.OrderByDescending(f => f.IsMain).ThenBy(f => f.SortOrder).Select(f => (Guid?)f.FileId).FirstOrDefault()))
-            .ToListAsync(ct);
-        return new PagedResult<NewsListItemDto>(items, q.Page, q.PageSize, total);
+        _dbContext = dbContext;
+        _currentUser = currentUser;
     }
 
-    public async Task<NewsDetailDto> GetPublishedByIdAsync(Guid id, CancellationToken ct = default) =>
-        await PublishedNews().Where(n => n.Id == id)
-            .Select(n => new NewsDetailDto(
-                n.Id, n.Title, n.SubTitle, n.Body, n.PublishedAt, n.Author.FullName,
-                n.Files.OrderBy(f => f.SortOrder).Select(f => f.FileId).ToList()))
-            .FirstOrDefaultAsync(ct)
-        ?? throw new NotFoundException("News not found.");
+    // =====================================================================
+    // ส่วนสาธารณะ
+    // =====================================================================
 
-    // ---------- admin ----------
-
-    public async Task<PagedResult<AdminNewsListItemDto>> GetAllAsync(AdminNewsQuery q, CancellationToken ct = default)
+    public async Task<PagedResult<NewsListItemDto>> GetPublishedAsync(PageQuery pageQuery, CancellationToken cancellationToken)
     {
-        var query = Search(db.News.AsNoTracking(), q.Search);
-        if (q.IsPublished is { } published) query = query.Where(n => n.IsPublished == published);
+        IQueryable<News> query = GetPublishedNewsQuery();
+        query = ApplyTitleSearch(query, pageQuery.Search);
 
-        var total = await query.CountAsync(ct);
-        var items = await query
-            .OrderByDescending(n => n.CreatedAt)
-            .Skip((q.Page - 1) * q.PageSize).Take(q.PageSize)
-            .Select(n => new AdminNewsListItemDto(n.Id, n.Title, n.PublishedAt, n.IsPublished, n.Author.FullName, n.CreatedAt))
-            .ToListAsync(ct);
-        return new PagedResult<AdminNewsListItemDto>(items, q.Page, q.PageSize, total);
+        int total = await query.CountAsync(cancellationToken);
+
+        int itemsToSkip = (pageQuery.Page - 1) * pageQuery.PageSize;
+        List<NewsListItemDto> items = await query
+            .OrderByDescending(news => news.PublishedAt)
+            .Skip(itemsToSkip)
+            .Take(pageQuery.PageSize)
+            .Select(news => new NewsListItemDto
+            {
+                Id = news.Id,
+                Title = news.Title,
+                SubTitle = news.SubTitle,
+                PublishedAt = news.PublishedAt,
+
+                // รูปหลักก่อน ถ้าไม่มีรูปหลักใช้รูปที่ลำดับแรกสุด
+                MainImageFileId = news.Files
+                    .OrderByDescending(file => file.IsMain)
+                    .ThenBy(file => file.SortOrder)
+                    .Select(file => (Guid?)file.FileId)
+                    .FirstOrDefault()
+            })
+            .ToListAsync(cancellationToken);
+
+        PagedResult<NewsListItemDto> result = new PagedResult<NewsListItemDto>();
+        result.Items = items;
+        result.Page = pageQuery.Page;
+        result.PageSize = pageQuery.PageSize;
+        result.Total = total;
+        return result;
     }
 
-    public async Task<AdminNewsDto> GetByIdAsync(Guid id, CancellationToken ct = default) =>
-        await db.News.AsNoTracking().Where(n => n.Id == id).Select(AdminProjection).FirstOrDefaultAsync(ct)
-        ?? throw new NotFoundException("News not found.");
-
-    public async Task<AdminNewsDto> CreateAsync(SaveNewsRequest request, CancellationToken ct = default)
+    public async Task<NewsDetailDto> GetPublishedByIdAsync(Guid newsId, CancellationToken cancellationToken)
     {
-        var news = new News
+        NewsDetailDto? detail = await GetPublishedNewsQuery()
+            .Where(news => news.Id == newsId)
+            .Select(news => new NewsDetailDto
+            {
+                Id = news.Id,
+                Title = news.Title,
+                SubTitle = news.SubTitle,
+                Body = news.Body,
+                PublishedAt = news.PublishedAt,
+                AuthorName = news.Author.FullName,
+                ImageFileIds = news.Files
+                    .OrderBy(file => file.SortOrder)
+                    .Select(file => file.FileId)
+                    .ToList()
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (detail == null)
         {
-            Title = request.Title.Trim(),
-            SubTitle = request.SubTitle?.Trim(),
-            Body = request.Body,
-            AuthorId = currentUser.UserId ?? throw new InvalidOperationException("No authenticated user."),
-        };
-        ApplyPublished(news, request.IsPublished);
-        await ReplaceFilesAsync(news, request, ct);
+            throw new NotFoundException("News not found.");
+        }
 
-        db.News.Add(news);
-        await db.SaveChangesAsync(ct);
-        return await GetByIdAsync(news.Id, ct);
+        return detail;
     }
 
-    public async Task<AdminNewsDto> UpdateAsync(Guid id, SaveNewsRequest request, CancellationToken ct = default)
+    // =====================================================================
+    // ส่วนผู้ดูแล
+    // =====================================================================
+
+    public async Task<PagedResult<AdminNewsListItemDto>> GetAllAsync(AdminNewsQuery query, CancellationToken cancellationToken)
     {
-        var news = await LoadForUpdateAsync(id, ct);
+        IQueryable<News> newsQuery = _dbContext.News.AsNoTracking();
+        newsQuery = ApplyTitleSearch(newsQuery, query.Search);
+
+        if (query.IsPublished.HasValue)
+        {
+            bool wantedState = query.IsPublished.Value;
+            newsQuery = newsQuery.Where(news => news.IsPublished == wantedState);
+        }
+
+        int total = await newsQuery.CountAsync(cancellationToken);
+
+        int itemsToSkip = (query.Page - 1) * query.PageSize;
+        List<AdminNewsListItemDto> items = await newsQuery
+            .OrderByDescending(news => news.CreatedAt)
+            .Skip(itemsToSkip)
+            .Take(query.PageSize)
+            .Select(news => new AdminNewsListItemDto
+            {
+                Id = news.Id,
+                Title = news.Title,
+                PublishedAt = news.PublishedAt,
+                IsPublished = news.IsPublished,
+                AuthorName = news.Author.FullName,
+                CreatedAt = news.CreatedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        PagedResult<AdminNewsListItemDto> result = new PagedResult<AdminNewsListItemDto>();
+        result.Items = items;
+        result.Page = query.Page;
+        result.PageSize = query.PageSize;
+        result.Total = total;
+        return result;
+    }
+
+    public async Task<AdminNewsDto> GetByIdAsync(Guid newsId, CancellationToken cancellationToken)
+    {
+        AdminNewsDto? dto = await _dbContext.News
+            .AsNoTracking()
+            .Where(news => news.Id == newsId)
+            .Select(news => new AdminNewsDto
+            {
+                Id = news.Id,
+                Title = news.Title,
+                SubTitle = news.SubTitle,
+                Body = news.Body,
+                PublishedAt = news.PublishedAt,
+                IsPublished = news.IsPublished,
+                AuthorName = news.Author.FullName,
+                CreatedAt = news.CreatedAt,
+                UpdatedAt = news.UpdatedAt,
+                Files = news.Files
+                    .OrderBy(file => file.SortOrder)
+                    .Select(file => new NewsFileDto
+                    {
+                        FileId = file.FileId,
+                        IsMain = file.IsMain,
+                        SortOrder = file.SortOrder
+                    })
+                    .ToList()
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (dto == null)
+        {
+            throw new NotFoundException("News not found.");
+        }
+
+        return dto;
+    }
+
+    public async Task<AdminNewsDto> CreateAsync(SaveNewsRequest request, CancellationToken cancellationToken)
+    {
+        if (!_currentUser.UserId.HasValue)
+        {
+            throw new InvalidOperationException("No authenticated user.");
+        }
+
+        News news = new News();
         news.Title = request.Title.Trim();
         news.SubTitle = request.SubTitle?.Trim();
         news.Body = request.Body;
-        ApplyPublished(news, request.IsPublished);
-        await ReplaceFilesAsync(news, request, ct);
+        news.AuthorId = _currentUser.UserId.Value;
+        ApplyPublishedState(news, request.IsPublished);
+        await ReplaceFilesAsync(news, request, cancellationToken);
 
-        await db.SaveChangesAsync(ct);
-        return await GetByIdAsync(id, ct);
+        _dbContext.News.Add(news);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return await GetByIdAsync(news.Id, cancellationToken);
     }
 
-    public async Task<AdminNewsDto> SetPublishedAsync(Guid id, bool isPublished, CancellationToken ct = default)
+    public async Task<AdminNewsDto> UpdateAsync(Guid newsId, SaveNewsRequest request, CancellationToken cancellationToken)
     {
-        var news = await LoadForUpdateAsync(id, ct);
-        ApplyPublished(news, isPublished);
-        await db.SaveChangesAsync(ct);
-        return await GetByIdAsync(id, ct);
+        News news = await LoadNewsWithFilesForUpdateAsync(newsId, cancellationToken);
+
+        news.Title = request.Title.Trim();
+        news.SubTitle = request.SubTitle?.Trim();
+        news.Body = request.Body;
+        ApplyPublishedState(news, request.IsPublished);
+        await ReplaceFilesAsync(news, request, cancellationToken);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return await GetByIdAsync(newsId, cancellationToken);
     }
 
-    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    public async Task<AdminNewsDto> SetPublishedAsync(Guid newsId, bool isPublished, CancellationToken cancellationToken)
     {
-        var news = await LoadForUpdateAsync(id, ct);
-        db.News.Remove(news); // the audit interceptor turns this into a soft delete
-        await db.SaveChangesAsync(ct);
+        News news = await LoadNewsAsync(newsId, cancellationToken);
+
+        ApplyPublishedState(news, isPublished);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return await GetByIdAsync(newsId, cancellationToken);
     }
 
-    // ---------- helpers ----------
-
-    private IQueryable<News> PublishedNews()
+    public async Task DeleteAsync(Guid newsId, CancellationToken cancellationToken)
     {
-        var now = DateTime.UtcNow;
-        return db.News.AsNoTracking().Where(n => n.IsPublished && n.PublishedAt <= now);
+        // โหลดเฉพาะข่าว ไม่โหลดรายการรูป: soft delete ไม่แตะแถวรูป และการติดตามรูปไว้จะทำให้ EF สับสนตอนบันทึก
+        News news = await LoadNewsAsync(newsId, cancellationToken);
+
+        // สั่งลบตามปกติ แต่ AuditSaveChangesInterceptor จะเปลี่ยนเป็น soft delete (IsDeleted = true) ให้
+        _dbContext.News.Remove(news);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    private static IQueryable<News> Search(IQueryable<News> query, string? search) =>
-        string.IsNullOrWhiteSpace(search) ? query : query.Where(n => n.Title.Contains(search.Trim()));
+    // =====================================================================
+    // ตัวช่วยภายในคลาส
+    // =====================================================================
 
-    private async Task<News> LoadForUpdateAsync(Guid id, CancellationToken ct) =>
-        await db.News.Include(n => n.Files).FirstOrDefaultAsync(n => n.Id == id, ct)
-        ?? throw new NotFoundException("News not found.");
+    /// <summary>
+    /// ข่าวที่คนทั่วไปมองเห็นได้: เผยแพร่แล้ว และเวลาเผยแพร่มาถึงแล้ว
+    /// </summary>
+    private IQueryable<News> GetPublishedNewsQuery()
+    {
+        DateTime now = DateTime.UtcNow;
 
-    private static void ApplyPublished(News news, bool isPublished)
+        return _dbContext.News
+            .AsNoTracking()
+            .Where(news => news.IsPublished && news.PublishedAt <= now);
+    }
+
+    /// <summary>
+    /// ถ้ามีคำค้น ให้กรองเฉพาะข่าวที่หัวข้อมีคำนั้น
+    /// </summary>
+    private static IQueryable<News> ApplyTitleSearch(IQueryable<News> query, string? search)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+        {
+            return query;
+        }
+
+        string keyword = search.Trim();
+        return query.Where(news => news.Title.Contains(keyword));
+    }
+
+    /// <summary>
+    /// โหลดเฉพาะตัวข่าว (ไม่รวมรายการรูป) เพื่อนำไปแก้สถานะหรือลบ
+    /// </summary>
+    private async Task<News> LoadNewsAsync(Guid newsId, CancellationToken cancellationToken)
+    {
+        News? news = await _dbContext.News
+            .FirstOrDefaultAsync(item => item.Id == newsId, cancellationToken);
+
+        if (news == null)
+        {
+            throw new NotFoundException("News not found.");
+        }
+
+        return news;
+    }
+
+    /// <summary>
+    /// โหลดข่าวพร้อมรายการรูปที่ผูกอยู่ เพื่อนำไปแก้ไข (ต้องใช้รายการรูปเดิมเพื่อแทนที่ด้วยรายการใหม่)
+    /// </summary>
+    private async Task<News> LoadNewsWithFilesForUpdateAsync(Guid newsId, CancellationToken cancellationToken)
+    {
+        News? news = await _dbContext.News
+            .Include(item => item.Files)
+            .FirstOrDefaultAsync(item => item.Id == newsId, cancellationToken);
+
+        if (news == null)
+        {
+            throw new NotFoundException("News not found.");
+        }
+
+        return news;
+    }
+
+    /// <summary>
+    /// ตั้งสถานะเผยแพร่ และบันทึกวันเวลาเผยแพร่ครั้งแรก (ถ้าถอนกลับเป็นฉบับร่างแล้วเผยแพร่ใหม่ จะคงวันเดิมไว้)
+    /// </summary>
+    private static void ApplyPublishedState(News news, bool isPublished)
     {
         news.IsPublished = isPublished;
-        if (isPublished) news.PublishedAt ??= DateTime.UtcNow;
+
+        if (isPublished && news.PublishedAt == null)
+        {
+            news.PublishedAt = DateTime.UtcNow;
+        }
     }
 
-    private async Task ReplaceFilesAsync(News news, SaveNewsRequest request, CancellationToken ct)
+    /// <summary>
+    /// แทนที่รายการไฟล์ของข่าวด้วยรายการใหม่จากคำขอ (ลำดับในรายการคือลำดับแสดงผล)
+    /// </summary>
+    private async Task ReplaceFilesAsync(News news, SaveNewsRequest request, CancellationToken cancellationToken)
     {
-        var ids = request.FileIds?.Distinct().ToList() ?? [];
-        if (request.MainFileId is { } main && !ids.Contains(main))
+        List<Guid> fileIds = new List<Guid>();
+        if (request.FileIds != null)
+        {
+            fileIds = request.FileIds.Distinct().ToList();
+        }
+
+        if (request.MainFileId.HasValue && !fileIds.Contains(request.MainFileId.Value))
+        {
             throw new BadRequestException("MainFileId must be one of FileIds.");
-        if (ids.Count > 0 && await db.Files.CountAsync(f => ids.Contains(f.Id), ct) != ids.Count)
-            throw new BadRequestException("Some files do not exist.");
+        }
 
-        db.NewsFiles.RemoveRange(news.Files.ToList());
-        news.Files.Clear();
+        if (fileIds.Count > 0)
+        {
+            int existingCount = await _dbContext.Files.CountAsync(file => fileIds.Contains(file.Id), cancellationToken);
+            if (existingCount != fileIds.Count)
+            {
+                throw new BadRequestException("Some files do not exist.");
+            }
+        }
 
-        var mainId = request.MainFileId ?? ids.FirstOrDefault();
-        for (var i = 0; i < ids.Count; i++)
-            news.Files.Add(new NewsFile { FileId = ids[i], SortOrder = i, IsMain = ids[i] == mainId });
+        // ลบรายการเดิมทั้งหมดก่อน แล้วเพิ่มรายการใหม่
+        // หมายเหตุ: ห้ามเรียก news.Files.Clear() ที่นี่ เพราะจะเป็นการ "ตัด" ความสัมพันธ์ที่บังคับต้องมี
+        // (NewsFile ต้องมีข่าวเสมอ) ทำให้ EF ปฏิเสธ ให้สั่งลบแถวเดิมผ่าน RemoveRange อย่างเดียวพอ
+        List<NewsFile> oldFiles = news.Files.ToList();
+        _dbContext.NewsFiles.RemoveRange(oldFiles);
+
+        // รูปหลัก: ใช้ตามที่ระบุ ถ้าไม่ระบุใช้รูปแรก
+        Guid mainFileId = Guid.Empty;
+        if (request.MainFileId.HasValue)
+        {
+            mainFileId = request.MainFileId.Value;
+        }
+        else if (fileIds.Count > 0)
+        {
+            mainFileId = fileIds[0];
+        }
+
+        for (int index = 0; index < fileIds.Count; index++)
+        {
+            NewsFile newsFile = new NewsFile();
+            newsFile.NewsId = news.Id;
+            newsFile.FileId = fileIds[index];
+            newsFile.SortOrder = index;
+            newsFile.IsMain = fileIds[index] == mainFileId;
+
+            // ต้องสั่ง Add ที่ DbSet ตรงๆ ห้ามใช้ news.Files.Add(...)
+            // เพราะ NewsFile มีรหัส GUID ตั้งแต่ตอนสร้าง ถ้าเพิ่มผ่านรายการของข่าวที่ EF ติดตามอยู่แล้ว
+            // EF จะเข้าใจว่าเป็นแถวเก่าที่มีอยู่ในฐานข้อมูล แล้วสั่ง UPDATE (ซึ่งไม่เจอแถว) แทน INSERT
+            _dbContext.NewsFiles.Add(newsFile);
+        }
     }
 }

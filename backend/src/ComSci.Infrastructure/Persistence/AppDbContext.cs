@@ -4,44 +4,71 @@ using ComSci.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace ComSci.Infrastructure.Persistence;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options)
-    : IdentityDbContext<AppUser, AppRole, Guid>(options)
+/// <summary>
+/// ตัวกลางติดต่อฐานข้อมูล SQL Server (ComSciDb)
+/// สืบจาก IdentityDbContext จึงมีตารางผู้ใช้/บทบาทของ ASP.NET Identity ให้ด้วย
+/// รายละเอียดของแต่ละตาราง (ความยาวคอลัมน์ index ความสัมพันธ์) อยู่ในโฟลเดอร์ Configurations
+/// </summary>
+public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
 {
-    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
-    public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
-    public DbSet<Lecturer> Lecturers => Set<Lecturer>();
-    public DbSet<FileRecord> Files => Set<FileRecord>();
-    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    {
+    }
 
-    public DbSet<News> News => Set<News>();
-    public DbSet<NewsFile> NewsFiles => Set<NewsFile>();
-    public DbSet<HomeBanner> HomeBanners => Set<HomeBanner>();
-    public DbSet<TechSubject> TechSubjects => Set<TechSubject>();
-    public DbSet<TechSubjectFile> TechSubjectFiles => Set<TechSubjectFile>();
-    public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
+    // ---------------- ผู้ใช้และระบบ ----------------
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
+    public DbSet<StudentProfile> StudentProfiles { get; set; } = null!;
+    public DbSet<Lecturer> Lecturers { get; set; } = null!;
+    public DbSet<FileRecord> Files { get; set; } = null!;
+    public DbSet<AuditLog> AuditLogs { get; set; } = null!;
 
-    public DbSet<Project> Projects => Set<Project>();
-    public DbSet<ProjectAdvisor> ProjectAdvisors => Set<ProjectAdvisor>();
-    public DbSet<JobHistory> JobHistories => Set<JobHistory>();
+    // ---------------- เนื้อหาหน้าเว็บ ----------------
+    public DbSet<News> News { get; set; } = null!;
+    public DbSet<NewsFile> NewsFiles { get; set; } = null!;
+    public DbSet<HomeBanner> HomeBanners { get; set; } = null!;
+    public DbSet<TechSubject> TechSubjects { get; set; } = null!;
+    public DbSet<TechSubjectFile> TechSubjectFiles { get; set; } = null!;
+    public DbSet<SystemSetting> SystemSettings { get; set; } = null!;
 
-    public DbSet<Course> Courses => Set<Course>();
-    public DbSet<CoursePhoto> CoursePhotos => Set<CoursePhoto>();
-    public DbSet<Generation> Generations => Set<Generation>();
-    public DbSet<CourseRegistration> CourseRegistrations => Set<CourseRegistration>();
-    public DbSet<CourseComment> CourseComments => Set<CourseComment>();
+    // ---------------- โครงงานและศิษย์เก่า ----------------
+    public DbSet<Project> Projects { get; set; } = null!;
+    public DbSet<ProjectAdvisor> ProjectAdvisors { get; set; } = null!;
+    public DbSet<JobHistory> JobHistories { get; set; } = null!;
 
-    public DbSet<Syllabus> Syllabuses => Set<Syllabus>();
-    public DbSet<Subject> Subjects => Set<Subject>();
-    public DbSet<SyllabusObjective> SyllabusObjectives => Set<SyllabusObjective>();
-    public DbSet<SyllabusOccupation> SyllabusOccupations => Set<SyllabusOccupation>();
+    // ---------------- หลักสูตรอบรม ----------------
+    public DbSet<Course> Courses { get; set; } = null!;
+    public DbSet<CoursePhoto> CoursePhotos { get; set; } = null!;
+    public DbSet<Generation> Generations { get; set; } = null!;
+    public DbSet<CourseRegistration> CourseRegistrations { get; set; } = null!;
+    public DbSet<CourseComment> CourseComments { get; set; } = null!;
+
+    // ---------------- หลักสูตรการศึกษา ----------------
+    public DbSet<Syllabus> Syllabuses { get; set; } = null!;
+    public DbSet<Subject> Subjects { get; set; } = null!;
+    public DbSet<SyllabusObjective> SyllabusObjectives { get; set; } = null!;
+    public DbSet<SyllabusOccupation> SyllabusOccupations { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
+        RenameIdentityTables(builder);
+
+        // โหลดการตั้งค่าของทุกตารางจากคลาส *Configuration ในโฟลเดอร์ Configurations
+        builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        ApplySoftDeleteAndDeleteRules(builder);
+    }
+
+    /// <summary>
+    /// เปลี่ยนชื่อตารางมาตรฐานของ Identity (ปกติขึ้นต้นด้วย AspNet) ให้อ่านง่ายขึ้น
+    /// </summary>
+    private static void RenameIdentityTables(ModelBuilder builder)
+    {
         builder.Entity<AppUser>().ToTable("Users");
         builder.Entity<AppRole>().ToTable("Roles");
         builder.Entity<IdentityUserRole<Guid>>().ToTable("UserRoles");
@@ -49,35 +76,65 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         builder.Entity<IdentityUserLogin<Guid>>().ToTable("UserLogins");
         builder.Entity<IdentityUserToken<Guid>>().ToTable("UserTokens");
         builder.Entity<IdentityRoleClaim<Guid>>().ToTable("RoleClaims");
+    }
 
-        builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
-
-        foreach (var entityType in builder.Model.GetEntityTypes())
+    /// <summary>
+    /// กติกาที่ใช้กับทุกตารางพร้อมกัน:
+    /// 1) Soft delete: ข้อมูลที่มี IsDeleted = true จะไม่ถูกดึงออกมาใน query ทั่วไป
+    /// 2) ข้อมูลลูกจะถูกซ่อนไปด้วยเมื่อข้อมูลแม่ที่บังคับต้องมี (required) ถูกลบ
+    /// 3) ไม่ให้ลบแบบ cascade ในฐานข้อมูล (DeleteBehavior.Restrict)
+    /// </summary>
+    private static void ApplySoftDeleteAndDeleteRules(ModelBuilder builder)
+    {
+        foreach (IMutableEntityType entityType in builder.Model.GetEntityTypes())
         {
-            var clr = entityType.ClrType;
-            var e = Expression.Parameter(clr, "e");
-            var conditions = new List<Expression>();
+            Type entityClrType = entityType.ClrType;
+            ParameterExpression entityParameter = Expression.Parameter(entityClrType, "entity");
+            List<Expression> conditions = new List<Expression>();
 
-            // Soft delete: hide rows flagged IsDeleted from every query.
-            if (typeof(IAuditable).IsAssignableFrom(clr))
-                conditions.Add(NotDeleted(e));
-
-            foreach (var fk in entityType.GetForeignKeys())
+            // เงื่อนไขที่ 1: แถวนี้เองต้องยังไม่ถูกลบ
+            if (typeof(IAuditable).IsAssignableFrom(entityClrType))
             {
-                // Hard deletes never cascade; rows are soft-deleted instead.
-                fk.DeleteBehavior = DeleteBehavior.Restrict;
-
-                // A child is hidden together with a soft-deleted required parent.
-                var nav = fk.DependentToPrincipal;
-                if (fk.IsRequired && nav is not null && typeof(IAuditable).IsAssignableFrom(fk.PrincipalEntityType.ClrType))
-                    conditions.Add(NotDeleted(Expression.Property(e, nav.Name)));
+                conditions.Add(BuildIsNotDeleted(entityParameter));
             }
 
-            if (conditions.Count > 0)
-                entityType.SetQueryFilter(Expression.Lambda(conditions.Aggregate(Expression.AndAlso), e));
+            foreach (IMutableForeignKey foreignKey in entityType.GetForeignKeys())
+            {
+                foreignKey.DeleteBehavior = DeleteBehavior.Restrict;
+
+                // เงื่อนไขที่ 2: ถ้าแม่ที่ต้องมีถูกลบ แถวนี้ก็ต้องถูกซ่อน
+                IMutableNavigation? navigationToParent = foreignKey.DependentToPrincipal;
+                bool parentIsAuditable = typeof(IAuditable).IsAssignableFrom(foreignKey.PrincipalEntityType.ClrType);
+                if (foreignKey.IsRequired && navigationToParent != null && parentIsAuditable)
+                {
+                    Expression parentExpression = Expression.Property(entityParameter, navigationToParent.Name);
+                    conditions.Add(BuildIsNotDeleted(parentExpression));
+                }
+            }
+
+            if (conditions.Count == 0)
+            {
+                continue;
+            }
+
+            // รวมทุกเงื่อนไขด้วย AND แล้วตั้งเป็น query filter ของตารางนี้
+            Expression combined = conditions[0];
+            for (int index = 1; index < conditions.Count; index++)
+            {
+                combined = Expression.AndAlso(combined, conditions[index]);
+            }
+
+            LambdaExpression filter = Expression.Lambda(combined, entityParameter);
+            entityType.SetQueryFilter(filter);
         }
     }
 
-    private static Expression NotDeleted(Expression target) =>
-        Expression.Equal(Expression.Property(target, nameof(IAuditable.IsDeleted)), Expression.Constant(false));
+    /// <summary>
+    /// สร้างนิพจน์ "target.IsDeleted == false"
+    /// </summary>
+    private static Expression BuildIsNotDeleted(Expression target)
+    {
+        Expression isDeleted = Expression.Property(target, nameof(IAuditable.IsDeleted));
+        return Expression.Equal(isDeleted, Expression.Constant(false));
+    }
 }

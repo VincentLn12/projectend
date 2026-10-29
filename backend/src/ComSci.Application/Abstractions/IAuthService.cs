@@ -2,17 +2,36 @@ using ComSci.Application.Dtos.Auth;
 
 namespace ComSci.Application.Abstractions;
 
+/// <summary>
+/// ระบบล็อกอิน สมัครสมาชิก และออก/ต่ออายุ token
+/// </summary>
 public interface IAuthService
 {
-    /// <summary>Returns null when the credentials are wrong or the account is locked.</summary>
-    Task<AuthResponse?> LoginAsync(LoginRequest request, CancellationToken ct = default);
+    /// <summary>
+    /// ล็อกอินด้วยอีเมล ชื่อผู้ใช้ หรือรหัสนักศึกษา
+    /// </summary>
+    /// <returns>ผลลัพธ์พร้อม token หรือ null ถ้ารหัสผ่านผิดหรือบัญชีถูกล็อก</returns>
+    Task<AuthResponse?> LoginAsync(LoginRequest request, CancellationToken cancellationToken);
 
-    Task<(AuthResponse? Response, IReadOnlyList<string> Errors)> RegisterAsync(RegisterRequest request, CancellationToken ct = default);
+    /// <summary>
+    /// สมัครสมาชิกใหม่ (ได้ role User) และล็อกอินให้ทันทีเมื่อสำเร็จ
+    /// </summary>
+    Task<RegisterResult> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken);
 
-    /// <summary>Rotates the refresh token. Returns null when it is unknown, expired or already used.</summary>
-    Task<AuthResponse?> RefreshAsync(string refreshToken, CancellationToken ct = default);
+    /// <summary>
+    /// ใช้ refresh token ขอ access token ใหม่ โดย refresh token เดิมจะใช้ไม่ได้อีก
+    /// </summary>
+    /// <returns>ผลลัพธ์ใหม่ หรือ null ถ้า token ไม่รู้จัก หมดอายุ หรือถูกใช้ไปแล้ว</returns>
+    Task<AuthResponse?> RefreshAsync(string refreshToken, CancellationToken cancellationToken);
 
-    Task LogoutAsync(string refreshToken, CancellationToken ct = default);
+    /// <summary>
+    /// ออกจากระบบ โดยเพิกถอน refresh token นี้
+    /// </summary>
+    Task LogoutAsync(string refreshToken, CancellationToken cancellationToken);
 
-    Task<UserInfo?> GetUserAsync(Guid userId, CancellationToken ct = default);
+    /// <summary>
+    /// ดึงข้อมูลผู้ใช้จากรหัส
+    /// </summary>
+    /// <returns>ข้อมูลผู้ใช้ หรือ null ถ้าไม่พบ</returns>
+    Task<UserInfo?> GetUserInfoAsync(Guid userId, CancellationToken cancellationToken);
 }

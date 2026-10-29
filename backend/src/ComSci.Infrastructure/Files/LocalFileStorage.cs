@@ -4,41 +4,75 @@ using Microsoft.Extensions.Options;
 
 namespace ComSci.Infrastructure.Files;
 
-public class LocalFileStorage(IOptions<StorageOptions> options) : IFileStorage
+/// <summary>
+/// เก็บไฟล์บนดิสก์ของเครื่องเซิร์ฟเวอร์ ภายใต้โฟลเดอร์ที่ตั้งใน Storage:RootPath
+/// โครงสร้าง: [root]/[ปี]/[เดือน]/[guid].[นามสกุล]
+/// </summary>
+public class LocalFileStorage : IFileStorage
 {
-    private readonly string _root = Path.GetFullPath(options.Value.RootPath);
+    private readonly string _rootFolder;
 
-    public async Task<string> SaveAsync(Stream content, string extension, CancellationToken ct = default)
+    public LocalFileStorage(IOptions<StorageOptions> storageOptions)
     {
-        // The stored name is generated here; nothing from the client reaches the file system.
-        var relative = Path.Combine(DateTime.UtcNow.ToString("yyyy"), DateTime.UtcNow.ToString("MM"), Guid.NewGuid().ToString("N") + extension);
-        var full = Resolve(relative);
+        _rootFolder = Path.GetFullPath(storageOptions.Value.RootPath);
+    }
 
-        Directory.CreateDirectory(Path.GetDirectoryName(full)!);
-        await using var target = new FileStream(full, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-        await content.CopyToAsync(target, ct);
-        return relative.Replace('\\', '/');
+    public async Task<string> SaveAsync(Stream content, string extension, CancellationToken cancellationToken)
+    {
+        // ชื่อไฟล์ที่เก็บสร้างโดยระบบเอง ไม่มีข้อมูลจาก client ปนอยู่ จึงกัน path traversal ได้
+        string year = DateTime.UtcNow.ToString("yyyy");
+        string month = DateTime.UtcNow.ToString("MM");
+        string fileName = Guid.NewGuid().ToString("N") + extension;
+        string relativePath = Path.Combine(year, month, fileName);
+
+        string fullPath = ResolveFullPath(relativePath);
+        string folder = Path.GetDirectoryName(fullPath)!;
+        Directory.CreateDirectory(folder);
+
+        using (FileStream target = new FileStream(fullPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+        {
+            await content.CopyToAsync(target, cancellationToken);
+        }
+
+        // เก็บใน DB ด้วย / เสมอ เพื่อไม่ให้ขึ้นกับระบบปฏิบัติการ
+        return relativePath.Replace('\\', '/');
     }
 
     public Stream? OpenRead(string path)
     {
-        var full = Resolve(path);
-        return File.Exists(full) ? new FileStream(full, FileMode.Open, FileAccess.Read, FileShare.Read) : null;
+        string fullPath = ResolveFullPath(path);
+        if (!File.Exists(fullPath))
+        {
+            return null;
+        }
+
+        return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
 
-    public Task DeleteAsync(string path, CancellationToken ct = default)
+    public Task DeleteAsync(string path, CancellationToken cancellationToken)
     {
-        var full = Resolve(path);
-        if (File.Exists(full)) File.Delete(full);
+        string fullPath = ResolveFullPath(path);
+        if (File.Exists(fullPath))
+        {
+            File.Delete(fullPath);
+        }
+
         return Task.CompletedTask;
     }
 
-    /// <summary>Maps a stored relative path to a full path and refuses anything that escapes the root.</summary>
-    private string Resolve(string relative)
+    /// <summary>
+    /// แปลง path แบบ relative เป็น path เต็ม และปฏิเสธ path ที่หลุดออกนอกโฟลเดอร์ root
+    /// </summary>
+    private string ResolveFullPath(string relativePath)
     {
-        var full = Path.GetFullPath(Path.Combine(_root, relative));
-        if (!full.StartsWith(_root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        string fullPath = Path.GetFullPath(Path.Combine(_rootFolder, relativePath));
+        string rootWithSeparator = _rootFolder + Path.DirectorySeparatorChar;
+
+        if (!fullPath.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase))
+        {
             throw new InvalidOperationException("Invalid storage path.");
-        return full;
+        }
+
+        return fullPath;
     }
 }

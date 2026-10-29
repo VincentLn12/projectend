@@ -16,131 +16,251 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace ComSci.Infrastructure.Identity;
 
-public class AuthService(UserManager<AppUser> users, AppDbContext db, IOptions<JwtOptions> options) : IAuthService
+/// <summary>
+/// ล็อกอิน สมัครสมาชิก และออก/ต่ออายุ JWT
+/// access token = JWT อายุสั้น, refresh token = ข้อความสุ่ม เก็บในฐานข้อมูลเป็นค่าแฮช
+/// </summary>
+public class AuthService : IAuthService
 {
-    private readonly JwtOptions _jwt = options.Value;
+    private readonly UserManager<AppUser> _userManager;
+    private readonly AppDbContext _dbContext;
+    private readonly JwtOptions _jwtOptions;
 
-    public async Task<AuthResponse?> LoginAsync(LoginRequest request, CancellationToken ct = default)
+    public AuthService(UserManager<AppUser> userManager, AppDbContext dbContext, IOptions<JwtOptions> jwtOptions)
     {
-        var user = await FindByIdentifierAsync(request.Identifier, ct);
-        if (user is null || await users.IsLockedOutAsync(user)) return null;
+        _userManager = userManager;
+        _dbContext = dbContext;
+        _jwtOptions = jwtOptions.Value;
+    }
 
-        if (!await users.CheckPasswordAsync(user, request.Password))
+    public async Task<AuthResponse?> LoginAsync(LoginRequest request, CancellationToken cancellationToken)
+    {
+        AppUser? user = await FindUserByIdentifierAsync(request.Identifier, cancellationToken);
+        if (user == null)
         {
-            await users.AccessFailedAsync(user);
             return null;
         }
 
-        await users.ResetAccessFailedCountAsync(user);
-        return await IssueAsync(user, ct);
-    }
-
-    public async Task<(AuthResponse? Response, IReadOnlyList<string> Errors)> RegisterAsync(
-        RegisterRequest request, CancellationToken ct = default)
-    {
-        var email = request.Email.Trim();
-        var user = new AppUser
+        bool isLockedOut = await _userManager.IsLockedOutAsync(user);
+        if (isLockedOut)
         {
-            UserName = email,
-            Email = email,
-            FullName = request.FullName.Trim(),
-            UserType = UserType.General,
-            ConsentAt = DateTime.UtcNow,
-        };
-
-        var created = await users.CreateAsync(user, request.Password);
-        if (!created.Succeeded) return (null, created.Errors.Select(e => e.Description).ToList());
-
-        await users.AddToRoleAsync(user, Roles.User);
-        return (await IssueAsync(user, ct), []);
-    }
-
-    public async Task<AuthResponse?> RefreshAsync(string refreshToken, CancellationToken ct = default)
-    {
-        var hash = Hash(refreshToken);
-        var stored = await db.RefreshTokens.Include(t => t.User).FirstOrDefaultAsync(t => t.TokenHash == hash, ct);
-        if (stored is null) return null;
-
-        var now = DateTime.UtcNow;
-        if (stored.RevokedAt is not null)
-        {
-            // A used token came back: assume it leaked and end every session of that user.
-            await RevokeAllAsync(stored.UserId, now, ct);
             return null;
         }
-        if (stored.ExpiresAt <= now) return null;
 
-        stored.RevokedAt = now;
-        return await IssueAsync(stored.User, ct); // saves the revoke and the new token together
-    }
-
-    public async Task LogoutAsync(string refreshToken, CancellationToken ct = default)
-    {
-        var hash = Hash(refreshToken);
-        var stored = await db.RefreshTokens.FirstOrDefaultAsync(t => t.TokenHash == hash && t.RevokedAt == null, ct);
-        if (stored is null) return;
-
-        stored.RevokedAt = DateTime.UtcNow;
-        await db.SaveChangesAsync(ct);
-    }
-
-    public async Task<UserInfo?> GetUserAsync(Guid userId, CancellationToken ct = default)
-    {
-        var user = await users.FindByIdAsync(userId.ToString());
-        return user is null ? null : await ToInfoAsync(user);
-    }
-
-    private async Task<AppUser?> FindByIdentifierAsync(string identifier, CancellationToken ct)
-    {
-        var id = identifier.Trim();
-        if (id.Contains('@')) return await users.FindByEmailAsync(id);
-
-        var byName = await users.FindByNameAsync(id);
-        if (byName is not null) return byName;
-
-        var userId = await db.StudentProfiles.Where(s => s.StudentCode == id).Select(s => s.UserId).FirstOrDefaultAsync(ct);
-        return userId == Guid.Empty ? null : await users.FindByIdAsync(userId.ToString());
-    }
-
-    private async Task<AuthResponse> IssueAsync(AppUser user, CancellationToken ct)
-    {
-        var info = await ToInfoAsync(user);
-        var expires = DateTime.UtcNow.AddMinutes(_jwt.AccessTokenMinutes);
-
-        var claims = new List<Claim>
+        bool passwordIsCorrect = await _userManager.CheckPasswordAsync(user, request.Password);
+        if (!passwordIsCorrect)
         {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Name, user.FullName),
-            new(ClaimTypes.Email, info.Email),
-        };
-        claims.AddRange(info.Roles.Select(r => new Claim(ClaimTypes.Role, r)));
+            // นับจำนวนครั้งที่ผิด ครบกำหนดแล้ว Identity จะล็อกบัญชีให้เอง
+            await _userManager.AccessFailedAsync(user);
+            return null;
+        }
 
-        var credentials = new SigningCredentials(
-            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key)), SecurityAlgorithms.HmacSha256);
-        var jwt = new JwtSecurityToken(_jwt.Issuer, _jwt.Audience, claims, expires: expires, signingCredentials: credentials);
-
-        var raw = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-        db.RefreshTokens.Add(new RefreshToken
-        {
-            UserId = user.Id,
-            TokenHash = Hash(raw),
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(_jwt.RefreshTokenDays),
-        });
-        await db.SaveChangesAsync(ct);
-
-        return new AuthResponse(new JwtSecurityTokenHandler().WriteToken(jwt), expires, raw, info);
+        await _userManager.ResetAccessFailedCountAsync(user);
+        return await CreateAuthResponseAsync(user, cancellationToken);
     }
 
-    private async Task<UserInfo> ToInfoAsync(AppUser user) =>
-        new(user.Id, user.FullName, user.Email ?? string.Empty, (await users.GetRolesAsync(user)).ToList());
-
-    private async Task RevokeAllAsync(Guid userId, DateTime now, CancellationToken ct)
+    public async Task<RegisterResult> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken)
     {
-        var active = await db.RefreshTokens.Where(t => t.UserId == userId && t.RevokedAt == null).ToListAsync(ct);
-        foreach (var t in active) t.RevokedAt = now;
-        await db.SaveChangesAsync(ct);
+        string email = request.Email.Trim();
+
+        AppUser user = new AppUser();
+        user.UserName = email;
+        user.Email = email;
+        user.FullName = request.FullName.Trim();
+        user.UserType = UserType.General;
+        user.ConsentAt = DateTime.UtcNow;
+
+        RegisterResult result = new RegisterResult();
+
+        IdentityResult createResult = await _userManager.CreateAsync(user, request.Password);
+        if (!createResult.Succeeded)
+        {
+            foreach (IdentityError error in createResult.Errors)
+            {
+                result.Errors.Add(error.Description);
+            }
+            return result;
+        }
+
+        await _userManager.AddToRoleAsync(user, Roles.User);
+        result.Response = await CreateAuthResponseAsync(user, cancellationToken);
+        return result;
     }
 
-    private static string Hash(string token) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
+    public async Task<AuthResponse?> RefreshAsync(string refreshToken, CancellationToken cancellationToken)
+    {
+        string tokenHash = HashToken(refreshToken);
+
+        RefreshToken? storedToken = await _dbContext.RefreshTokens
+            .Include(token => token.User)
+            .FirstOrDefaultAsync(token => token.TokenHash == tokenHash, cancellationToken);
+        if (storedToken == null)
+        {
+            return null;
+        }
+
+        DateTime now = DateTime.UtcNow;
+
+        if (storedToken.RevokedAt != null)
+        {
+            // token ที่ถูกใช้ไปแล้วถูกนำกลับมาใช้อีก: สันนิษฐานว่ารั่ว จึงเพิกถอนทุก session ของผู้ใช้นี้
+            await RevokeAllTokensOfUserAsync(storedToken.UserId, now, cancellationToken);
+            return null;
+        }
+
+        if (storedToken.ExpiresAt <= now)
+        {
+            return null;
+        }
+
+        // หมุน token: เพิกถอนตัวเก่า แล้วออกตัวใหม่ (CreateAuthResponseAsync บันทึกทั้งสองอย่างพร้อมกัน)
+        storedToken.RevokedAt = now;
+        return await CreateAuthResponseAsync(storedToken.User, cancellationToken);
+    }
+
+    public async Task LogoutAsync(string refreshToken, CancellationToken cancellationToken)
+    {
+        string tokenHash = HashToken(refreshToken);
+
+        RefreshToken? storedToken = await _dbContext.RefreshTokens
+            .FirstOrDefaultAsync(token => token.TokenHash == tokenHash && token.RevokedAt == null, cancellationToken);
+        if (storedToken == null)
+        {
+            return;
+        }
+
+        storedToken.RevokedAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<UserInfo?> GetUserInfoAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        AppUser? user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+        {
+            return null;
+        }
+
+        return await CreateUserInfoAsync(user);
+    }
+
+    /// <summary>
+    /// หาผู้ใช้จากสิ่งที่พิมพ์ในช่องล็อกอิน: อีเมล, ชื่อผู้ใช้ หรือรหัสนักศึกษา
+    /// </summary>
+    private async Task<AppUser?> FindUserByIdentifierAsync(string identifier, CancellationToken cancellationToken)
+    {
+        string trimmed = identifier.Trim();
+
+        if (trimmed.Contains('@'))
+        {
+            return await _userManager.FindByEmailAsync(trimmed);
+        }
+
+        AppUser? userByName = await _userManager.FindByNameAsync(trimmed);
+        if (userByName != null)
+        {
+            return userByName;
+        }
+
+        Guid studentUserId = await _dbContext.StudentProfiles
+            .Where(profile => profile.StudentCode == trimmed)
+            .Select(profile => profile.UserId)
+            .FirstOrDefaultAsync(cancellationToken);
+        if (studentUserId == Guid.Empty)
+        {
+            return null;
+        }
+
+        return await _userManager.FindByIdAsync(studentUserId.ToString());
+    }
+
+    /// <summary>
+    /// ออก access token + refresh token ชุดใหม่ให้ผู้ใช้ และบันทึก refresh token ลงฐานข้อมูล
+    /// </summary>
+    private async Task<AuthResponse> CreateAuthResponseAsync(AppUser user, CancellationToken cancellationToken)
+    {
+        UserInfo userInfo = await CreateUserInfoAsync(user);
+
+        DateTime accessTokenExpiresAt = DateTime.UtcNow.AddMinutes(_jwtOptions.AccessTokenMinutes);
+        string accessToken = CreateAccessToken(user, userInfo, accessTokenExpiresAt);
+
+        string refreshTokenText = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.UserId = user.Id;
+        refreshToken.TokenHash = HashToken(refreshTokenText);
+        refreshToken.CreatedAt = DateTime.UtcNow;
+        refreshToken.ExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenDays);
+        _dbContext.RefreshTokens.Add(refreshToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        AuthResponse response = new AuthResponse();
+        response.AccessToken = accessToken;
+        response.ExpiresAt = accessTokenExpiresAt;
+        response.RefreshToken = refreshTokenText;
+        response.User = userInfo;
+        return response;
+    }
+
+    private string CreateAccessToken(AppUser user, UserInfo userInfo, DateTime expiresAt)
+    {
+        List<Claim> claims = new List<Claim>();
+        claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+        claims.Add(new Claim(ClaimTypes.Name, user.FullName));
+        claims.Add(new Claim(ClaimTypes.Email, userInfo.Email));
+        foreach (string role in userInfo.Roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        SymmetricSecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Key));
+        SigningCredentials credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+
+        JwtSecurityToken token = new JwtSecurityToken(
+            issuer: _jwtOptions.Issuer,
+            audience: _jwtOptions.Audience,
+            claims: claims,
+            expires: expiresAt,
+            signingCredentials: credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private async Task<UserInfo> CreateUserInfoAsync(AppUser user)
+    {
+        IList<string> roles = await _userManager.GetRolesAsync(user);
+
+        UserInfo userInfo = new UserInfo();
+        userInfo.Id = user.Id;
+        userInfo.FullName = user.FullName;
+        userInfo.Email = user.Email ?? string.Empty;
+        userInfo.Roles = roles.ToList();
+        return userInfo;
+    }
+
+    /// <summary>
+    /// เพิกถอน refresh token ทุกตัวที่ยังใช้ได้ของผู้ใช้
+    /// </summary>
+    private async Task RevokeAllTokensOfUserAsync(Guid userId, DateTime now, CancellationToken cancellationToken)
+    {
+        List<RefreshToken> activeTokens = await _dbContext.RefreshTokens
+            .Where(token => token.UserId == userId && token.RevokedAt == null)
+            .ToListAsync(cancellationToken);
+
+        foreach (RefreshToken token in activeTokens)
+        {
+            token.RevokedAt = now;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// แฮช token ด้วย SHA-256 ก่อนเก็บ/เทียบ เพื่อให้ฐานข้อมูลรั่วแล้ว token ก็ยังใช้ไม่ได้
+    /// </summary>
+    private static string HashToken(string token)
+    {
+        byte[] bytes = Encoding.UTF8.GetBytes(token);
+        byte[] hash = SHA256.HashData(bytes);
+        return Convert.ToHexString(hash);
+    }
 }

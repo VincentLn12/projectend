@@ -6,50 +6,104 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace ComSci.Api.Controllers;
 
+/// <summary>
+/// ล็อกอิน สมัครสมาชิก ต่ออายุ token และดูข้อมูลตัวเอง
+/// controller นี้ไม่มี logic ทางธุรกิจ ทั้งหมดอยู่ใน IAuthService
+/// </summary>
 [ApiController]
 [Route("api")]
-public class AuthController(IAuthService auth, ICurrentUser currentUser) : ControllerBase
+public class AuthController : ControllerBase
 {
-    [HttpPost("auth/login")]
-    [EnableRateLimiting("auth")]
-    public async Task<ActionResult<AuthResponse>> Login(LoginRequest request, CancellationToken ct)
+    private readonly IAuthService _authService;
+    private readonly ICurrentUser _currentUser;
+
+    public AuthController(IAuthService authService, ICurrentUser currentUser)
     {
-        var result = await auth.LoginAsync(request, ct);
-        return result is null ? Problem("Invalid credentials.", statusCode: StatusCodes.Status401Unauthorized) : result;
+        _authService = authService;
+        _currentUser = currentUser;
     }
 
+    /// <summary>
+    /// ล็อกอินด้วยอีเมล ชื่อผู้ใช้ หรือรหัสนักศึกษา แล้วรับ accessToken และ refreshToken
+    /// </summary>
+    [HttpPost("auth/login")]
+    [EnableRateLimiting("auth")]
+    public async Task<ActionResult<AuthResponse>> Login(LoginRequest request, CancellationToken cancellationToken)
+    {
+        AuthResponse? response = await _authService.LoginAsync(request, cancellationToken);
+        if (response == null)
+        {
+            // ตอบข้อความเดียวกันทุกกรณี ไม่บอกว่าผิดที่ชื่อผู้ใช้หรือรหัสผ่าน
+            return Problem(detail: "Invalid credentials.", statusCode: StatusCodes.Status401Unauthorized);
+        }
+
+        return Ok(response);
+    }
+
+    /// <summary>
+    /// สมัครสมาชิกใหม่ (ต้องยอมรับนโยบายความเป็นส่วนตัว) และล็อกอินให้ทันที
+    /// </summary>
     [HttpPost("auth/register")]
     [EnableRateLimiting("auth")]
-    public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request, CancellationToken ct)
+    public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request, CancellationToken cancellationToken)
     {
-        var (response, errors) = await auth.RegisterAsync(request, ct);
-        if (response is not null) return response;
+        RegisterResult result = await _authService.RegisterAsync(request, cancellationToken);
+        if (result.Response != null)
+        {
+            return Ok(result.Response);
+        }
 
-        foreach (var error in errors) ModelState.AddModelError(nameof(request.Password), error);
+        foreach (string error in result.Errors)
+        {
+            ModelState.AddModelError("Password", error);
+        }
         return ValidationProblem(ModelState);
     }
 
+    /// <summary>
+    /// ขอ accessToken ใหม่ด้วย refreshToken (refreshToken ตัวเดิมจะใช้ไม่ได้อีก)
+    /// </summary>
     [HttpPost("auth/refresh")]
     [EnableRateLimiting("auth")]
-    public async Task<ActionResult<AuthResponse>> Refresh(RefreshRequest request, CancellationToken ct)
+    public async Task<ActionResult<AuthResponse>> Refresh(RefreshRequest request, CancellationToken cancellationToken)
     {
-        var result = await auth.RefreshAsync(request.RefreshToken, ct);
-        return result is null ? Problem("Invalid refresh token.", statusCode: StatusCodes.Status401Unauthorized) : result;
+        AuthResponse? response = await _authService.RefreshAsync(request.RefreshToken, cancellationToken);
+        if (response == null)
+        {
+            return Problem(detail: "Invalid refresh token.", statusCode: StatusCodes.Status401Unauthorized);
+        }
+
+        return Ok(response);
     }
 
+    /// <summary>
+    /// ออกจากระบบ โดยเพิกถอน refreshToken
+    /// </summary>
     [HttpPost("auth/logout")]
-    public async Task<IActionResult> Logout(RefreshRequest request, CancellationToken ct)
+    public async Task<IActionResult> Logout(RefreshRequest request, CancellationToken cancellationToken)
     {
-        await auth.LogoutAsync(request.RefreshToken, ct);
+        await _authService.LogoutAsync(request.RefreshToken, cancellationToken);
         return NoContent();
     }
 
+    /// <summary>
+    /// ดูข้อมูลของผู้ใช้ที่ล็อกอินอยู่ (ต้องส่ง accessToken)
+    /// </summary>
     [Authorize]
     [HttpGet("me")]
-    public async Task<ActionResult<UserInfo>> Me(CancellationToken ct)
+    public async Task<ActionResult<UserInfo>> GetMe(CancellationToken cancellationToken)
     {
-        if (currentUser.UserId is not { } id) return Unauthorized();
-        var info = await auth.GetUserAsync(id, ct);
-        return info is null ? Unauthorized() : info;
+        if (!_currentUser.UserId.HasValue)
+        {
+            return Unauthorized();
+        }
+
+        UserInfo? userInfo = await _authService.GetUserInfoAsync(_currentUser.UserId.Value, cancellationToken);
+        if (userInfo == null)
+        {
+            return Unauthorized();
+        }
+
+        return Ok(userInfo);
     }
 }

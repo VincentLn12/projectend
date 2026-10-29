@@ -9,48 +9,102 @@ using Microsoft.Extensions.Logging;
 
 namespace ComSci.Infrastructure.Persistence;
 
+/// <summary>
+/// สร้างข้อมูลตั้งต้นที่ระบบต้องมี: บทบาท 4 แบบ, ผู้ดูแลคนแรก, และแถวตั้งค่าเว็บ
+/// เรียกซ้ำกี่ครั้งก็ได้ จะสร้างเฉพาะสิ่งที่ยังไม่มี
+/// </summary>
 public static class DbSeeder
 {
-    /// <summary>Idempotent: creates the roles, the first admin and the settings row only when missing.</summary>
     public static async Task SeedAsync(IServiceProvider services)
     {
-        using var scope = services.CreateScope();
-        var sp = scope.ServiceProvider;
-        var log = sp.GetRequiredService<ILogger<AppDbContext>>();
-        var config = sp.GetRequiredService<IConfiguration>();
-        var roles = sp.GetRequiredService<RoleManager<AppRole>>();
-        var users = sp.GetRequiredService<UserManager<AppUser>>();
-        var db = sp.GetRequiredService<AppDbContext>();
+        using (IServiceScope scope = services.CreateScope())
+        {
+            IServiceProvider scopedServices = scope.ServiceProvider;
 
-        foreach (var name in Roles.All)
-            if (!await roles.RoleExistsAsync(name))
-                await roles.CreateAsync(new AppRole(name));
+            RoleManager<AppRole> roleManager = scopedServices.GetRequiredService<RoleManager<AppRole>>();
+            UserManager<AppUser> userManager = scopedServices.GetRequiredService<UserManager<AppUser>>();
+            AppDbContext dbContext = scopedServices.GetRequiredService<AppDbContext>();
+            IConfiguration configuration = scopedServices.GetRequiredService<IConfiguration>();
+            ILogger<AppDbContext> logger = scopedServices.GetRequiredService<ILogger<AppDbContext>>();
 
-        var email = config["Seed:AdminEmail"];
-        var password = config["Seed:AdminPassword"];
+            await SeedRolesAsync(roleManager);
+            await SeedAdminAsync(userManager, configuration, logger);
+            await SeedSystemSettingAsync(dbContext);
+        }
+    }
+
+    /// <summary>
+    /// สร้างบทบาททั้งหมดที่ยังไม่มี
+    /// </summary>
+    private static async Task SeedRolesAsync(RoleManager<AppRole> roleManager)
+    {
+        foreach (string roleName in Roles.All)
+        {
+            bool exists = await roleManager.RoleExistsAsync(roleName);
+            if (!exists)
+            {
+                await roleManager.CreateAsync(new AppRole(roleName));
+            }
+        }
+    }
+
+    /// <summary>
+    /// สร้างผู้ดูแลคนแรกจากค่า Seed:AdminEmail และ Seed:AdminPassword (เก็บใน user-secrets ไม่ใส่ในโค้ด)
+    /// ถ้าไม่ตั้งค่าไว้ จะข้ามขั้นตอนนี้และแจ้งเตือนใน log
+    /// </summary>
+    private static async Task SeedAdminAsync(
+        UserManager<AppUser> userManager,
+        IConfiguration configuration,
+        ILogger<AppDbContext> logger)
+    {
+        string? email = configuration["Seed:AdminEmail"];
+        string? password = configuration["Seed:AdminPassword"];
+
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
         {
-            log.LogWarning("Seed:AdminEmail / Seed:AdminPassword not set; no admin account was created.");
-        }
-        else if (await users.FindByEmailAsync(email) is null)
-        {
-            var admin = new AppUser
-            {
-                UserName = email,
-                Email = email,
-                EmailConfirmed = true,
-                FullName = "Administrator",
-                UserType = UserType.Admin,
-            };
-            var created = await users.CreateAsync(admin, password);
-            if (created.Succeeded) await users.AddToRoleAsync(admin, Roles.Admin);
-            else log.LogError("Could not create admin: {Errors}", string.Join("; ", created.Errors.Select(e => e.Description)));
+            logger.LogWarning("Seed:AdminEmail / Seed:AdminPassword not set; no admin account was created.");
+            return;
         }
 
-        if (!await db.SystemSettings.AnyAsync())
+        AppUser? existingAdmin = await userManager.FindByEmailAsync(email);
+        if (existingAdmin != null)
         {
-            db.SystemSettings.Add(new SystemSetting { WebName = "สาขาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยราชภัฏกาญจนบุรี" });
-            await db.SaveChangesAsync();
+            return;
         }
+
+        AppUser admin = new AppUser();
+        admin.UserName = email;
+        admin.Email = email;
+        admin.EmailConfirmed = true;
+        admin.FullName = "Administrator";
+        admin.UserType = UserType.Admin;
+
+        IdentityResult createResult = await userManager.CreateAsync(admin, password);
+        if (!createResult.Succeeded)
+        {
+            List<string> errors = createResult.Errors.Select(error => error.Description).ToList();
+            logger.LogError("Could not create admin: {Errors}", string.Join("; ", errors));
+            return;
+        }
+
+        await userManager.AddToRoleAsync(admin, Roles.Admin);
+    }
+
+    /// <summary>
+    /// สร้างแถวตั้งค่าเว็บ (มีแถวเดียวทั้งระบบ) ถ้ายังไม่มี
+    /// </summary>
+    private static async Task SeedSystemSettingAsync(AppDbContext dbContext)
+    {
+        bool hasSetting = await dbContext.SystemSettings.AnyAsync();
+        if (hasSetting)
+        {
+            return;
+        }
+
+        SystemSetting setting = new SystemSetting();
+        setting.WebName = "สาขาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยราชภัฏกาญจนบุรี";
+
+        dbContext.SystemSettings.Add(setting);
+        await dbContext.SaveChangesAsync();
     }
 }

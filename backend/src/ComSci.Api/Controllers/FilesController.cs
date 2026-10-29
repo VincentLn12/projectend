@@ -6,35 +6,55 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ComSci.Api.Controllers;
 
+/// <summary>
+/// อัปโหลด ดาวน์โหลด และลบไฟล์ (รูปภาพและ PDF)
+/// </summary>
 [ApiController]
 [Route("api/files")]
-public class FilesController(IFileService files) : ControllerBase
+public class FilesController : ControllerBase
 {
-    /// <summary>Upload one JPG, PNG, GIF, WebP or PDF (max 10 MB). Use the returned id when saving news, projects, etc.</summary>
+    private readonly IFileService _fileService;
+
+    public FilesController(IFileService fileService)
+    {
+        _fileService = fileService;
+    }
+
+    /// <summary>
+    /// อัปโหลดไฟล์ JPG, PNG, GIF, WebP หรือ PDF (ไม่เกิน 10 MB)
+    /// นำ id ที่ได้ไปใส่ตอนบันทึกข่าว โครงงาน ฯลฯ
+    /// </summary>
     [HttpPost]
     [Authorize]
     [RequestSizeLimit(FileRules.MaxRequestBytes)]
-    public async Task<ActionResult<FileDto>> Upload(IFormFile file, CancellationToken ct)
+    public async Task<ActionResult<FileDto>> Upload(IFormFile file, CancellationToken cancellationToken)
     {
-        await using var stream = file.OpenReadStream();
-        var created = await files.UploadAsync(stream, file.FileName, ct);
-        return CreatedAtAction(nameof(Download), new { id = created.Id }, created);
+        using (Stream stream = file.OpenReadStream())
+        {
+            FileDto created = await _fileService.UploadAsync(stream, file.FileName, cancellationToken);
+            return CreatedAtAction(nameof(Download), new { id = created.Id }, created);
+        }
     }
 
-    /// <summary>Public: images and PDFs appear on public pages. The id is an unguessable GUID.</summary>
+    /// <summary>
+    /// เปิดไฟล์ (เปิดสาธารณะ เพราะรูปและ PDF ต้องแสดงบนหน้าเว็บสาธารณะ รหัสไฟล์เป็น GUID เดายาก)
+    /// </summary>
     [HttpGet("{id:guid}")]
     [ResponseCache(Duration = 86400, Location = ResponseCacheLocation.Any)]
-    public async Task<IActionResult> Download(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Download(Guid id, CancellationToken cancellationToken)
     {
-        var file = await files.OpenAsync(id, ct);
-        return File(file.Content, file.ContentType, enableRangeProcessing: true);
+        FileContent fileContent = await _fileService.OpenAsync(id, cancellationToken);
+        return File(fileContent.Content, fileContent.ContentType, enableRangeProcessing: true);
     }
 
+    /// <summary>
+    /// ลบไฟล์ (เฉพาะ Admin) ลบไม่ได้ถ้ายังมีข้อมูลอื่นใช้ไฟล์นี้อยู่
+    /// </summary>
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = Roles.Admin)]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await files.DeleteAsync(id, ct);
+        await _fileService.DeleteAsync(id, cancellationToken);
         return NoContent();
     }
 }

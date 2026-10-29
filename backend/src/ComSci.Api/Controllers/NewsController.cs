@@ -5,15 +5,39 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ComSci.Api.Controllers;
 
-/// <summary>Public, read-only news. Only published items are visible.</summary>
+/// <summary>
+/// ข่าวประชาสัมพันธ์สำหรับคนทั่วไป (อ่านอย่างเดียว) เห็นเฉพาะข่าวที่เผยแพร่แล้ว
+/// </summary>
 [ApiController]
 [Route("api/news")]
-public class NewsController(INewsService news) : ControllerBase
+public class NewsController : ControllerBase
 {
-    [HttpGet]
-    public Task<PagedResult<NewsListItemDto>> List([FromQuery] PageQuery query, CancellationToken ct) =>
-        news.GetPublishedAsync(query, ct);
+    private readonly INewsService _newsService;
 
+    public NewsController(INewsService newsService)
+    {
+        _newsService = newsService;
+    }
+
+    /// <summary>
+    /// รายการข่าว เรียงจากใหม่ไปเก่า ค้นหาจากหัวข้อด้วย ?search=
+    /// </summary>
+    [HttpGet]
+    public async Task<ActionResult<PagedResult<NewsListItemDto>>> GetList(
+        [FromQuery] PageQuery pageQuery,
+        CancellationToken cancellationToken)
+    {
+        PagedResult<NewsListItemDto> result = await _newsService.GetPublishedAsync(pageQuery, cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// รายละเอียดข่าวหนึ่งรายการ
+    /// </summary>
     [HttpGet("{id:guid}")]
-    public Task<NewsDetailDto> Get(Guid id, CancellationToken ct) => news.GetPublishedByIdAsync(id, ct);
+    public async Task<ActionResult<NewsDetailDto>> GetById(Guid id, CancellationToken cancellationToken)
+    {
+        NewsDetailDto result = await _newsService.GetPublishedByIdAsync(id, cancellationToken);
+        return Ok(result);
+    }
 }

@@ -9,83 +9,153 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ComSci.Infrastructure.Services;
 
-public class FileService(AppDbContext db, IFileStorage storage, ICurrentUser currentUser) : IFileService
+/// <summary>
+/// อัปโหลด เปิด และลบไฟล์ ตรวจความถูกต้องของไฟล์ก่อนบันทึกทุกครั้ง
+/// </summary>
+public class FileService : IFileService
 {
-    public async Task<FileDto> UploadAsync(Stream content, string originalName, CancellationToken ct = default)
-    {
-        var userId = currentUser.UserId ?? throw new InvalidOperationException("No authenticated user.");
+    private readonly AppDbContext _dbContext;
+    private readonly IFileStorage _fileStorage;
+    private readonly ICurrentUser _currentUser;
 
-        if (!content.CanSeek)
+    public FileService(AppDbContext dbContext, IFileStorage fileStorage, ICurrentUser currentUser)
+    {
+        _dbContext = dbContext;
+        _fileStorage = fileStorage;
+        _currentUser = currentUser;
+    }
+
+    public async Task<FileDto> UploadAsync(Stream content, string originalName, CancellationToken cancellationToken)
+    {
+        if (!_currentUser.UserId.HasValue)
         {
-            var buffer = new MemoryStream();
-            await content.CopyToAsync(buffer, ct);
+            throw new InvalidOperationException("No authenticated user.");
+        }
+        Guid userId = _currentUser.UserId.Value;
+
+        // ต้องอ่านย้อนกลับได้ เพราะจะอ่านต้นไฟล์เพื่อตรวจชนิดก่อน แล้วค่อยอ่านใหม่ตอนบันทึก
+        Stream seekableContent = content;
+        if (!seekableContent.CanSeek)
+        {
+            MemoryStream buffer = new MemoryStream();
+            await content.CopyToAsync(buffer, cancellationToken);
             buffer.Position = 0;
-            content = buffer;
+            seekableContent = buffer;
         }
 
-        var length = content.Length;
-        if (length == 0) throw new BadRequestException("File is empty.");
-        if (length > FileRules.MaxUploadBytes)
-            throw new BadRequestException($"File is larger than {FileRules.MaxUploadBytes / 1024 / 1024} MB.");
-
-        var header = new byte[12];
-        var read = await content.ReadAtLeastAsync(header, header.Length, throwOnEndOfStream: false, ct);
-        content.Position = 0;
-
-        var kind = FileSignature.Detect(header.AsSpan(0, read))
-            ?? throw new BadRequestException("Unsupported file type. Allowed: JPG, PNG, GIF, WebP, PDF.");
-        if (!kind.Extensions.Contains(Path.GetExtension(originalName).ToLowerInvariant()))
-            throw new BadRequestException("File extension does not match its content.");
-
-        var path = await storage.SaveAsync(content, kind.Extensions[0], ct);
-        var name = Path.GetFileName(originalName);
-        var record = new FileRecord
+        // ขั้นที่ 1: ตรวจขนาด
+        long length = seekableContent.Length;
+        if (length == 0)
         {
-            OriginalName = name.Length > 260 ? name[..260] : name,
-            StoragePath = path,
-            ContentType = kind.ContentType,
-            SizeBytes = length,
-            UploadedBy = userId,
-            UploadedAt = DateTime.UtcNow,
-        };
+            throw new BadRequestException("File is empty.");
+        }
+        if (length > FileRules.MaxUploadBytes)
+        {
+            long maxMegabytes = FileRules.MaxUploadBytes / 1024 / 1024;
+            throw new BadRequestException("File is larger than " + maxMegabytes + " MB.");
+        }
+
+        // ขั้นที่ 2: ตรวจชนิดจากเนื้อไฟล์ ไม่เชื่อ Content-Type หรือนามสกุลที่ client ส่งมา
+        byte[] header = new byte[12];
+        int headerLength = await seekableContent.ReadAtLeastAsync(header, header.Length, false, cancellationToken);
+        seekableContent.Position = 0;
+
+        FileKind? kind = FileSignature.Detect(header, headerLength);
+        if (kind == null)
+        {
+            throw new BadRequestException("Unsupported file type. Allowed: JPG, PNG, GIF, WebP, PDF.");
+        }
+
+        // ขั้นที่ 3: นามสกุลต้องตรงกับเนื้อไฟล์ (กันการเปลี่ยนนามสกุลหลอก)
+        string extension = Path.GetExtension(originalName).ToLowerInvariant();
+        if (!kind.Extensions.Contains(extension))
+        {
+            throw new BadRequestException("File extension does not match its content.");
+        }
+
+        // ขั้นที่ 4: เก็บไฟล์จริง แล้วจึงบันทึกแถวในฐานข้อมูล
+        string storedPath = await _fileStorage.SaveAsync(seekableContent, kind.Extensions[0], cancellationToken);
+
+        string displayName = Path.GetFileName(originalName);
+        if (displayName.Length > 260)
+        {
+            displayName = displayName.Substring(0, 260);
+        }
+
+        FileRecord record = new FileRecord();
+        record.OriginalName = displayName;
+        record.StoragePath = storedPath;
+        record.ContentType = kind.ContentType;
+        record.SizeBytes = length;
+        record.UploadedBy = userId;
+        record.UploadedAt = DateTime.UtcNow;
 
         try
         {
-            db.Files.Add(record);
-            await db.SaveChangesAsync(ct);
+            _dbContext.Files.Add(record);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
         catch
         {
-            await storage.DeleteAsync(path, CancellationToken.None); // no orphan bytes without a row
+            // บันทึกฐานข้อมูลไม่สำเร็จ ให้ลบไฟล์ที่เพิ่งเขียนทิ้ง ไม่ให้มีไฟล์กำพร้า
+            await _fileStorage.DeleteAsync(storedPath, CancellationToken.None);
             throw;
         }
 
-        return new FileDto(record.Id, record.OriginalName, record.ContentType, record.SizeBytes, $"/api/files/{record.Id}", record.UploadedAt);
+        FileDto result = new FileDto();
+        result.Id = record.Id;
+        result.OriginalName = record.OriginalName;
+        result.ContentType = record.ContentType;
+        result.SizeBytes = record.SizeBytes;
+        result.Url = "/api/files/" + record.Id;
+        result.UploadedAt = record.UploadedAt;
+        return result;
     }
 
-    public async Task<FileContent> OpenAsync(Guid id, CancellationToken ct = default)
+    public async Task<FileContent> OpenAsync(Guid fileId, CancellationToken cancellationToken)
     {
-        var record = await db.Files.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id, ct)
-            ?? throw new NotFoundException("File not found.");
-        var stream = storage.OpenRead(record.StoragePath) ?? throw new NotFoundException("File not found.");
-        return new FileContent(stream, record.ContentType);
+        FileRecord? record = await _dbContext.Files
+            .AsNoTracking()
+            .FirstOrDefaultAsync(file => file.Id == fileId, cancellationToken);
+        if (record == null)
+        {
+            throw new NotFoundException("File not found.");
+        }
+
+        Stream? stream = _fileStorage.OpenRead(record.StoragePath);
+        if (stream == null)
+        {
+            // มีแถวในฐานข้อมูลแต่ไฟล์จริงหายไป
+            throw new NotFoundException("File not found.");
+        }
+
+        FileContent result = new FileContent();
+        result.Content = stream;
+        result.ContentType = record.ContentType;
+        return result;
     }
 
-    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    public async Task DeleteAsync(Guid fileId, CancellationToken cancellationToken)
     {
-        var record = await db.Files.FirstOrDefaultAsync(f => f.Id == id, ct)
-            ?? throw new NotFoundException("File not found.");
+        FileRecord? record = await _dbContext.Files
+            .FirstOrDefaultAsync(file => file.Id == fileId, cancellationToken);
+        if (record == null)
+        {
+            throw new NotFoundException("File not found.");
+        }
 
-        db.Files.Remove(record);
+        _dbContext.Files.Remove(record);
         try
         {
-            await db.SaveChangesAsync(ct);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateException)
         {
+            // ฐานข้อมูลไม่ยอมลบ เพราะมี FK จากข่าว โครงงาน ฯลฯ อ้างถึงไฟล์นี้อยู่
             throw new ConflictException("File is still in use.");
         }
 
-        await storage.DeleteAsync(record.StoragePath, ct);
+        // ลบไฟล์จริงหลังจากลบแถวสำเร็จแล้วเท่านั้น
+        await _fileStorage.DeleteAsync(record.StoragePath, cancellationToken);
     }
 }
