@@ -1,35 +1,149 @@
-<div class="flex min-h-screen">
-  <aside class="w-56 shrink-0 border-r border-slate-200 bg-white">
-    <div class="px-4 py-4 text-lg font-semibold text-slate-900">จัดการระบบ</div>
-    <nav class="flex flex-col gap-1 px-2 text-sm">
-      @for (item of menu; track item.path) {
-        <a
-          [routerLink]="item.path"
-          routerLinkActive="bg-slate-100 font-semibold text-slate-900"
-          [routerLinkActiveOptions]="{ exact: item.exact }"
-          class="rounded-md px-3 py-2 text-slate-600 hover:bg-slate-50"
-        >
-          {{ item.label }}
-        </a>
+<!-- One drawing routine for every icon: <ng-container *ngTemplateOutlet="icon; context: { $implicit: 'news', size: 'size-5' }" /> -->
+<ng-template #icon let-name let-size="size">
+  <svg [class]="size" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+    @for (path of iconPaths(name); track $index) {
+      <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="path" />
+    }
+  </svg>
+</ng-template>
+
+<div class="min-h-screen bg-slate-100 font-sans text-slate-900 antialiased lg:flex">
+  @if (isMobileMenuOpen()) {
+    <div
+      class="fixed inset-0 z-40 bg-brand-950/60 backdrop-blur-xs lg:hidden"
+      (click)="closeMobileMenu()"
+      aria-hidden="true"
+    ></div>
+  }
+
+  <aside
+    class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-brand-900 text-slate-300 shadow-2xl transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:translate-x-0 lg:shadow-none"
+    [class.translate-x-0]="isMobileMenuOpen()"
+    [class.-translate-x-full]="!isMobileMenuOpen()"
+  >
+    <!-- ตราสถาบันและชื่อเว็บไซต์ -->
+    <div class="flex h-20 shrink-0 items-center justify-between gap-2 border-b border-white/10 px-4">
+      <a routerLink="/admin" class="flex min-w-0 items-center gap-3" (click)="closeMobileMenu()">
+        @if (siteSettings.settings()?.logoFileId; as logoId) {
+          <app-file-image [fileId]="logoId" alt="โลโก้" class="size-11 shrink-0 rounded-lg bg-white p-1 ring-1 ring-gold-400/60" />
+        } @else {
+          <span
+            class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-gold-400/10 text-gold-300 ring-1 ring-gold-400/50"
+          >
+            <ng-container *ngTemplateOutlet="icon; context: { $implicit: 'crest', size: 'size-6' }" />
+          </span>
+        }
+        <span class="min-w-0 leading-tight">
+          <span class="block truncate text-sm font-semibold text-white">
+            {{ siteSettings.settings()?.webName ?? 'สาขาวิทยาการคอมพิวเตอร์' }}
+          </span>
+          <span class="mt-0.5 block truncate text-xs text-slate-400">ม.ราชภัฏกาญจนบุรี · ระบบจัดการ</span>
+        </span>
+      </a>
+
+      <button
+        type="button"
+        app-button
+        variant="ghost"
+        size="sm"
+        class="text-slate-300! hover:bg-white/10! lg:hidden"
+        (click)="closeMobileMenu()"
+        aria-label="ปิดเมนู"
+      >
+        <ng-container *ngTemplateOutlet="icon; context: { $implicit: 'close', size: 'size-5' }" />
+      </button>
+    </div>
+
+    <nav aria-label="เมนูผู้ดูแลระบบ" class="flex-1 space-y-5 overflow-y-auto px-3 py-5">
+      @for (group of menuGroups; track group.groupName) {
+        <div>
+          <p class="px-3 pb-1.5 text-xs font-medium text-slate-400">{{ group.groupName }}</p>
+          <ul class="space-y-0.5">
+            @for (item of group.items; track item.path) {
+              <li>
+                <a
+                  [routerLink]="item.path"
+                  routerLinkActive
+                  ariaCurrentWhenActive="page"
+                  [routerLinkActiveOptions]="{ exact: item.exact }"
+                  (click)="closeMobileMenu()"
+                  class="group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-300 transition-colors hover:bg-white/5 hover:text-white aria-[current=page]:bg-white/10 aria-[current=page]:font-semibold aria-[current=page]:text-white aria-[current=page]:before:absolute aria-[current=page]:before:-left-3 aria-[current=page]:before:inset-y-2 aria-[current=page]:before:w-1 aria-[current=page]:before:rounded-r aria-[current=page]:before:bg-gold-400"
+                >
+                  <span class="shrink-0 text-slate-400 transition-colors group-hover:text-gold-300 group-aria-[current=page]:text-gold-400">
+                    <ng-container *ngTemplateOutlet="icon; context: { $implicit: item.icon, size: 'size-5' }" />
+                  </span>
+                  <span class="truncate">{{ item.label }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        </div>
       }
     </nav>
+
+    <!-- ผู้ใช้ที่ล็อกอินและปุ่มออกจากระบบ -->
+    <div class="shrink-0 space-y-1 border-t border-white/10 p-3">
+      <div class="flex items-center gap-3 rounded-lg px-2 py-2">
+        <span
+          class="flex size-9 shrink-0 items-center justify-center rounded-full bg-gold-400 text-sm font-bold text-brand-950"
+          aria-hidden="true"
+          >{{ userInitial() }}</span
+        >
+        <span class="min-w-0 leading-tight">
+          <span class="block truncate text-sm font-medium text-white">{{ auth.user()?.fullName }}</span>
+          <span class="block truncate text-xs text-slate-400">{{ auth.user()?.email }}</span>
+        </span>
+      </div>
+      <button
+        type="button"
+        app-button
+        variant="ghost"
+        size="sm"
+        class="w-full justify-start gap-2 text-slate-300! hover:bg-white/10! hover:text-white!"
+        (click)="auth.logout()"
+      >
+        <ng-container *ngTemplateOutlet="icon; context: { $implicit: 'logout', size: 'size-4' }" />
+        ออกจากระบบ
+      </button>
+    </div>
   </aside>
 
   <div class="flex min-w-0 flex-1 flex-col">
     <header
-      class="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 text-sm"
+      class="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur-md sm:px-6 lg:px-8"
     >
-      <a routerLink="/" class="text-slate-600 hover:text-slate-900">← กลับหน้าเว็บ</a>
-      <div class="flex items-center gap-3">
-        <span class="text-slate-500">{{ auth.user()?.fullName }}</span>
-        <button type="button" app-button variant="secondary" size="sm" (click)="auth.logout()">
-          ออกจากระบบ
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          app-button
+          variant="ghost"
+          size="sm"
+          class="lg:hidden"
+          (click)="toggleMobileMenu()"
+          aria-label="เปิดเมนู"
+        >
+          <ng-container *ngTemplateOutlet="icon; context: { $implicit: 'menu', size: 'size-5' }" />
         </button>
+
+        <a
+          routerLink="/"
+          class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3.5 py-1.5 text-sm text-slate-700 transition-colors hover:border-brand-700/40 hover:bg-brand-900/5 hover:text-brand-900"
+        >
+          <ng-container *ngTemplateOutlet="icon; context: { $implicit: 'back', size: 'size-4' }" />
+          <span>กลับหน้าเว็บไซต์</span>
+        </a>
+      </div>
+
+      <div class="flex items-center gap-3 text-sm">
+        <span class="hidden text-slate-500 sm:inline">{{ today | thaiDate }}</span>
+        <span class="rounded-full bg-brand-900/5 px-3 py-1 text-xs font-medium text-brand-800">ผู้ดูแลระบบ</span>
       </div>
     </header>
 
-    <main class="flex-1 p-6">
-      <router-outlet />
+    <main class="flex-1 p-4 sm:p-6 lg:p-8">
+      <div class="mx-auto max-w-7xl">
+        <router-outlet />
+      </div>
     </main>
   </div>
 </div>

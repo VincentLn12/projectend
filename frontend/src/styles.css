@@ -2,4 +2,13 @@
 
 @theme {
   --font-sans: 'Sarabun', 'Noto Sans Thai', 'Leelawadee UI', Tahoma, system-ui, sans-serif;
+
+  /* สีประจำสถาบัน: น้ำเงินเข้ม + ทอง เปลี่ยนที่นี่ที่เดียวมีผลทั้งแถบเมนูผู้ดูแล */
+  --color-brand-950: #07152b;
+  --color-brand-900: #0c2144;
+  --color-brand-800: #13315f;
+  --color-brand-700: #1d4580;
+  --color-gold-300: #ecd08a;
+  --color-gold-400: #e0b04a;
+  --color-gold-500: #c99a2e;
 }

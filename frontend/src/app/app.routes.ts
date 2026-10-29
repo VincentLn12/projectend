@@ -1,7 +1,6 @@
 import { isDevMode } from '@angular/core';
 import { Routes } from '@angular/router';
 import { adminGuard, authGuard } from './core/auth/auth.guards';
-import { AdminLayout } from './layouts/admin-layout/admin-layout';
 import { PublicLayout } from './layouts/public-layout/public-layout';
 
 export const routes: Routes = [
@@ -41,7 +40,7 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    component: AdminLayout,
+    loadComponent: () => import('./layouts/admin-layout/admin-layout').then((m) => m.AdminLayout),
     canActivate: [authGuard, adminGuard],
     children: [
       { path: '', pathMatch: 'full', loadComponent: () => import('./features/admin/dashboard/dashboard').then((m) => m.Dashboard) },
