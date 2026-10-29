@@ -17,7 +17,7 @@
   }
 
   <aside
-    class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-brand-900 text-slate-300 shadow-2xl transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:translate-x-0 lg:shadow-none"
+    class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-brand-900 text-slate-300 shadow-2xl transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:shrink-0 lg:translate-x-0 lg:shadow-none"
     [class.translate-x-0]="isMobileMenuOpen()"
     [class.-translate-x-full]="!isMobileMenuOpen()"
   >
@@ -34,10 +34,10 @@
           </span>
         }
         <span class="min-w-0 leading-tight">
-          <span class="block truncate text-sm font-semibold text-white">
+          <span class="block truncate text-base font-semibold text-white">
             {{ siteSettings.settings()?.webName ?? 'สาขาวิทยาการคอมพิวเตอร์' }}
           </span>
-          <span class="mt-0.5 block truncate text-xs text-slate-400">ม.ราชภัฏกาญจนบุรี · ระบบจัดการ</span>
+          <span class="mt-0.5 block truncate text-sm text-slate-400">ม.ราชภัฏกาญจนบุรี · ระบบจัดการ</span>
         </span>
       </a>
 
@@ -57,7 +57,7 @@
     <nav aria-label="เมนูผู้ดูแลระบบ" class="flex-1 space-y-5 overflow-y-auto px-3 py-5">
       @for (group of menuGroups; track group.groupName) {
         <div>
-          <p class="px-3 pb-1.5 text-xs font-medium text-slate-400">{{ group.groupName }}</p>
+          <p class="px-3 pb-1.5 text-sm font-medium text-slate-400">{{ group.groupName }}</p>
           <ul class="space-y-0.5">
             @for (item of group.items; track item.path) {
               <li>
@@ -67,7 +67,7 @@
                   ariaCurrentWhenActive="page"
                   [routerLinkActiveOptions]="{ exact: item.exact }"
                   (click)="closeMobileMenu()"
-                  class="group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-300 transition-colors hover:bg-white/5 hover:text-white aria-[current=page]:bg-white/10 aria-[current=page]:font-semibold aria-[current=page]:text-white aria-[current=page]:before:absolute aria-[current=page]:before:-left-3 aria-[current=page]:before:inset-y-2 aria-[current=page]:before:w-1 aria-[current=page]:before:rounded-r aria-[current=page]:before:bg-gold-400"
+                  class="group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-base text-slate-300 transition-colors hover:bg-white/5 hover:text-white aria-[current=page]:bg-white/10 aria-[current=page]:font-semibold aria-[current=page]:text-white aria-[current=page]:before:absolute aria-[current=page]:before:-left-3 aria-[current=page]:before:inset-y-2 aria-[current=page]:before:w-1 aria-[current=page]:before:rounded-r aria-[current=page]:before:bg-gold-400"
                 >
                   <span class="shrink-0 text-slate-400 transition-colors group-hover:text-gold-300 group-aria-[current=page]:text-gold-400">
                     <ng-container *ngTemplateOutlet="icon; context: { $implicit: item.icon, size: 'size-5' }" />
@@ -85,13 +85,13 @@
     <div class="shrink-0 space-y-1 border-t border-white/10 p-3">
       <div class="flex items-center gap-3 rounded-lg px-2 py-2">
         <span
-          class="flex size-9 shrink-0 items-center justify-center rounded-full bg-gold-400 text-sm font-bold text-brand-950"
+          class="flex size-9 shrink-0 items-center justify-center rounded-full bg-gold-400 text-base font-bold text-brand-950"
           aria-hidden="true"
           >{{ userInitial() }}</span
         >
         <span class="min-w-0 leading-tight">
-          <span class="block truncate text-sm font-medium text-white">{{ auth.user()?.fullName }}</span>
-          <span class="block truncate text-xs text-slate-400">{{ auth.user()?.email }}</span>
+          <span class="block truncate text-base font-medium text-white">{{ auth.user()?.fullName }}</span>
+          <span class="block truncate text-sm text-slate-400">{{ auth.user()?.email }}</span>
         </span>
       </div>
       <button
@@ -99,7 +99,7 @@
         app-button
         variant="ghost"
         size="sm"
-        class="w-full justify-start gap-2 text-slate-300! hover:bg-white/10! hover:text-white!"
+        class="w-full justify-start gap-2 text-base! text-slate-300! hover:bg-white/10! hover:text-white!"
         (click)="auth.logout()"
       >
         <ng-container *ngTemplateOutlet="icon; context: { $implicit: 'logout', size: 'size-4' }" />
@@ -127,16 +127,16 @@
 
         <a
           routerLink="/"
-          class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3.5 py-1.5 text-sm text-slate-700 transition-colors hover:border-brand-700/40 hover:bg-brand-900/5 hover:text-brand-900"
+          class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3.5 py-1.5 text-base text-slate-700 transition-colors hover:border-brand-700/40 hover:bg-brand-900/5 hover:text-brand-900"
         >
           <ng-container *ngTemplateOutlet="icon; context: { $implicit: 'back', size: 'size-4' }" />
           <span>กลับหน้าเว็บไซต์</span>
         </a>
       </div>
 
-      <div class="flex items-center gap-3 text-sm">
+      <div class="flex items-center gap-3 text-base">
         <span class="hidden text-slate-500 sm:inline">{{ today | thaiDate }}</span>
-        <span class="rounded-full bg-brand-900/5 px-3 py-1 text-xs font-medium text-brand-800">ผู้ดูแลระบบ</span>
+        <span class="rounded-full bg-brand-900/5 px-3 py-1 text-sm font-medium text-brand-800">ผู้ดูแลระบบ</span>
       </div>
     </header>
 
