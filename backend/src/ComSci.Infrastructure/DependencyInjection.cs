@@ -63,6 +63,8 @@ public static class DependencyInjection
         services.AddScoped<IFileService, FileService>();
         services.AddScoped<ILecturerService, LecturerService>();
         services.AddScoped<IProjectService, ProjectService>();
+        services.AddScoped<ICourseService, CourseService>();
+        services.AddScoped<IRegistrationService, RegistrationService>();
 
         services.AddSingleton<IFileStorage, LocalFileStorage>();
     }
