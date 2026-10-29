@@ -1,39 +1,52 @@
-<section class="space-y-4">
-  <div class="flex items-baseline justify-between gap-3">
-    <h1 class="text-xl font-semibold text-slate-900">{{ isNew ? 'เพิ่มข่าว' : 'แก้ไขข่าว' }}</h1>
-    <a routerLink="/admin/news" class="text-sm text-slate-600 underline hover:text-slate-900"
-      >← กลับไปรายการข่าว</a
-    >
-  </div>
+<section class="space-y-6">
+  <header class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <nav aria-label="เส้นทาง" class="text-sm text-slate-600">
+        <a routerLink="/admin/news" class="font-medium text-brand-800 hover:underline">ข่าวสารและกิจกรรม</a>
+        <span class="mx-1.5" aria-hidden="true">/</span>
+        <span>{{ isNew ? 'เพิ่มข่าว' : 'แก้ไขข่าว' }}</span>
+      </nav>
+      <h1 class="mt-1 text-2xl font-bold text-slate-900">{{ isNew ? 'เพิ่มข่าวใหม่' : 'แก้ไขข่าว' }}</h1>
+    </div>
+    <a routerLink="/admin/news" app-button variant="secondary">← กลับไปรายการข่าว</a>
+  </header>
 
   <app-data-state [loading]="loading()" [error]="loadError()" (retry)="loadNews()">
-    <form
-      [formGroup]="form"
-      (ngSubmit)="save()"
-      class="space-y-4 rounded-xl bg-white p-6 shadow-sm"
-    >
-      <app-text-input label="หัวข้อ" formControlName="title" [maxLength]="300" />
-      <app-text-input label="หัวข้อรอง" formControlName="subTitle" [maxLength]="500" />
-      <app-text-area label="เนื้อหา" formControlName="body" [rows]="12" />
-      <app-file-upload
-        label="รูปภาพ"
-        hint="รูปแรกเป็นรูปหลักของข่าว"
-        formControlName="fileIds"
-        [multiple]="true"
-        accept="image"
-      />
-      <app-toggle label="เผยแพร่ทันที" formControlName="isPublished" />
-
-      @if (formError(); as message) {
-        <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-          {{ message }}
-        </p>
-      }
-
-      <div class="flex justify-end gap-2">
-        <a app-button variant="secondary" routerLink="/admin/news">ยกเลิก</a>
-        <button type="submit" app-button [loading]="saving()">บันทึก</button>
+    <form [formGroup]="form" (ngSubmit)="save()" class="grid items-start gap-6 lg:grid-cols-3">
+      <div class="space-y-4 rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-300 lg:col-span-2">
+        <h2 class="border-b border-slate-200 pb-3 text-lg font-semibold text-slate-900">เนื้อหาข่าว</h2>
+        <app-text-input label="หัวข้อ" formControlName="title" [maxLength]="300" />
+        <app-text-input label="หัวข้อรอง" hint="ไม่บังคับ แสดงใต้หัวข้อในหน้าข่าว" formControlName="subTitle" [maxLength]="500" />
+        <app-text-area label="เนื้อหา" formControlName="body" [rows]="14" />
       </div>
+
+      <aside class="space-y-6">
+        <div class="space-y-4 rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-300">
+          <h2 class="border-b border-slate-200 pb-3 text-lg font-semibold text-slate-900">การเผยแพร่</h2>
+          <app-toggle label="เผยแพร่" hint="ปิดไว้ = ฉบับร่าง ผู้เยี่ยมชมยังไม่เห็น" formControlName="isPublished" />
+        </div>
+
+        <div class="space-y-4 rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-300">
+          <h2 class="border-b border-slate-200 pb-3 text-lg font-semibold text-slate-900">รูปภาพประกอบ</h2>
+          <app-file-upload
+            label="รูปภาพ"
+            hint="รูปแรกเป็นรูปหลักของข่าว"
+            formControlName="fileIds"
+            [multiple]="true"
+            accept="image"
+          />
+        </div>
+
+        <div class="space-y-3 rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-300">
+          @if (formError(); as message) {
+            <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700 ring-1 ring-red-200">
+              {{ message }}
+            </p>
+          }
+          <button type="submit" app-button class="w-full" [loading]="saving()">บันทึกข่าว</button>
+          <a app-button variant="secondary" class="w-full" routerLink="/admin/news">ยกเลิก</a>
+        </div>
+      </aside>
     </form>
   </app-data-state>
 </section>
