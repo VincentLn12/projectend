@@ -1,4 +1,4 @@
-namespace ComSci.Application.Dtos.News;
+namespace ComSci.Application.Dtos.Common;
 
 public class SetPublishedRequest
 {
