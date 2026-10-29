@@ -22,3 +22,9 @@
   --color-gold-400: #e0b04a;
   --color-gold-500: #c99a2e;
 }
+
+/* แถบเลื่อนบางสำหรับพื้นหลังสีเข้ม (ใช้กับแถบเมนูผู้ดูแล) ให้หน้าตาเหมือนกันทั้ง Windows และ Mac */
+.scrollbar-dark {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.22) transparent;
+}
