@@ -18,7 +18,15 @@ export class AdminProjectsApi {
     if (query.search) {
       params = params.set('search', query.search);
     }
+    for (const [name, value] of Object.entries(query.filters ?? {})) {
+      params = params.set(name, value);
+    }
     return this.http.get<PagedResult<AdminProjectListItem>>(PROJECTS_URL, { params });
+  }
+
+  // The academic years that have at least one project, newest first.
+  academicYears(): Observable<number[]> {
+    return this.http.get<number[]>(`${PROJECTS_URL}/academic-years`);
   }
 
   get(id: string): Observable<AdminProject> {

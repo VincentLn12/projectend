@@ -9,8 +9,29 @@
 
   <div class="flex flex-wrap items-end gap-3">
     <div class="min-w-60 flex-1">
-      <app-search-box placeholder="ค้นหาชื่อโครงงาน" (searchChange)="list.setSearch($event)" />
+      <app-search-box placeholder="ค้นหาชื่อโครงงานหรือชื่อนักศึกษา" (searchChange)="list.setSearch($event)" />
     </div>
+    <div class="w-[calc(50%-0.375rem)] sm:w-44">
+      <app-select-input
+        label="ปีการศึกษา"
+        shape="soft"
+        placeholder="ทุกปี"
+        [options]="yearOptions()"
+        [formControl]="yearControl"
+      />
+    </div>
+    <div class="w-[calc(50%-0.375rem)] sm:w-44">
+      <app-select-input
+        label="สถานะ"
+        shape="soft"
+        placeholder="ทุกสถานะ"
+        [options]="statusOptions"
+        [formControl]="statusControl"
+      />
+    </div>
+    @if (hasFilters()) {
+      <button type="button" app-button variant="ghost" class="rounded-lg" (click)="clearFilters()">ล้างตัวกรอง</button>
+    }
   </div>
 
   <app-data-table
@@ -19,7 +40,7 @@
     [trackBy]="rowKey"
     [loading]="list.loading()"
     [error]="list.error()"
-    emptyMessage="ยังไม่มีโครงงาน"
+    [emptyMessage]="hasFilters() || list.search() ? 'ไม่พบโครงงานที่ตรงกับตัวกรอง' : 'ยังไม่มีโครงงาน'"
     (retry)="list.reload()"
   >
     <ng-template appCell="nameTH" let-row>

@@ -11,6 +11,8 @@ public interface IProjectService
 
     Task<PagedResult<AdminProjectListItemDto>> GetAllAsync(AdminProjectQuery query, CancellationToken cancellationToken);
 
+    Task<IReadOnlyList<short>> GetAcademicYearsAsync(CancellationToken cancellationToken);
+
     Task<AdminProjectDto> GetByIdAsync(Guid projectId, CancellationToken cancellationToken);
 
     Task<AdminProjectDto> CreateAsync(SaveProjectRequest request, CancellationToken cancellationToken);

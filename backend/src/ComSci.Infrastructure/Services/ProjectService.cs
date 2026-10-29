@@ -225,6 +225,18 @@ public class ProjectService : IProjectService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<short>> GetAcademicYearsAsync(CancellationToken cancellationToken)
+    {
+        List<short> years = await _dbContext.Projects
+            .AsNoTracking()
+            .Select(project => project.AcademicYear)
+            .Distinct()
+            .OrderByDescending(year => year)
+            .ToListAsync(cancellationToken);
+
+        return years;
+    }
+
     private static IQueryable<Project> ApplyFilters(IQueryable<Project> projectQuery, ProjectQuery query, bool isPublicView)
     {
         if (!string.IsNullOrWhiteSpace(query.Search))
