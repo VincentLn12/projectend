@@ -1,4 +1,5 @@
 using ComSci.Application.Abstractions;
+using ComSci.Application.Constants;
 using ComSci.Application.Dtos.Common;
 using ComSci.Application.Dtos.Projects;
 using ComSci.Application.Exceptions;
@@ -22,7 +23,7 @@ public class ProjectService : IProjectService
         IQueryable<Project> projectQuery = _dbContext.Projects
             .AsNoTracking()
             .Where(project => project.IsPublished);
-        projectQuery = ApplyFilters(projectQuery, query);
+        projectQuery = ApplyFilters(projectQuery, query, true);
 
         int total = await projectQuery.CountAsync(cancellationToken);
 
@@ -40,7 +41,7 @@ public class ProjectService : IProjectService
                 AcademicYear = project.AcademicYear,
                 KeyWords = project.KeyWords,
                 ImageFileId = project.ImageFileId,
-                StudentName = project.Student.FullName
+                StudentName = project.Student.ShowProfile ? project.Student.FullName : PrivacyText.AnonymousName
             })
             .ToListAsync(cancellationToken);
 
@@ -70,7 +71,7 @@ public class ProjectService : IProjectService
                 GithubUrl = project.GithubUrl,
                 ImageFileId = project.ImageFileId,
                 PdfFileId = project.PdfFileId,
-                StudentName = project.Student.FullName,
+                StudentName = project.Student.ShowProfile ? project.Student.FullName : PrivacyText.AnonymousName,
                 Advisors = project.Advisors
                     .OrderBy(advisor => advisor.Role)
                     .Select(advisor => new ProjectAdvisorDto
@@ -94,7 +95,7 @@ public class ProjectService : IProjectService
     public async Task<PagedResult<AdminProjectListItemDto>> GetAllAsync(AdminProjectQuery query, CancellationToken cancellationToken)
     {
         IQueryable<Project> projectQuery = _dbContext.Projects.AsNoTracking();
-        projectQuery = ApplyFilters(projectQuery, query);
+        projectQuery = ApplyFilters(projectQuery, query, false);
 
         if (query.IsPublished.HasValue)
         {
@@ -224,15 +225,17 @@ public class ProjectService : IProjectService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    private static IQueryable<Project> ApplyFilters(IQueryable<Project> projectQuery, ProjectQuery query)
+    private static IQueryable<Project> ApplyFilters(IQueryable<Project> projectQuery, ProjectQuery query, bool isPublicView)
     {
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             string keyword = query.Search.Trim();
+
+            // หน้าสาธารณะค้นหาจากชื่อนักศึกษาได้เฉพาะคนที่ยินยอมให้แสดงชื่อ ไม่งั้นจะเดาชื่อคนที่ซ่อนอยู่ได้
             projectQuery = projectQuery.Where(project =>
                 project.NameTH.Contains(keyword)
                 || (project.NameEN != null && project.NameEN.Contains(keyword))
-                || project.Student.FullName.Contains(keyword));
+                || ((!isPublicView || project.Student.ShowProfile) && project.Student.FullName.Contains(keyword)));
         }
 
         if (query.AcademicYear.HasValue)

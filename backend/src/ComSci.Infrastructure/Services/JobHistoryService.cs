@@ -1,4 +1,5 @@
 using ComSci.Application.Abstractions;
+using ComSci.Application.Constants;
 using ComSci.Application.Dtos.Common;
 using ComSci.Application.Dtos.JobHistories;
 using ComSci.Application.Exceptions;
@@ -22,7 +23,7 @@ public class JobHistoryService : IJobHistoryService
         IQueryable<JobHistory> jobQuery = _dbContext.JobHistories
             .AsNoTracking()
             .Where(job => job.IsPublished);
-        jobQuery = ApplySearch(jobQuery, query.Search);
+        jobQuery = ApplySearch(jobQuery, query.Search, true);
 
         int total = await jobQuery.CountAsync(cancellationToken);
 
@@ -34,7 +35,7 @@ public class JobHistoryService : IJobHistoryService
             .Select(job => new JobHistoryListItemDto
             {
                 Id = job.Id,
-                PersonName = job.User.FullName,
+                PersonName = job.User.ShowProfile ? job.User.FullName : PrivacyText.AnonymousName,
                 JobName = job.JobName,
                 Company = job.Company,
                 Position = job.Position,
@@ -72,7 +73,7 @@ public class JobHistoryService : IJobHistoryService
     public async Task<PagedResult<AdminJobHistoryDto>> GetAllAsync(AdminJobHistoryQuery query, CancellationToken cancellationToken)
     {
         IQueryable<JobHistory> jobQuery = _dbContext.JobHistories.AsNoTracking();
-        jobQuery = ApplySearch(jobQuery, query.Search);
+        jobQuery = ApplySearch(jobQuery, query.Search, false);
 
         if (query.IsPublished.HasValue)
         {
@@ -153,7 +154,7 @@ public class JobHistoryService : IJobHistoryService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    private static IQueryable<JobHistory> ApplySearch(IQueryable<JobHistory> jobQuery, string? search)
+    private static IQueryable<JobHistory> ApplySearch(IQueryable<JobHistory> jobQuery, string? search, bool isPublicView)
     {
         if (string.IsNullOrWhiteSpace(search))
         {
@@ -164,7 +165,7 @@ public class JobHistoryService : IJobHistoryService
         return jobQuery.Where(job =>
             job.JobName.Contains(keyword)
             || (job.Company != null && job.Company.Contains(keyword))
-            || job.User.FullName.Contains(keyword));
+            || ((!isPublicView || job.User.ShowProfile) && job.User.FullName.Contains(keyword)));
     }
 
     private static IQueryable<AdminJobHistoryDto> SelectAdminDtos(IQueryable<JobHistory> jobQuery)

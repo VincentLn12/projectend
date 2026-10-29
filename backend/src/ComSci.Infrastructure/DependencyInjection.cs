@@ -70,6 +70,8 @@ public static class DependencyInjection
         services.AddScoped<ISystemSettingService, SystemSettingService>();
         services.AddScoped<IJobHistoryService, JobHistoryService>();
         services.AddScoped<ISyllabusService, SyllabusService>();
+        services.AddScoped<IProfileService, ProfileService>();
+        services.AddScoped<IUserAdminService, UserAdminService>();
 
         services.AddSingleton<IFileStorage, LocalFileStorage>();
     }
