@@ -19,6 +19,7 @@
     <ng-template appCell="jobName" let-row>
       <a [routerLink]="['/admin/job-histories', row.id]" class="font-medium text-slate-900 hover:underline">{{ row.jobName }}</a>
     </ng-template>
+    <ng-template appCell="startDate" let-row>{{ row.startDate | thaiDate }}</ng-template>
     <ng-template appCell="status" let-row>
       <span
         class="rounded-full px-2.5 py-0.5 text-sm font-medium"

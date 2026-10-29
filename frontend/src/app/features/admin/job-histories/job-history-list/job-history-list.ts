@@ -1,5 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ThaiDatePipe } from '../../../../shared/pipes/thai-date.pipe';
 import { createPagedList } from '../../../../shared/data/paged-list';
 import { describeHttpError } from '../../../../shared/forms/server-errors';
 import { Button } from '../../../../shared/ui/button/button';
@@ -14,7 +15,7 @@ import { AdminJobHistory } from '../types/job-history.types';
 
 @Component({
   selector: 'app-job-history-list',
-  imports: [RouterLink, Button, DataTable, CellTemplate, Pagination, SearchBox],
+  imports: [RouterLink, ThaiDatePipe, Button, DataTable, CellTemplate, Pagination, SearchBox],
   templateUrl: './job-history-list.html',
 })
 export class JobHistoryList implements OnInit {
@@ -28,7 +29,7 @@ export class JobHistoryList implements OnInit {
     { key: 'jobName', header: 'อาชีพ/งาน' },
     { key: 'personName', header: 'บัณฑิต', value: (row) => row.personName },
     { key: 'company', header: 'สถานที่ทำงาน', value: (row) => row.company },
-    { key: 'startDate', header: 'เริ่มงาน', value: (row) => row.startDate },
+    { key: 'startDate', header: 'เริ่มงาน' },
     { key: 'status', header: 'สถานะ' },
     { key: 'actions', header: '', align: 'right' },
   ];

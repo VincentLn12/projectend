@@ -33,7 +33,7 @@
       >
     </ng-template>
     <ng-template appCell="publishedAt" let-row>
-      {{ row.publishedAt ? (row.publishedAt | date: 'd MMM yyyy HH:mm') : '—' }}
+      {{ row.publishedAt | thaiDate }}
     </ng-template>
     <ng-template appCell="actions" let-row>
       <div class="flex flex-wrap justify-end gap-1.5">

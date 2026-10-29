@@ -1,6 +1,6 @@
-import { DatePipe } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ThaiDatePipe } from '../../../../shared/pipes/thai-date.pipe';
 import { createPagedList } from '../../../../shared/data/paged-list';
 import { describeHttpError } from '../../../../shared/forms/server-errors';
 import { Button } from '../../../../shared/ui/button/button';
@@ -15,7 +15,7 @@ import { AdminNewsListItem } from '../types/news.types';
 
 @Component({
   selector: 'app-news-list',
-  imports: [RouterLink, DatePipe, Button, DataTable, CellTemplate, Pagination, SearchBox],
+  imports: [RouterLink, ThaiDatePipe, Button, DataTable, CellTemplate, Pagination, SearchBox],
   templateUrl: './news-list.html',
 })
 export class NewsList implements OnInit {
