@@ -45,6 +45,12 @@ export class DataTable<T> {
     return value === null || value === undefined || value === '' ? '—' : String(value);
   }
 
+  // A column without a header is the row's buttons: on phones it has no label and sits at the right.
+  protected cellClasses(column: TableColumn<T>): string {
+    const align = this.alignClass(column);
+    return column.header ? align : `${align} max-md:justify-end max-md:before:hidden`;
+  }
+
   protected alignClass(column: TableColumn<T>): string {
     return column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left';
   }

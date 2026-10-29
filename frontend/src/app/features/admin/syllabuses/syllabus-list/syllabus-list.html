@@ -23,13 +23,13 @@
     </ng-template>
     <ng-template appCell="status" let-row>
       <span
-        class="rounded-full px-2 py-0.5 text-xs"
+        class="rounded-full px-2.5 py-0.5 text-sm font-medium"
         [class]="row.isPublished ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'"
         >{{ row.isPublished ? 'เผยแพร่' : 'ฉบับร่าง' }}</span
       >
     </ng-template>
     <ng-template appCell="actions" let-row>
-      <div class="flex justify-end gap-1">
+      <div class="flex flex-wrap justify-end gap-1.5">
         <button type="button" app-button size="sm" variant="ghost" (click)="togglePublished(row)">
           {{ row.isPublished ? 'ยกเลิกเผยแพร่' : 'เผยแพร่' }}
         </button>
