@@ -19,15 +19,9 @@
             <a routerLink="/admin" class="text-slate-600 hover:text-slate-900">จัดการระบบ</a>
           }
           <span class="text-slate-500">{{ auth.user()?.fullName }}</span>
-          <button
-            type="button"
-            (click)="auth.logout()"
-            class="rounded-md border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-100"
-          >
-            ออกจากระบบ
-          </button>
+          <button type="button" app-button variant="secondary" size="sm" (click)="auth.logout()">ออกจากระบบ</button>
         } @else {
-          <a routerLink="/login" class="rounded-md bg-slate-900 px-3 py-1 text-white hover:bg-slate-700">เข้าสู่ระบบ</a>
+          <a routerLink="/login" app-button size="sm">เข้าสู่ระบบ</a>
         }
       </nav>
     </div>

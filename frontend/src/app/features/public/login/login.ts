@@ -3,11 +3,12 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
-import { TextInput } from '../../../shared/ui';
+import { Button } from '../../../shared/ui/button/button';
+import { TextInput } from '../../../shared/ui/text-input/text-input';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, TextInput],
+  imports: [ReactiveFormsModule, TextInput, Button],
   templateUrl: './login.html',
 })
 export class Login {

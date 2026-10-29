@@ -6,34 +6,10 @@
     </div>
 
     <div class="flex flex-wrap gap-2 text-sm">
-      <button
-        type="button"
-        (click)="validateAll()"
-        class="rounded-md border border-slate-300 px-3 py-1 hover:bg-slate-100"
-      >
-        ตรวจทั้งหมด
-      </button>
-      <button
-        type="button"
-        (click)="toggleDisabled()"
-        class="rounded-md border border-slate-300 px-3 py-1 hover:bg-slate-100"
-      >
-        ปิด/เปิดการใช้งาน
-      </button>
-      <button
-        type="button"
-        (click)="simulateServerError()"
-        class="rounded-md border border-slate-300 px-3 py-1 hover:bg-slate-100"
-      >
-        จำลองข้อผิดพลาดจาก API
-      </button>
-      <button
-        type="button"
-        (click)="reset()"
-        class="rounded-md border border-slate-300 px-3 py-1 hover:bg-slate-100"
-      >
-        ล้างฟอร์ม
-      </button>
+      <button type="button" app-button size="sm" variant="secondary" (click)="validateAll()">ตรวจทั้งหมด</button>
+      <button type="button" app-button size="sm" variant="secondary" (click)="toggleDisabled()">ปิด/เปิดการใช้งาน</button>
+      <button type="button" app-button size="sm" variant="secondary" (click)="simulateServerError()">จำลองข้อผิดพลาดจาก API</button>
+      <button type="button" app-button size="sm" variant="secondary" (click)="reset()">ล้างฟอร์ม</button>
     </div>
     @if (serverMessage(); as message) {
       <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ message }}</p>

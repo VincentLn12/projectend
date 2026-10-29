@@ -6,7 +6,7 @@
         <a
           [routerLink]="item.path"
           routerLinkActive="bg-slate-100 font-semibold text-slate-900"
-          [routerLinkActiveOptions]="{ exact: true }"
+          [routerLinkActiveOptions]="{ exact: item.exact }"
           class="rounded-md px-3 py-2 text-slate-600 hover:bg-slate-50"
         >
           {{ item.label }}
@@ -22,13 +22,7 @@
       <a routerLink="/" class="text-slate-600 hover:text-slate-900">← กลับหน้าเว็บ</a>
       <div class="flex items-center gap-3">
         <span class="text-slate-500">{{ auth.user()?.fullName }}</span>
-        <button
-          type="button"
-          (click)="auth.logout()"
-          class="rounded-md border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-100"
-        >
-          ออกจากระบบ
-        </button>
+        <button type="button" app-button variant="secondary" size="sm" (click)="auth.logout()">ออกจากระบบ</button>
       </div>
     </header>
 

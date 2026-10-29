@@ -1,4 +1,5 @@
 import { JsonPipe } from '@angular/common';
+import { Button } from '../../../shared/ui/button/button';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -20,6 +21,7 @@ import {
 @Component({
   selector: 'app-ui-gallery',
   imports: [
+    Button,
     ReactiveFormsModule,
     RouterLink,
     JsonPipe,

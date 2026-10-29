@@ -29,6 +29,9 @@ export const routes: Routes = [
     canActivate: [authGuard, adminGuard],
     children: [
       { path: '', pathMatch: 'full', loadComponent: () => import('./features/admin/dashboard/dashboard').then((m) => m.Dashboard) },
+      { path: 'news', loadComponent: () => import('./features/admin/news/news-list/news-list').then((m) => m.NewsList) },
+      { path: 'news/new', loadComponent: () => import('./features/admin/news/news-edit/news-edit').then((m) => m.NewsEdit) },
+      { path: 'news/:id', loadComponent: () => import('./features/admin/news/news-edit/news-edit').then((m) => m.NewsEdit) },
     ],
   },
   {

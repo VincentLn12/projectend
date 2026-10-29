@@ -22,24 +22,21 @@ function collectTemplates(directory: string): string[] {
 }
 
 function findViolations(filePath: string): string[] {
-  const lines = readFileSync(filePath, 'utf8').split(/\r?\n/);
+  const content = readFileSync(filePath, 'utf8');
+  const lines = content.split(/\r?\n/);
   const violations: string[] = [];
+  // The whole opening tag, even when its attributes continue on following lines.
+  const openingTag = new RegExp(`<(${FORBIDDEN_ELEMENTS.join('|')})(?=[\\s>/])[^>]*>`, 'g');
 
-  lines.forEach((line, index) => {
-    for (const element of FORBIDDEN_ELEMENTS) {
-      const opensRawElement = new RegExp(`<${element}[\\s>/]`).test(line);
-      if (!opensRawElement) {
-        continue;
-      }
-      const isSharedButton = element === 'button' && /\bapp-button\b/.test(line);
-      const previousLine = index > 0 ? lines[index - 1] : '';
-      const isExempt = line.includes(EXEMPT_MARKER) || previousLine.includes(EXEMPT_MARKER);
-      if (isSharedButton || isExempt) {
-        continue;
-      }
-      violations.push(`${relative(APP_DIRECTORY, filePath)}:${index + 1} uses raw <${element}>`);
+  for (const match of content.matchAll(openingTag)) {
+    const element = match[1];
+    const lineIndex = content.slice(0, match.index).split(/\r?\n/).length - 1;
+    const isSharedButton = element === 'button' && /\bapp-button\b/.test(match[0]);
+    const isExempt = lines[lineIndex].includes(EXEMPT_MARKER) || (lines[lineIndex - 1] ?? '').includes(EXEMPT_MARKER);
+    if (!isSharedButton && !isExempt) {
+      violations.push(`${relative(APP_DIRECTORY, filePath)}:${lineIndex + 1} uses raw <${element}>`);
     }
-  });
+  }
 
   return violations;
 }
