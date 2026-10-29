@@ -3,7 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, catchError, finalize, firstValueFrom, map, of, shareReplay, tap, throwError } from 'rxjs';
 import { API_BASE } from '../api.config';
-import { AuthResponse, UserInfo } from '../models/auth.models';
+import { AuthResponse, UserInfo } from './types/auth.types';
 
 const REFRESH_TOKEN_KEY = 'comsci.refreshToken';
 

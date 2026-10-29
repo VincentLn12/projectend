@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { SiteSettingsStore } from '../../../core/api/site-settings.store';
+import { SiteSettingsStore } from '../../../core/settings/api/site-settings.store';
 
 @Component({
   selector: 'app-home',

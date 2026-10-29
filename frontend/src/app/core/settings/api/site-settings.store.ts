@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { API_BASE } from '../api.config';
-import { SystemSetting } from '../models/settings.models';
+import { API_BASE } from '../../api.config';
+import { SystemSetting } from '../types/settings.types';
 
 @Injectable({ providedIn: 'root' })
 export class SiteSettingsStore {

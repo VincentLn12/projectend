@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { installMemoryLocalStorage } from '../../../testing/memory-storage';
-import { AuthResponse } from '../models/auth.models';
+import { AuthResponse } from './types/auth.types';
 import { AuthService } from './auth.service';
 
 const adminResponse: AuthResponse = {

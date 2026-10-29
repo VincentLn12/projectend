@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Observable, delay, of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
-import { PagedResult } from '../../../core/models/paging.models';
+import { PagedResult } from '../../../shared/data/types/paging.types';
 import { createPagedList } from '../../../shared/data/paged-list';
 import {
   Button,

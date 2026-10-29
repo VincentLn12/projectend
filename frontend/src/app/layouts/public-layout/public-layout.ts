@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { SiteSettingsStore } from '../../core/api/site-settings.store';
+import { SiteSettingsStore } from '../../core/settings/api/site-settings.store';
 import { AuthService } from '../../core/auth/auth.service';
 
 @Component({

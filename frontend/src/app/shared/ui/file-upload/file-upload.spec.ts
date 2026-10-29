@@ -3,8 +3,8 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Observable, of, throwError } from 'rxjs';
-import { FilesApi } from '../../../core/api/files.api';
-import { FileDto } from '../../../core/models/file.models';
+import { FilesApi } from '../../../core/files/api/files.api';
+import { FileDto } from '../../../core/files/types/file.types';
 import { notEmptyListValidator } from '../../forms/validators';
 import { FileUpload } from './file-upload';
 

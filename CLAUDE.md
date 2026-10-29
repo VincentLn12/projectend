@@ -43,3 +43,24 @@ Rules:
    A rare exception is allowed with `<!-- shared-ui-exempt: reason -->` on the line above the element.
 
 Run `npm test` (`ng test --watch=false`) in `frontend/` before each commit.
+
+## Frontend: api and types live inside each feature's own folder
+
+Every feature owns its HTTP calls and its types, so each can be found and changed without touching others:
+
+```
+features/admin/news/
+  api/news.api.ts          # the only place that calls /api/news (HttpClient)
+  types/news.types.ts      # DTOs and request/response types for this feature
+  news-list/ news-edit/    # components
+core/auth/{api,types}/     # shared infrastructure follows the same shape
+core/files/{api,types}/
+core/settings/{api,types}/
+```
+
+Rules:
+1. Components never inject `HttpClient`; they call the feature's `*.api.ts`.
+2. Types used by one feature stay in that feature's `types/`. Only types used by several features move to the
+   nearest shared folder (`core/<name>/types/` or `shared/data/types/`).
+3. A feature does not import another feature's `api/` or `types/`; share through `core/` or `shared/`.
+4. File names: `<name>.api.ts`, `<name>.types.ts`.

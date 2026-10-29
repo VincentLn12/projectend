@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { API_BASE } from '../api.config';
-import { FileDto } from '../models/file.models';
+import { API_BASE } from '../../api.config';
+import { FileDto } from '../types/file.types';
 
 @Injectable({ providedIn: 'root' })
 export class FilesApi {

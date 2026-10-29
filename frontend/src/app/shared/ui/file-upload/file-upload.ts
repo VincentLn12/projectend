@@ -1,8 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { FilesApi } from '../../../core/api/files.api';
-import { FileDto } from '../../../core/models/file.models';
+import { FilesApi } from '../../../core/files/api/files.api';
+import { FileDto } from '../../../core/files/types/file.types';
 import { FormControlBase } from '../../forms/form-control-base';
 import { Field } from '../field/field';
 

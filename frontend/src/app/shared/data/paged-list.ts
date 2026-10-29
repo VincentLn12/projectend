@@ -1,6 +1,6 @@
 import { DestroyRef, inject, signal } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
-import { PagedResult } from '../../core/models/paging.models';
+import { PagedResult } from './types/paging.types';
 import { describeHttpError } from '../forms/server-errors';
 
 export interface PagedQuery {

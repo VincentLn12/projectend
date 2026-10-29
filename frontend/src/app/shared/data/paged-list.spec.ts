@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Subject } from 'rxjs';
-import { PagedResult } from '../../core/models/paging.models';
+import { PagedResult } from './types/paging.types';
 import { describeHttpError } from '../forms/server-errors';
 import { PagedList, PagedQuery } from './paged-list';
 
