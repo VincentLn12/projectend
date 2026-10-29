@@ -1,0 +1,74 @@
+<div class="grid gap-8 lg:grid-cols-[1fr_20rem]">
+  <form [formGroup]="form" class="space-y-5 rounded-xl bg-white p-6 shadow-sm">
+    <h1 class="text-xl font-semibold text-slate-900">ชุด component ฟอร์ม</h1>
+
+    <div class="flex flex-wrap gap-2 text-sm">
+      <button
+        type="button"
+        (click)="validateAll()"
+        class="rounded-md border border-slate-300 px-3 py-1 hover:bg-slate-100"
+      >
+        ตรวจทั้งหมด
+      </button>
+      <button
+        type="button"
+        (click)="toggleDisabled()"
+        class="rounded-md border border-slate-300 px-3 py-1 hover:bg-slate-100"
+      >
+        ปิด/เปิดการใช้งาน
+      </button>
+      <button
+        type="button"
+        (click)="simulateServerError()"
+        class="rounded-md border border-slate-300 px-3 py-1 hover:bg-slate-100"
+      >
+        จำลองข้อผิดพลาดจาก API
+      </button>
+      <button
+        type="button"
+        (click)="reset()"
+        class="rounded-md border border-slate-300 px-3 py-1 hover:bg-slate-100"
+      >
+        ล้างฟอร์ม
+      </button>
+    </div>
+    @if (serverMessage(); as message) {
+      <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ message }}</p>
+    }
+
+    <app-text-input
+      label="หัวข้อ"
+      formControlName="title"
+      placeholder="เช่น ประกาศรับสมัคร"
+      hint="ไม่เกิน 50 ตัวอักษร"
+      [maxLength]="50"
+    />
+    <app-text-input label="อีเมล" type="email" formControlName="email" />
+    <app-text-input
+      label="รหัสผ่าน"
+      type="password"
+      formControlName="password"
+      hint="อย่างน้อย 8 ตัวอักษร"
+    />
+    <app-text-input label="ปี (พ.ศ.)" type="number" formControlName="year" hint="2500–2700" />
+    <app-text-input label="ลิงก์" type="url" formControlName="link" placeholder="https://" />
+    <app-text-area label="รายละเอียด" formControlName="bio" [maxLength]="200" />
+    <app-select-input label="ประเภท" formControlName="kind" [options]="kinds" />
+    <app-date-input label="วันที่เริ่ม" formControlName="startDate" />
+    <app-date-input label="วันและเวลาที่เริ่ม" type="datetime-local" formControlName="startAt" />
+    <app-toggle label="เผยแพร่" formControlName="published" />
+    <app-checkbox label="ฉันยอมรับนโยบายความเป็นส่วนตัว" formControlName="accepted" />
+    <app-file-upload label="รูปปก (ไฟล์เดียว)" formControlName="cover" />
+    <app-file-upload
+      label="แกลเลอรี (หลายรูป)"
+      formControlName="gallery"
+      [multiple]="true"
+      hint="รูปแรกคือรูปหลัก ต้องล็อกอินก่อนจึงอัปโหลดได้"
+    />
+  </form>
+
+  <aside class="h-fit rounded-xl bg-slate-900 p-4 text-xs text-slate-100">
+    <p class="mb-2 font-semibold">ค่าในฟอร์ม ({{ form.valid ? 'ผ่านการตรวจ' : 'ยังไม่ผ่าน' }})</p>
+    <pre class="whitespace-pre-wrap break-all">{{ form.getRawValue() | json }}</pre>
+  </aside>
+</div>

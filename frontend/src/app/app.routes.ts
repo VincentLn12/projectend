@@ -1,3 +1,4 @@
+import { isDevMode } from '@angular/core';
 import { Routes } from '@angular/router';
 import { adminGuard, authGuard } from './core/auth/auth.guards';
 import { AdminLayout } from './layouts/admin-layout/admin-layout';
@@ -10,6 +11,10 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', loadComponent: () => import('./features/public/home/home').then((m) => m.Home) },
       { path: 'login', loadComponent: () => import('./features/public/login/login').then((m) => m.Login) },
+      // Component showcase, only reachable while developing
+      ...(isDevMode()
+        ? [{ path: 'dev/components', loadComponent: () => import('./features/dev/ui-gallery/ui-gallery').then((m) => m.UiGallery) }]
+        : []),
     ],
   },
   {

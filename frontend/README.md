@@ -30,3 +30,37 @@ Node: Angular 21 รองรับ Node 20.19+, 22.12+ และ 24 ตัว�
 ## เรื่องความปลอดภัยของ token
 
 API ส่ง token ใน body (ไม่ใช้ cookie) แอปเก็บ access token (อายุ 15 นาที) ไว้ในหน่วยความจำ และ refresh token (ใช้ได้ครั้งเดียว อายุ 7 วัน) ไว้ใน `localStorage` เพื่อให้โหลดหน้าใหม่แล้วยังล็อกอินอยู่ ข้อเสียคือสคริปต์ที่แทรกเข้ามาในหน้า (XSS) อ่าน refresh token ได้ จึงห้ามใส่ HTML ที่ไม่ผ่านการตรวจสอบลงในหน้า (Angular กรองให้โดยปกติ อย่าใช้ `innerHTML`/`bypassSecurityTrust*` กับข้อมูลจากผู้ใช้) และการเข้าถึงหน้าผู้ดูแลที่ฝั่งแอปเป็นแค่การซ่อนหน้า สิทธิ์จริงตรวจที่ API ทุกครั้ง
+
+## ชุด component ฟอร์ม (`src/app/shared/ui`)
+
+ใช้ได้กับ Reactive Forms (`formControlName` หรือ `[formControl]`) โดยตรง ข้อความข้อผิดพลาดภาษาไทยและดาวแดงของช่องที่จำเป็น (`Validators.required`) ขึ้นให้เอง ข้อผิดพลาดจะแสดงหลังผู้ใช้แตะหรือแก้ช่อง หรือเมื่อสั่ง `form.markAllAsTouched()`
+
+```html
+<form [formGroup]="form" (ngSubmit)="save()">
+  <app-text-input label="หัวข้อ" formControlName="title" hint="ไม่เกิน 300 ตัวอักษร" />
+  <app-text-input label="ปี (พ.ศ.)" type="number" formControlName="year" />
+  <app-text-area label="เนื้อหา" formControlName="body" [maxLength]="1000" />
+  <app-select-input label="ประเภท" formControlName="kind" [options]="kinds" />
+  <app-date-input label="วันที่" formControlName="date" />
+  <app-toggle label="เผยแพร่" formControlName="isPublished" />
+  <app-file-upload label="รูปประกอบ" formControlName="fileIds" [multiple]="true" />
+</form>
+```
+
+| Component | ค่าในฟอร์ม |
+|---|---|
+| `app-text-input` (`type`: text, email, password, search, tel, url, number) | `string` (`number` เมื่อ `type="number"`, ว่าง = `null`) |
+| `app-text-area` | `string` |
+| `app-select-input` (`[options]` = `{ value, label }[]`) | ค่าจริงของตัวเลือก (ตัวเลข, enum, id ได้) หรือ `null` |
+| `app-checkbox`, `app-toggle` | `boolean` |
+| `app-date-input` (`type`: date, datetime-local) | ข้อความจาก browser (`2030-01-31` / `2030-01-31T09:30`) หรือ `null` |
+| `app-file-upload` (`accept`: image, pdf, any; `[multiple]`) | รหัสไฟล์ (`string \| null`) หรือรายการรหัส (`string[]`) เมื่อ multiple โดยรหัสแรกคือรูปหลัก |
+
+ตัวช่วยใน `src/app/shared/forms`:
+
+- `applyServerErrors(form, error)` นำข้อความ 400 จาก API ไปวางใต้ช่องที่ตรงชื่อ (`Title` → `title`) และคืนข้อความสำหรับปัญหาที่ไม่เกี่ยวกับช่องใดช่องหนึ่ง
+- `urlValidator`, `notEmptyListValidator`
+- `localDateTimeToIso` / `isoToLocalDateTime` แปลงค่าของ `datetime-local` (ไม่มีเขตเวลา) กับเวลา UTC ที่ API ใช้ ต้องแปลงก่อนส่งทุกครั้ง
+- `FormControlBase` คลาสแม่สำหรับสร้าง component ฟอร์มใหม่ (ดูตัวอย่างจาก `text-input`)
+
+ดูและลองใช้ทั้งชุดได้ที่ `/dev/components` (เปิดเฉพาะตอน `npm start` ใน build จริงไม่มีเส้นทางนี้ แต่ไฟล์ของหน้าตัวอย่างราว 8 kB ยังถูกรวมอยู่ในผลลัพธ์ โดยไม่ถูกโหลดถ้าไม่มีใครเข้าหน้านั้น) ช่องอัปโหลดต้องล็อกอินก่อน เพราะ `POST /api/files` ต้องมี token

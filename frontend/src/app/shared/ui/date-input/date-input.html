@@ -1,0 +1,15 @@
+<app-field [label]="label()" [hint]="hint()" [error]="errorMessage()" [required]="isRequired()" [inputId]="uid">
+  <input
+    [id]="uid"
+    [type]="type()"
+    [value]="value() ?? ''"
+    [disabled]="isDisabled()"
+    [attr.min]="min()"
+    [attr.max]="max()"
+    [attr.aria-invalid]="errorMessage() ? 'true' : null"
+    [attr.aria-describedby]="describedBy()"
+    [class]="inputClass(!!errorMessage())"
+    (input)="onInput($event)"
+    (blur)="markTouched()"
+  />
+</app-field>

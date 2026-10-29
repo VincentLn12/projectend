@@ -1,0 +1,24 @@
+<app-field
+  [label]="label()"
+  [hint]="hint()"
+  [error]="errorMessage()"
+  [required]="isRequired()"
+  [inputId]="uid"
+>
+  <textarea
+    [id]="uid"
+    [rows]="rows()"
+    [value]="value() ?? ''"
+    [placeholder]="placeholder()"
+    [disabled]="isDisabled()"
+    [attr.maxlength]="maxLength()"
+    [attr.aria-invalid]="errorMessage() ? 'true' : null"
+    [attr.aria-describedby]="describedBy()"
+    [class]="inputClass(!!errorMessage())"
+    (input)="onInput($event)"
+    (blur)="markTouched()"
+  ></textarea>
+  @if (maxLength()) {
+    <p class="mt-1 text-right text-xs text-slate-400">{{ length }}/{{ maxLength() }}</p>
+  }
+</app-field>

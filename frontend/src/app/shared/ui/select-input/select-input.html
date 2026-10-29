@@ -1,0 +1,16 @@
+<app-field [label]="label()" [hint]="hint()" [error]="errorMessage()" [required]="isRequired()" [inputId]="uid">
+  <select
+    [id]="uid"
+    [disabled]="isDisabled()"
+    [attr.aria-invalid]="errorMessage() ? 'true' : null"
+    [attr.aria-describedby]="describedBy()"
+    [class]="inputClass(!!errorMessage())"
+    (change)="onSelect($event)"
+    (blur)="markTouched()"
+  >
+    <option value="-1" [selected]="selectedIndex() < 0">{{ placeholder() }}</option>
+    @for (option of options(); track $index) {
+      <option [value]="$index" [selected]="$index === selectedIndex()">{{ option.label }}</option>
+    }
+  </select>
+</app-field>

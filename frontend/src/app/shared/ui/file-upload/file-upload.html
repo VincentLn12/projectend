@@ -1,0 +1,62 @@
+<app-field
+  [label]="label()"
+  [hint]="hint() || typeHint()"
+  [error]="uploadError() ?? errorMessage()"
+  [required]="isRequired()"
+  [inputId]="uid"
+>
+  @if (ids().length > 0) {
+    <ul class="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      @for (id of ids(); track id; let index = $index) {
+        <li class="relative overflow-hidden rounded-md border border-slate-200 bg-white">
+          @if (showsAsImage(id)) {
+            <img [src]="url(id)" alt="" class="h-28 w-full object-cover" (error)="previewFailed(id)" />
+          } @else {
+            <a
+              [href]="url(id)"
+              target="_blank"
+              rel="noopener"
+              class="flex h-28 items-center justify-center px-2 text-center text-sm text-slate-600 underline hover:text-slate-900"
+            >
+              {{ fileName(id) }}
+            </a>
+          }
+
+          @if (multiple() && index === 0) {
+            <span class="absolute left-1 top-1 rounded bg-slate-900 px-1.5 py-0.5 text-xs text-white">รูปหลัก</span>
+          }
+
+          <div class="flex items-center justify-between gap-1 border-t border-slate-200 px-2 py-1 text-xs">
+            @if (multiple() && index > 0) {
+              <button type="button" (click)="makeMain(id)" [disabled]="isDisabled()" class="text-slate-600 hover:text-slate-900">
+                ทำเป็นรูปหลัก
+              </button>
+            } @else {
+              <span></span>
+            }
+            <button type="button" (click)="remove(id)" [disabled]="isDisabled()" class="text-red-600 hover:text-red-800">ลบ</button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (multiple() || ids().length === 0) {
+    <label
+      class="inline-flex cursor-pointer items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 focus-within:ring-2 focus-within:ring-slate-200 hover:bg-slate-50"
+      [class.opacity-60]="isDisabled() || uploadingCount() > 0"
+    >
+      {{ uploadingCount() > 0 ? 'กำลังอัปโหลด…' : multiple() ? 'เพิ่มไฟล์' : 'เลือกไฟล์' }}
+      <input
+        [id]="uid"
+        type="file"
+        class="sr-only"
+        [accept]="acceptAttribute()"
+        [multiple]="multiple()"
+        [disabled]="isDisabled() || uploadingCount() > 0"
+        [attr.aria-describedby]="describedBy()"
+        (change)="onFilesChosen($event)"
+      />
+    </label>
+  }
+</app-field>

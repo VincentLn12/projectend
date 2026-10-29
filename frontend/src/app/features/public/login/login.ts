@@ -1,13 +1,14 @@
-import { HttpErrorResponse } from "@angular/common/http";
-import { Component, inject, signal } from "@angular/core";
-import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
-import { ActivatedRoute, Router } from "@angular/router";
-import { AuthService } from "../../../core/auth/auth.service";
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../../../core/auth/auth.service';
+import { TextInput } from '../../../shared/ui';
 
 @Component({
-  selector: "app-login",
-  imports: [ReactiveFormsModule],
-  templateUrl: "./login.html",
+  selector: 'app-login',
+  imports: [ReactiveFormsModule, TextInput],
+  templateUrl: './login.html',
 })
 export class Login {
   private readonly auth = inject(AuthService);
@@ -15,8 +16,8 @@ export class Login {
   private readonly route = inject(ActivatedRoute);
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    identifier: ["", Validators.required],
-    password: ["", Validators.required],
+    identifier: ['', Validators.required],
+    password: ['', Validators.required],
   });
 
   protected readonly submitting = signal(false);
@@ -34,10 +35,8 @@ export class Login {
     const { identifier, password } = this.form.getRawValue();
     this.auth.login(identifier, password).subscribe({
       next: () => {
-        const returnUrl = this.route.snapshot.queryParamMap.get("returnUrl");
-        this.router.navigateByUrl(
-          returnUrl ?? (this.auth.isAdmin() ? "/admin" : "/"),
-        );
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        this.router.navigateByUrl(returnUrl ?? (this.auth.isAdmin() ? '/admin' : '/'));
       },
       error: (error: unknown) => {
         this.submitting.set(false);
@@ -50,11 +49,11 @@ export class Login {
     const status = error instanceof HttpErrorResponse ? error.status : 0;
 
     if (status === 401) {
-      return "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+      return 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
     }
     if (status === 429) {
-      return "ลองเข้าสู่ระบบบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่";
+      return 'ลองเข้าสู่ระบบบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่';
     }
-    return "เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่ภายหลัง";
+    return 'เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่ภายหลัง';
   }
 }
