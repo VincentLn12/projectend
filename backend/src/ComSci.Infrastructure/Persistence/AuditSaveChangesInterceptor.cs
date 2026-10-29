@@ -6,11 +6,6 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace ComSci.Infrastructure.Persistence;
 
-/// <summary>
-/// ทำงานทุกครั้งก่อนบันทึกลงฐานข้อมูล:
-/// 1) เติม CreatedAt/CreatedBy ตอนเพิ่มข้อมูล และ UpdatedAt/UpdatedBy ตอนแก้ไข
-/// 2) เปลี่ยนคำสั่ง "ลบ" ของข้อมูลที่ติดตามประวัติ (IAuditable) ให้เป็น soft delete (IsDeleted = true)
-/// </summary>
 public class AuditSaveChangesInterceptor : SaveChangesInterceptor
 {
     private readonly ICurrentUser _currentUser;
@@ -59,7 +54,7 @@ public class AuditSaveChangesInterceptor : SaveChangesInterceptor
             }
             else if (entry.State == EntityState.Deleted)
             {
-                // ไม่ลบจริง: เปลี่ยนเป็นการแก้ไขแถว โดยตั้ง IsDeleted = true
+                // ไม่ลบจริง: เปลี่ยนเป็น UPDATE โดยตั้ง IsDeleted = true
                 entry.State = EntityState.Modified;
                 entry.Entity.IsDeleted = true;
                 entry.Entity.UpdatedAt = now;

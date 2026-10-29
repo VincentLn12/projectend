@@ -9,9 +9,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ComSci.Infrastructure.Services;
 
-/// <summary>
-/// อัปโหลด เปิด และลบไฟล์ ตรวจความถูกต้องของไฟล์ก่อนบันทึกทุกครั้ง
-/// </summary>
 public class FileService : IFileService
 {
     private readonly AppDbContext _dbContext;
@@ -33,8 +30,8 @@ public class FileService : IFileService
         }
         Guid userId = _currentUser.UserId.Value;
 
-        // ต้องอ่านย้อนกลับได้ เพราะจะอ่านต้นไฟล์เพื่อตรวจชนิดก่อน แล้วค่อยอ่านใหม่ตอนบันทึก
         Stream seekableContent = content;
+        // ต้องย้อนอ่านได้: อ่านต้นไฟล์ตรวจชนิดก่อน แล้วอ่านใหม่ตอนบันทึก
         if (!seekableContent.CanSeek)
         {
             MemoryStream buffer = new MemoryStream();
@@ -43,7 +40,6 @@ public class FileService : IFileService
             seekableContent = buffer;
         }
 
-        // ขั้นที่ 1: ตรวจขนาด
         long length = seekableContent.Length;
         if (length == 0)
         {
@@ -55,7 +51,7 @@ public class FileService : IFileService
             throw new BadRequestException("File is larger than " + maxMegabytes + " MB.");
         }
 
-        // ขั้นที่ 2: ตรวจชนิดจากเนื้อไฟล์ ไม่เชื่อ Content-Type หรือนามสกุลที่ client ส่งมา
+        // ตรวจชนิดจากเนื้อไฟล์ ไม่เชื่อ Content-Type หรือนามสกุลที่ client ส่งมา
         byte[] header = new byte[12];
         int headerLength = await seekableContent.ReadAtLeastAsync(header, header.Length, false, cancellationToken);
         seekableContent.Position = 0;
@@ -66,14 +62,13 @@ public class FileService : IFileService
             throw new BadRequestException("Unsupported file type. Allowed: JPG, PNG, GIF, WebP, PDF.");
         }
 
-        // ขั้นที่ 3: นามสกุลต้องตรงกับเนื้อไฟล์ (กันการเปลี่ยนนามสกุลหลอก)
         string extension = Path.GetExtension(originalName).ToLowerInvariant();
+        // กันการเปลี่ยนนามสกุลหลอก
         if (!kind.Extensions.Contains(extension))
         {
             throw new BadRequestException("File extension does not match its content.");
         }
 
-        // ขั้นที่ 4: เก็บไฟล์จริง แล้วจึงบันทึกแถวในฐานข้อมูล
         string storedPath = await _fileStorage.SaveAsync(seekableContent, kind.Extensions[0], cancellationToken);
 
         string displayName = Path.GetFileName(originalName);
@@ -97,7 +92,7 @@ public class FileService : IFileService
         }
         catch
         {
-            // บันทึกฐานข้อมูลไม่สำเร็จ ให้ลบไฟล์ที่เพิ่งเขียนทิ้ง ไม่ให้มีไฟล์กำพร้า
+            // บันทึกฐานข้อมูลไม่สำเร็จ ลบไฟล์ที่เพิ่งเขียนทิ้ง ไม่ให้มีไฟล์กำพร้า
             await _fileStorage.DeleteAsync(storedPath, CancellationToken.None);
             throw;
         }
@@ -125,7 +120,6 @@ public class FileService : IFileService
         Stream? stream = _fileStorage.OpenRead(record.StoragePath);
         if (stream == null)
         {
-            // มีแถวในฐานข้อมูลแต่ไฟล์จริงหายไป
             throw new NotFoundException("File not found.");
         }
 
@@ -149,13 +143,12 @@ public class FileService : IFileService
         {
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
+        // มี FK จากข่าว/โครงงาน ฯลฯ อ้างถึงไฟล์นี้อยู่
         catch (DbUpdateException)
         {
-            // ฐานข้อมูลไม่ยอมลบ เพราะมี FK จากข่าว โครงงาน ฯลฯ อ้างถึงไฟล์นี้อยู่
             throw new ConflictException("File is still in use.");
         }
 
-        // ลบไฟล์จริงหลังจากลบแถวสำเร็จแล้วเท่านั้น
         await _fileStorage.DeleteAsync(record.StoragePath, cancellationToken);
     }
 }

@@ -11,10 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ComSci.Infrastructure;
 
-/// <summary>
-/// ลงทะเบียน service ทั้งหมดของชั้น Infrastructure เข้ากับระบบ dependency injection
-/// เรียกจาก Program.cs ด้วย services.AddInfrastructure(configuration)
-/// </summary>
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
@@ -26,9 +22,6 @@ public static class DependencyInjection
         return services;
     }
 
-    /// <summary>
-    /// ฐานข้อมูล SQL Server พร้อม interceptor ที่เติม audit field และทำ soft delete
-    /// </summary>
     private static void AddDatabase(IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<AuditSaveChangesInterceptor>();
@@ -38,8 +31,7 @@ public static class DependencyInjection
             string? connectionString = configuration.GetConnectionString("Default");
             options.UseSqlServer(connectionString);
 
-            // ตารางเชื่อมของ Identity (UserRoles, UserClaims ฯลฯ) ไม่มี navigation จึงใส่ query filter คู่กับ Users ไม่ได้
-            // EF จะเตือนเรื่องนี้ ซึ่งในกรณีนี้ไม่มีผลเสีย จึงปิดคำเตือนไว้
+            // ตารางเชื่อมของ Identity ไม่มี navigation จึงใส่ query filter คู่กับ Users ไม่ได้ ปิดคำเตือนนี้
             options.ConfigureWarnings(warnings =>
             {
                 warnings.Ignore(CoreEventId.PossibleIncorrectRequiredNavigationWithQueryFilterInteractionWarning);
@@ -50,9 +42,6 @@ public static class DependencyInjection
         });
     }
 
-    /// <summary>
-    /// ASP.NET Identity: ผู้ใช้ บทบาท การเข้ารหัสรหัสผ่าน และการล็อกบัญชี
-    /// </summary>
     private static void AddIdentity(IServiceCollection services)
     {
         services.AddIdentityCore<AppUser>(options =>
@@ -60,7 +49,6 @@ public static class DependencyInjection
                 options.User.RequireUniqueEmail = true;
                 options.Password.RequiredLength = 8;
 
-                // ใส่รหัสผ่านผิดครบ 5 ครั้ง ล็อกบัญชี 15 นาที
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
             })
@@ -68,16 +56,12 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<AppDbContext>();
     }
 
-    /// <summary>
-    /// service ของระบบ (ผูก interface ในชั้น Application เข้ากับคลาสจริง)
-    /// </summary>
     private static void AddApplicationServices(IServiceCollection services)
     {
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<INewsService, NewsService>();
         services.AddScoped<IFileService, FileService>();
 
-        // ที่เก็บไฟล์ไม่เก็บสถานะอะไร จึงใช้ตัวเดียวทั้งแอปได้
         services.AddSingleton<IFileStorage, LocalFileStorage>();
     }
 }

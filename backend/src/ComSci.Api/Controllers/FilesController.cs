@@ -6,9 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ComSci.Api.Controllers;
 
-/// <summary>
-/// อัปโหลด ดาวน์โหลด และลบไฟล์ (รูปภาพและ PDF)
-/// </summary>
 [ApiController]
 [Route("api/files")]
 public class FilesController : ControllerBase
@@ -20,10 +17,6 @@ public class FilesController : ControllerBase
         _fileService = fileService;
     }
 
-    /// <summary>
-    /// อัปโหลดไฟล์ JPG, PNG, GIF, WebP หรือ PDF (ไม่เกิน 10 MB)
-    /// นำ id ที่ได้ไปใส่ตอนบันทึกข่าว โครงงาน ฯลฯ
-    /// </summary>
     [HttpPost]
     [Authorize]
     [RequestSizeLimit(FileRules.MaxRequestBytes)]
@@ -36,9 +29,7 @@ public class FilesController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// เปิดไฟล์ (เปิดสาธารณะ เพราะรูปและ PDF ต้องแสดงบนหน้าเว็บสาธารณะ รหัสไฟล์เป็น GUID เดายาก)
-    /// </summary>
+    // เปิดสาธารณะ เพราะรูปและ PDF แสดงบนหน้าสาธารณะ (รหัสเป็น GUID เดายาก)
     [HttpGet("{id:guid}")]
     [ResponseCache(Duration = 86400, Location = ResponseCacheLocation.Any)]
     public async Task<IActionResult> Download(Guid id, CancellationToken cancellationToken)
@@ -47,9 +38,6 @@ public class FilesController : ControllerBase
         return File(fileContent.Content, fileContent.ContentType, enableRangeProcessing: true);
     }
 
-    /// <summary>
-    /// ลบไฟล์ (เฉพาะ Admin) ลบไม่ได้ถ้ายังมีข้อมูลอื่นใช้ไฟล์นี้อยู่
-    /// </summary>
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = Roles.Admin)]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)

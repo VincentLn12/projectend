@@ -9,10 +9,6 @@ using Microsoft.Extensions.Logging;
 
 namespace ComSci.Infrastructure.Persistence;
 
-/// <summary>
-/// สร้างข้อมูลตั้งต้นที่ระบบต้องมี: บทบาท 4 แบบ, ผู้ดูแลคนแรก, และแถวตั้งค่าเว็บ
-/// เรียกซ้ำกี่ครั้งก็ได้ จะสร้างเฉพาะสิ่งที่ยังไม่มี
-/// </summary>
 public static class DbSeeder
 {
     public static async Task SeedAsync(IServiceProvider services)
@@ -33,9 +29,6 @@ public static class DbSeeder
         }
     }
 
-    /// <summary>
-    /// สร้างบทบาททั้งหมดที่ยังไม่มี
-    /// </summary>
     private static async Task SeedRolesAsync(RoleManager<AppRole> roleManager)
     {
         foreach (string roleName in Roles.All)
@@ -48,15 +41,12 @@ public static class DbSeeder
         }
     }
 
-    /// <summary>
-    /// สร้างผู้ดูแลคนแรกจากค่า Seed:AdminEmail และ Seed:AdminPassword (เก็บใน user-secrets ไม่ใส่ในโค้ด)
-    /// ถ้าไม่ตั้งค่าไว้ จะข้ามขั้นตอนนี้และแจ้งเตือนใน log
-    /// </summary>
     private static async Task SeedAdminAsync(
         UserManager<AppUser> userManager,
         IConfiguration configuration,
         ILogger<AppDbContext> logger)
     {
+        // อีเมลและรหัสผ่านแอดมินอยู่ใน user-secrets ไม่ใส่ในโค้ด
         string? email = configuration["Seed:AdminEmail"];
         string? password = configuration["Seed:AdminPassword"];
 
@@ -90,9 +80,6 @@ public static class DbSeeder
         await userManager.AddToRoleAsync(admin, Roles.Admin);
     }
 
-    /// <summary>
-    /// สร้างแถวตั้งค่าเว็บ (มีแถวเดียวทั้งระบบ) ถ้ายังไม่มี
-    /// </summary>
     private static async Task SeedSystemSettingAsync(AppDbContext dbContext)
     {
         bool hasSetting = await dbContext.SystemSettings.AnyAsync();

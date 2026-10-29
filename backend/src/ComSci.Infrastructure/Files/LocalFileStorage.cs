@@ -4,10 +4,6 @@ using Microsoft.Extensions.Options;
 
 namespace ComSci.Infrastructure.Files;
 
-/// <summary>
-/// เก็บไฟล์บนดิสก์ของเครื่องเซิร์ฟเวอร์ ภายใต้โฟลเดอร์ที่ตั้งใน Storage:RootPath
-/// โครงสร้าง: [root]/[ปี]/[เดือน]/[guid].[นามสกุล]
-/// </summary>
 public class LocalFileStorage : IFileStorage
 {
     private readonly string _rootFolder;
@@ -19,7 +15,7 @@ public class LocalFileStorage : IFileStorage
 
     public async Task<string> SaveAsync(Stream content, string extension, CancellationToken cancellationToken)
     {
-        // ชื่อไฟล์ที่เก็บสร้างโดยระบบเอง ไม่มีข้อมูลจาก client ปนอยู่ จึงกัน path traversal ได้
+        // ชื่อไฟล์สร้างเองทั้งหมด ไม่มีข้อมูลจาก client ปน
         string year = DateTime.UtcNow.ToString("yyyy");
         string month = DateTime.UtcNow.ToString("MM");
         string fileName = Guid.NewGuid().ToString("N") + extension;
@@ -34,7 +30,6 @@ public class LocalFileStorage : IFileStorage
             await content.CopyToAsync(target, cancellationToken);
         }
 
-        // เก็บใน DB ด้วย / เสมอ เพื่อไม่ให้ขึ้นกับระบบปฏิบัติการ
         return relativePath.Replace('\\', '/');
     }
 
@@ -60,14 +55,12 @@ public class LocalFileStorage : IFileStorage
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// แปลง path แบบ relative เป็น path เต็ม และปฏิเสธ path ที่หลุดออกนอกโฟลเดอร์ root
-    /// </summary>
     private string ResolveFullPath(string relativePath)
     {
         string fullPath = Path.GetFullPath(Path.Combine(_rootFolder, relativePath));
         string rootWithSeparator = _rootFolder + Path.DirectorySeparatorChar;
 
+        // กัน path ที่หลุดออกนอกโฟลเดอร์ root
         if (!fullPath.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException("Invalid storage path.");

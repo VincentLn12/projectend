@@ -16,10 +16,6 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace ComSci.Infrastructure.Identity;
 
-/// <summary>
-/// ล็อกอิน สมัครสมาชิก และออก/ต่ออายุ JWT
-/// access token = JWT อายุสั้น, refresh token = ข้อความสุ่ม เก็บในฐานข้อมูลเป็นค่าแฮช
-/// </summary>
 public class AuthService : IAuthService
 {
     private readonly UserManager<AppUser> _userManager;
@@ -50,7 +46,7 @@ public class AuthService : IAuthService
         bool passwordIsCorrect = await _userManager.CheckPasswordAsync(user, request.Password);
         if (!passwordIsCorrect)
         {
-            // นับจำนวนครั้งที่ผิด ครบกำหนดแล้ว Identity จะล็อกบัญชีให้เอง
+            // นับครั้งที่ผิด ครบกำหนดแล้ว Identity จะล็อกบัญชีให้เอง
             await _userManager.AccessFailedAsync(user);
             return null;
         }
@@ -103,7 +99,7 @@ public class AuthService : IAuthService
 
         if (storedToken.RevokedAt != null)
         {
-            // token ที่ถูกใช้ไปแล้วถูกนำกลับมาใช้อีก: สันนิษฐานว่ารั่ว จึงเพิกถอนทุก session ของผู้ใช้นี้
+            // token ที่ใช้แล้วถูกนำมาใช้ซ้ำ อาจรั่ว จึงเพิกถอนทุก session ของผู้ใช้นี้
             await RevokeAllTokensOfUserAsync(storedToken.UserId, now, cancellationToken);
             return null;
         }
@@ -113,8 +109,8 @@ public class AuthService : IAuthService
             return null;
         }
 
-        // หมุน token: เพิกถอนตัวเก่า แล้วออกตัวใหม่ (CreateAuthResponseAsync บันทึกทั้งสองอย่างพร้อมกัน)
         storedToken.RevokedAt = now;
+        // หมุน token: ตัวเก่าถูกเพิกถอนที่นี่ ตัวใหม่บันทึกพร้อมกันใน CreateAuthResponseAsync
         return await CreateAuthResponseAsync(storedToken.User, cancellationToken);
     }
 
@@ -144,9 +140,6 @@ public class AuthService : IAuthService
         return await CreateUserInfoAsync(user);
     }
 
-    /// <summary>
-    /// หาผู้ใช้จากสิ่งที่พิมพ์ในช่องล็อกอิน: อีเมล, ชื่อผู้ใช้ หรือรหัสนักศึกษา
-    /// </summary>
     private async Task<AppUser?> FindUserByIdentifierAsync(string identifier, CancellationToken cancellationToken)
     {
         string trimmed = identifier.Trim();
@@ -174,9 +167,6 @@ public class AuthService : IAuthService
         return await _userManager.FindByIdAsync(studentUserId.ToString());
     }
 
-    /// <summary>
-    /// ออก access token + refresh token ชุดใหม่ให้ผู้ใช้ และบันทึก refresh token ลงฐานข้อมูล
-    /// </summary>
     private async Task<AuthResponse> CreateAuthResponseAsync(AppUser user, CancellationToken cancellationToken)
     {
         UserInfo userInfo = await CreateUserInfoAsync(user);
@@ -237,9 +227,6 @@ public class AuthService : IAuthService
         return userInfo;
     }
 
-    /// <summary>
-    /// เพิกถอน refresh token ทุกตัวที่ยังใช้ได้ของผู้ใช้
-    /// </summary>
     private async Task RevokeAllTokensOfUserAsync(Guid userId, DateTime now, CancellationToken cancellationToken)
     {
         List<RefreshToken> activeTokens = await _dbContext.RefreshTokens
@@ -254,11 +241,9 @@ public class AuthService : IAuthService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    /// <summary>
-    /// แฮช token ด้วย SHA-256 ก่อนเก็บ/เทียบ เพื่อให้ฐานข้อมูลรั่วแล้ว token ก็ยังใช้ไม่ได้
-    /// </summary>
     private static string HashToken(string token)
     {
+        // เก็บเฉพาะค่าแฮช ฐานข้อมูลรั่วแล้ว token ก็ยังใช้ไม่ได้
         byte[] bytes = Encoding.UTF8.GetBytes(token);
         byte[] hash = SHA256.HashData(bytes);
         return Convert.ToHexString(hash);

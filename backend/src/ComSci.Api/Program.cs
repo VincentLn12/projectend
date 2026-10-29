@@ -12,11 +12,7 @@ using Microsoft.OpenApi.Models;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// =====================================================================
-// 1) ค่าตั้งค่า
-// =====================================================================
-
-// กุญแจ JWT ต้องตั้งไว้ใน user-secrets (ห้ามใส่ในไฟล์ appsettings ที่ขึ้น git)
+// กุญแจ JWT ต้องอยู่ใน user-secrets ไม่ใส่ใน appsettings ที่ขึ้น git
 JwtOptions? jwtSettings = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
 JwtOptions jwtOptions = jwtSettings ?? new JwtOptions();
 if (jwtOptions.Key.Length < 32)
@@ -27,28 +23,19 @@ if (jwtOptions.Key.Length < 32)
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection(StorageOptions.SectionName));
 
-// path ของโฟลเดอร์เก็บไฟล์แบบ relative ให้อิงจากโฟลเดอร์ของแอป
+// path แบบ relative อิงจากโฟลเดอร์ของแอป
 builder.Services.PostConfigure<StorageOptions>(options =>
 {
     options.RootPath = Path.GetFullPath(options.RootPath, builder.Environment.ContentRootPath);
 });
-
-// =====================================================================
-// 2) Service ของระบบ
-// =====================================================================
 
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// แปลง exception ทางธุรกิจ (NotFound/BadRequest/Conflict) เป็น response ที่เหมาะสม
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
-
-// =====================================================================
-// 3) ระบบยืนยันตัวตน (JWT)
-// =====================================================================
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -66,10 +53,6 @@ builder.Services
     });
 builder.Services.AddAuthorization();
 
-// =====================================================================
-// 4) CORS: อนุญาตเฉพาะเว็บ Angular ตามที่ตั้งไว้ใน Cors:Origins
-// =====================================================================
-
 string[]? allowedOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>();
 if (allowedOrigins == null)
 {
@@ -86,10 +69,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// =====================================================================
-// 5) จำกัดอัตราเรียก endpoint ล็อกอิน/สมัคร/refresh: 10 ครั้งต่อนาทีต่อ IP กันการเดารหัสผ่าน
-// =====================================================================
-
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -98,6 +77,7 @@ builder.Services.AddRateLimiter(options =>
     {
         string clientAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
+        // 10 ครั้งต่อนาทีต่อ IP กันการเดารหัสผ่าน
         return RateLimitPartition.GetFixedWindowLimiter(clientAddress, _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = 10,
@@ -106,16 +86,11 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
-// =====================================================================
-// 6) Swagger (ใช้ทดสอบ API ที่ /swagger)
-// =====================================================================
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "ComSci API", Version = "v1" });
 
-    // ปุ่ม Authorize: ล็อกอินที่ POST /api/auth/login แล้ววาง accessToken
     OpenApiSecurityScheme bearerScheme = new OpenApiSecurityScheme
     {
         Type = SecuritySchemeType.Http,
@@ -135,22 +110,17 @@ builder.Services.AddSwaggerGen(options =>
     options.AddSecurityRequirement(requirement);
 });
 
-// =====================================================================
-// สร้างแอปและกำหนดลำดับ middleware (ลำดับมีผล อย่าสลับ)
-// =====================================================================
-
 WebApplication app = builder.Build();
 
-// สร้างข้อมูลตั้งต้น (role, ผู้ดูแลคนแรก, ตั้งค่าเว็บ) ถ้ายังไม่มี
 await DbSeeder.SeedAsync(app.Services);
 
-// ทุก response บอกเบราว์เซอร์ว่าห้ามเดาชนิดไฟล์เอง
 app.Use(async (httpContext, next) =>
 {
     httpContext.Response.Headers.XContentTypeOptions = "nosniff";
     await next();
 });
 
+// ลำดับ middleware มีผล อย่าสลับ
 app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())

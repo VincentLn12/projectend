@@ -4,11 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ComSci.Api.Middleware;
 
-/// <summary>
-/// แปลง exception ทางธุรกิจที่ service โยนมา ให้เป็น HTTP response แบบ ProblemDetails
-/// NotFoundException -> 404, BadRequestException -> 400, ConflictException -> 409
-/// exception ชนิดอื่นไม่ถูกจัดการที่นี่ จะกลายเป็น 500 ตามปกติ
-/// </summary>
 public class ApiExceptionHandler : IExceptionHandler
 {
     private readonly IProblemDetailsService _problemDetailsService;
@@ -40,7 +35,6 @@ public class ApiExceptionHandler : IExceptionHandler
         }
         else
         {
-            // ไม่ใช่ exception ที่รู้จัก ปล่อยให้ระบบจัดการต่อ
             return false;
         }
 
@@ -49,7 +43,7 @@ public class ApiExceptionHandler : IExceptionHandler
         problemDetails.Title = title;
         problemDetails.Detail = exception.Message;
 
-        // ProblemDetailsContext กำหนดค่าได้เฉพาะตอนสร้าง (init-only) จึงต้องใส่ใน { } ตอน new
+        // ProblemDetailsContext กำหนดค่าได้ตอน new เท่านั้น (init-only)
         ProblemDetailsContext context = new ProblemDetailsContext
         {
             HttpContext = httpContext,

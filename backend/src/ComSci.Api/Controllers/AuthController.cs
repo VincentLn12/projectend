@@ -6,10 +6,6 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace ComSci.Api.Controllers;
 
-/// <summary>
-/// ล็อกอิน สมัครสมาชิก ต่ออายุ token และดูข้อมูลตัวเอง
-/// controller นี้ไม่มี logic ทางธุรกิจ ทั้งหมดอยู่ใน IAuthService
-/// </summary>
 [ApiController]
 [Route("api")]
 public class AuthController : ControllerBase
@@ -23,9 +19,6 @@ public class AuthController : ControllerBase
         _currentUser = currentUser;
     }
 
-    /// <summary>
-    /// ล็อกอินด้วยอีเมล ชื่อผู้ใช้ หรือรหัสนักศึกษา แล้วรับ accessToken และ refreshToken
-    /// </summary>
     [HttpPost("auth/login")]
     [EnableRateLimiting("auth")]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request, CancellationToken cancellationToken)
@@ -40,9 +33,6 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
-    /// <summary>
-    /// สมัครสมาชิกใหม่ (ต้องยอมรับนโยบายความเป็นส่วนตัว) และล็อกอินให้ทันที
-    /// </summary>
     [HttpPost("auth/register")]
     [EnableRateLimiting("auth")]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request, CancellationToken cancellationToken)
@@ -60,9 +50,6 @@ public class AuthController : ControllerBase
         return ValidationProblem(ModelState);
     }
 
-    /// <summary>
-    /// ขอ accessToken ใหม่ด้วย refreshToken (refreshToken ตัวเดิมจะใช้ไม่ได้อีก)
-    /// </summary>
     [HttpPost("auth/refresh")]
     [EnableRateLimiting("auth")]
     public async Task<ActionResult<AuthResponse>> Refresh(RefreshRequest request, CancellationToken cancellationToken)
@@ -76,9 +63,6 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
-    /// <summary>
-    /// ออกจากระบบ โดยเพิกถอน refreshToken
-    /// </summary>
     [HttpPost("auth/logout")]
     public async Task<IActionResult> Logout(RefreshRequest request, CancellationToken cancellationToken)
     {
@@ -86,9 +70,6 @@ public class AuthController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>
-    /// ดูข้อมูลของผู้ใช้ที่ล็อกอินอยู่ (ต้องส่ง accessToken)
-    /// </summary>
     [Authorize]
     [HttpGet("me")]
     public async Task<ActionResult<UserInfo>> GetMe(CancellationToken cancellationToken)

@@ -8,10 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ComSci.Infrastructure.Services;
 
-/// <summary>
-/// จัดการข่าวประชาสัมพันธ์ ทั้งส่วนสาธารณะและส่วนผู้ดูแล
-/// กติกา: ข่าวที่คนทั่วไปเห็นต้องเผยแพร่แล้ว (IsPublished) และถึงเวลาเผยแพร่แล้ว (PublishedAt)
-/// </summary>
 public class NewsService : INewsService
 {
     private readonly AppDbContext _dbContext;
@@ -22,10 +18,6 @@ public class NewsService : INewsService
         _dbContext = dbContext;
         _currentUser = currentUser;
     }
-
-    // =====================================================================
-    // ส่วนสาธารณะ
-    // =====================================================================
 
     public async Task<PagedResult<NewsListItemDto>> GetPublishedAsync(PageQuery pageQuery, CancellationToken cancellationToken)
     {
@@ -46,7 +38,6 @@ public class NewsService : INewsService
                 SubTitle = news.SubTitle,
                 PublishedAt = news.PublishedAt,
 
-                // รูปหลักก่อน ถ้าไม่มีรูปหลักใช้รูปที่ลำดับแรกสุด
                 MainImageFileId = news.Files
                     .OrderByDescending(file => file.IsMain)
                     .ThenBy(file => file.SortOrder)
@@ -89,10 +80,6 @@ public class NewsService : INewsService
 
         return detail;
     }
-
-    // =====================================================================
-    // ส่วนผู้ดูแล
-    // =====================================================================
 
     public async Task<PagedResult<AdminNewsListItemDto>> GetAllAsync(AdminNewsQuery query, CancellationToken cancellationToken)
     {
@@ -215,23 +202,17 @@ public class NewsService : INewsService
 
     public async Task DeleteAsync(Guid newsId, CancellationToken cancellationToken)
     {
-        // โหลดเฉพาะข่าว ไม่โหลดรายการรูป: soft delete ไม่แตะแถวรูป และการติดตามรูปไว้จะทำให้ EF สับสนตอนบันทึก
         News news = await LoadNewsAsync(newsId, cancellationToken);
 
-        // สั่งลบตามปกติ แต่ AuditSaveChangesInterceptor จะเปลี่ยนเป็น soft delete (IsDeleted = true) ให้
+        // โหลดเฉพาะข่าว ไม่รวมรูป ไม่งั้น soft delete จะชนกับรูปที่ EF ติดตามอยู่
+        // AuditSaveChangesInterceptor เปลี่ยนคำสั่งลบนี้เป็น soft delete ให้
         _dbContext.News.Remove(news);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    // =====================================================================
-    // ตัวช่วยภายในคลาส
-    // =====================================================================
-
-    /// <summary>
-    /// ข่าวที่คนทั่วไปมองเห็นได้: เผยแพร่แล้ว และเวลาเผยแพร่มาถึงแล้ว
-    /// </summary>
     private IQueryable<News> GetPublishedNewsQuery()
     {
+        // ข่าวที่คนทั่วไปเห็น: เผยแพร่แล้ว และถึงเวลาเผยแพร่แล้ว
         DateTime now = DateTime.UtcNow;
 
         return _dbContext.News
@@ -239,9 +220,6 @@ public class NewsService : INewsService
             .Where(news => news.IsPublished && news.PublishedAt <= now);
     }
 
-    /// <summary>
-    /// ถ้ามีคำค้น ให้กรองเฉพาะข่าวที่หัวข้อมีคำนั้น
-    /// </summary>
     private static IQueryable<News> ApplyTitleSearch(IQueryable<News> query, string? search)
     {
         if (string.IsNullOrWhiteSpace(search))
@@ -253,9 +231,6 @@ public class NewsService : INewsService
         return query.Where(news => news.Title.Contains(keyword));
     }
 
-    /// <summary>
-    /// โหลดเฉพาะตัวข่าว (ไม่รวมรายการรูป) เพื่อนำไปแก้สถานะหรือลบ
-    /// </summary>
     private async Task<News> LoadNewsAsync(Guid newsId, CancellationToken cancellationToken)
     {
         News? news = await _dbContext.News
@@ -269,9 +244,6 @@ public class NewsService : INewsService
         return news;
     }
 
-    /// <summary>
-    /// โหลดข่าวพร้อมรายการรูปที่ผูกอยู่ เพื่อนำไปแก้ไข (ต้องใช้รายการรูปเดิมเพื่อแทนที่ด้วยรายการใหม่)
-    /// </summary>
     private async Task<News> LoadNewsWithFilesForUpdateAsync(Guid newsId, CancellationToken cancellationToken)
     {
         News? news = await _dbContext.News
@@ -286,22 +258,17 @@ public class NewsService : INewsService
         return news;
     }
 
-    /// <summary>
-    /// ตั้งสถานะเผยแพร่ และบันทึกวันเวลาเผยแพร่ครั้งแรก (ถ้าถอนกลับเป็นฉบับร่างแล้วเผยแพร่ใหม่ จะคงวันเดิมไว้)
-    /// </summary>
     private static void ApplyPublishedState(News news, bool isPublished)
     {
         news.IsPublished = isPublished;
 
+        // คงวันเผยแพร่ครั้งแรกไว้ แม้ถอนเป็นฉบับร่างแล้วเผยแพร่ใหม่
         if (isPublished && news.PublishedAt == null)
         {
             news.PublishedAt = DateTime.UtcNow;
         }
     }
 
-    /// <summary>
-    /// แทนที่รายการไฟล์ของข่าวด้วยรายการใหม่จากคำขอ (ลำดับในรายการคือลำดับแสดงผล)
-    /// </summary>
     private async Task ReplaceFilesAsync(News news, SaveNewsRequest request, CancellationToken cancellationToken)
     {
         List<Guid> fileIds = new List<Guid>();
@@ -324,13 +291,10 @@ public class NewsService : INewsService
             }
         }
 
-        // ลบรายการเดิมทั้งหมดก่อน แล้วเพิ่มรายการใหม่
-        // หมายเหตุ: ห้ามเรียก news.Files.Clear() ที่นี่ เพราะจะเป็นการ "ตัด" ความสัมพันธ์ที่บังคับต้องมี
-        // (NewsFile ต้องมีข่าวเสมอ) ทำให้ EF ปฏิเสธ ให้สั่งลบแถวเดิมผ่าน RemoveRange อย่างเดียวพอ
         List<NewsFile> oldFiles = news.Files.ToList();
+        // ห้ามเรียก news.Files.Clear(): เป็นการตัดความสัมพันธ์ที่บังคับ EF จะ error
         _dbContext.NewsFiles.RemoveRange(oldFiles);
 
-        // รูปหลัก: ใช้ตามที่ระบุ ถ้าไม่ระบุใช้รูปแรก
         Guid mainFileId = Guid.Empty;
         if (request.MainFileId.HasValue)
         {
@@ -349,9 +313,8 @@ public class NewsService : INewsService
             newsFile.SortOrder = index;
             newsFile.IsMain = fileIds[index] == mainFileId;
 
-            // ต้องสั่ง Add ที่ DbSet ตรงๆ ห้ามใช้ news.Files.Add(...)
-            // เพราะ NewsFile มีรหัส GUID ตั้งแต่ตอนสร้าง ถ้าเพิ่มผ่านรายการของข่าวที่ EF ติดตามอยู่แล้ว
-            // EF จะเข้าใจว่าเป็นแถวเก่าที่มีอยู่ในฐานข้อมูล แล้วสั่ง UPDATE (ซึ่งไม่เจอแถว) แทน INSERT
+            // ต้อง Add ที่ DbSet ตรงๆ ไม่ใช้ news.Files.Add: NewsFile มี GUID ตั้งแต่สร้าง
+            // EF จะเข้าใจว่าเป็นแถวเก่าแล้วสั่ง UPDATE แทน INSERT
             _dbContext.NewsFiles.Add(newsFile);
         }
     }

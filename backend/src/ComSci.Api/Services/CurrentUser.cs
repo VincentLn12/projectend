@@ -3,9 +3,6 @@ using ComSci.Application.Abstractions;
 
 namespace ComSci.Api.Services;
 
-/// <summary>
-/// อ่านรหัสผู้ใช้ที่ล็อกอินอยู่จาก JWT ของ request ปัจจุบัน
-/// </summary>
 public class CurrentUser : ICurrentUser
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -20,9 +17,9 @@ public class CurrentUser : ICurrentUser
         get
         {
             HttpContext? httpContext = _httpContextAccessor.HttpContext;
+            // อยู่นอก request (เช่น ตอน seed ข้อมูลเริ่มระบบ)
             if (httpContext == null)
             {
-                // ไม่ได้อยู่ใน request (เช่น ตอน seed ข้อมูลเริ่มระบบ)
                 return null;
             }
 

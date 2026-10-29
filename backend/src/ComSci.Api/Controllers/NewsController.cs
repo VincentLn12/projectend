@@ -5,9 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ComSci.Api.Controllers;
 
-/// <summary>
-/// ข่าวประชาสัมพันธ์สำหรับคนทั่วไป (อ่านอย่างเดียว) เห็นเฉพาะข่าวที่เผยแพร่แล้ว
-/// </summary>
 [ApiController]
 [Route("api/news")]
 public class NewsController : ControllerBase
@@ -19,9 +16,6 @@ public class NewsController : ControllerBase
         _newsService = newsService;
     }
 
-    /// <summary>
-    /// รายการข่าว เรียงจากใหม่ไปเก่า ค้นหาจากหัวข้อด้วย ?search=
-    /// </summary>
     [HttpGet]
     public async Task<ActionResult<PagedResult<NewsListItemDto>>> GetList(
         [FromQuery] PageQuery pageQuery,
@@ -31,9 +25,6 @@ public class NewsController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// รายละเอียดข่าวหนึ่งรายการ
-    /// </summary>
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<NewsDetailDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
