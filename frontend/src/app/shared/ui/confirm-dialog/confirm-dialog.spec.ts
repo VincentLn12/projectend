@@ -106,7 +106,7 @@ describe('ConfirmDialog', () => {
     service.answer(false);
     service.ask({ title: 'บันทึก?' });
     await settle();
-    expect(button('ยืนยัน').className).toContain('bg-slate-900');
+    expect(button('ยืนยัน').className).toContain('bg-brand-800');
   });
 
   it('asking a second question while one is open answers the first with no', async () => {

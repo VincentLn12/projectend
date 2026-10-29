@@ -5,5 +5,5 @@ export function inputClass(invalid: boolean): string {
 
   return invalid
     ? `${base} border-red-500 focus:ring-red-200`
-    : `${base} border-slate-300 focus:border-slate-500 focus:ring-slate-200`;
+    : `${base} border-slate-400 focus:border-brand-700 focus:ring-brand-700/25`;
 }

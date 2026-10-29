@@ -6,14 +6,14 @@
   (retry)="retry.emit()"
 >
   <!-- Wide screens: a table. Phones: every row becomes a card whose cells show their column header as a label. -->
-  <div class="md:overflow-x-auto md:rounded-xl md:bg-white md:shadow-sm md:ring-1 md:ring-slate-200">
+  <div class="md:overflow-x-auto md:rounded-xl md:bg-white md:shadow-sm md:ring-1 md:ring-slate-300">
     <table class="block w-full text-base md:table">
-      <thead class="bg-slate-50 max-md:sr-only">
+      <thead class="bg-brand-900 max-md:sr-only">
         <tr>
           @for (column of columns(); track column.key) {
             <th
               scope="col"
-              class="whitespace-nowrap border-b border-slate-200 px-5 py-3.5 text-sm font-semibold text-slate-600"
+              class="whitespace-nowrap px-5 py-3.5 text-sm font-semibold text-white"
               [class]="alignClass(column)"
             >
               {{ column.header }}
@@ -21,14 +21,14 @@
           }
         </tr>
       </thead>
-      <tbody class="block md:table-row-group md:divide-y md:divide-slate-100">
+      <tbody class="block md:table-row-group md:divide-y md:divide-slate-200">
         @for (row of rows(); track trackBy()(row, $index); let index = $index) {
           <tr
-            class="block transition-colors hover:bg-brand-900/[0.03] md:table-row max-md:mb-3 max-md:overflow-hidden max-md:rounded-xl max-md:bg-white max-md:shadow-sm max-md:ring-1 max-md:ring-slate-200"
+            class="block transition-colors odd:bg-white even:bg-slate-50 hover:bg-sky-100 md:table-row max-md:mb-3 max-md:overflow-hidden max-md:rounded-xl max-md:bg-white max-md:shadow-sm max-md:ring-1 max-md:ring-slate-300"
           >
             @for (column of columns(); track column.key) {
               <td
-                class="block px-5 py-3.5 align-middle text-slate-700 md:table-cell max-md:flex max-md:items-start max-md:justify-between max-md:gap-4 max-md:border-b max-md:border-slate-100 max-md:px-4 max-md:py-3 max-md:before:shrink-0 max-md:before:text-sm max-md:before:font-medium max-md:before:text-slate-500 max-md:before:content-[attr(data-label)] max-md:first:bg-slate-50 max-md:first:font-semibold max-md:first:text-slate-900 max-md:first:before:hidden max-md:last:border-b-0"
+                class="block px-5 py-3.5 align-middle text-slate-800 md:table-cell max-md:flex max-md:items-start max-md:justify-between max-md:gap-4 max-md:border-b max-md:border-slate-200 max-md:px-4 max-md:py-3 max-md:before:shrink-0 max-md:before:text-sm max-md:before:font-medium max-md:before:text-slate-500 max-md:before:content-[attr(data-label)] max-md:first:bg-brand-900 max-md:first:font-semibold max-md:first:text-white max-md:first:before:hidden max-md:last:border-b-0"
                 [class]="cellClasses(column)"
                 [attr.data-label]="column.header"
               >

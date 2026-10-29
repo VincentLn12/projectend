@@ -42,7 +42,7 @@ describe('Button', () => {
 
     expect(query(fixture, 'button').className).toContain('bg-red-600');
     expect(query(fixture, 'button').className).toContain('text-sm');
-    expect(query(fixture, 'a').className).toContain('border-slate-300');
+    expect(query(fixture, 'a').className).toContain('border-slate-400');
   });
 
   it('while loading: shows a spinner, says it is busy and cannot be clicked', async () => {

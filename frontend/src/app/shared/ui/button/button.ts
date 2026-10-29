@@ -7,10 +7,10 @@ const BASE =
   'inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60';
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-slate-900 text-white hover:bg-slate-700 focus-visible:ring-slate-400',
-  secondary: 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus-visible:ring-slate-300',
+  primary: 'bg-brand-800 text-white hover:bg-brand-700 focus-visible:ring-brand-700',
+  secondary: 'border border-slate-400 bg-white text-slate-900 hover:bg-slate-100 focus-visible:ring-slate-400',
   danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-300',
-  ghost: 'text-slate-600 hover:bg-slate-100 focus-visible:ring-slate-300',
+  ghost: 'text-brand-800 hover:bg-brand-900/10 focus-visible:ring-brand-700',
 };
 
 const SIZES: Record<ButtonSize, string> = {
