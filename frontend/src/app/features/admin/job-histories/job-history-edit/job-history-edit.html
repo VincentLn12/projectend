@@ -6,7 +6,7 @@
 
   <app-data-state [loading]="loading()" [error]="loadError()" (retry)="load()">
     <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4 rounded-xl bg-white p-6 shadow-sm">
-      <app-select-input label="บัณฑิต" formControlName="userId" [options]="userIdOptions()" />
+      <app-select-input label="บัณฑิต" formControlName="userId" [options]="userIdOptions()" [searchable]="true" />
       <app-text-input label="อาชีพ/งาน" formControlName="jobName" [maxLength]="200" />
       <app-text-input label="สถานที่ทำงาน" formControlName="company" [maxLength]="200" />
       <app-text-input label="ตำแหน่ง" formControlName="position" [maxLength]="200" />

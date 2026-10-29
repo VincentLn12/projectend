@@ -1,16 +1,96 @@
 <app-field [label]="label()" [hint]="hint()" [error]="errorMessage()" [required]="isRequired()" [inputId]="uid">
-  <select
-    [id]="uid"
-    [disabled]="isDisabled()"
-    [attr.aria-invalid]="errorMessage() ? 'true' : null"
-    [attr.aria-describedby]="describedBy()"
-    [class]="controlClass()"
-    (change)="onSelect($event)"
-    (blur)="markTouched()"
-  >
-    <option value="-1" [selected]="selectedIndex() < 0">{{ placeholder() }}</option>
-    @for (option of options(); track $index) {
-      <option [value]="$index" [selected]="$index === selectedIndex()">{{ option.label }}</option>
-    }
-  </select>
+  @if (isSearchable()) {
+    <div class="relative">
+      <button
+        type="button"
+        role="combobox"
+        [id]="uid"
+        [disabled]="isDisabled()"
+        aria-haspopup="listbox"
+        [attr.aria-expanded]="isOpen()"
+        [attr.aria-invalid]="errorMessage() ? 'true' : null"
+        [attr.aria-describedby]="describedBy()"
+        [class]="controlClass() + ' cursor-pointer pr-10 text-left'"
+        [class.text-slate-400]="selectedLabel() === null"
+        (click)="toggleList()"
+        (keydown.arrowDown)="openFromKeyboard($event)"
+      >
+        <span class="block truncate">{{ selectedLabel() ?? placeholder() }}</span>
+      </button>
+      <svg
+        class="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-500"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        aria-hidden="true"
+      >
+        <path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+
+      @if (isOpen()) {
+        <div
+          [class.left-0]="!opensTowardsStart()"
+          [class.right-0]="opensTowardsStart()"
+          class="absolute z-30 mt-2 w-max min-w-full max-w-[min(24rem,calc(100vw-2rem))] rounded-xl bg-white p-2 shadow-lg ring-1 ring-slate-200"
+        >
+          <input
+            #searchBox
+            type="text"
+            autocomplete="off"
+            class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-base text-slate-900 placeholder:text-slate-400 focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-700/25"
+            [placeholder]="searchPlaceholder()"
+            [attr.aria-label]="searchPlaceholder()"
+            [value]="searchText()"
+            (input)="onSearchInput($event)"
+            (keydown)="onSearchKeydown($event)"
+          />
+
+          <ul role="listbox" class="mt-2 max-h-60 overflow-auto">
+            @for (row of rows(); track row.index; let position = $index) {
+              <li
+                role="option"
+                class="flex cursor-pointer items-center justify-between gap-3 rounded-lg px-3 py-2 text-base"
+                [class]="
+                  position === activePosition()
+                    ? 'bg-sky-100 text-slate-900'
+                    : row.index < 0
+                      ? 'text-slate-400'
+                      : 'text-slate-800'
+                "
+                [class.font-semibold]="row.selected && row.index >= 0"
+                [attr.aria-selected]="row.selected"
+                [attr.data-position]="position"
+                (click)="chooseRow(row)"
+                (mouseenter)="setActivePosition(position)"
+              >
+                <span class="truncate">{{ row.label }}</span>
+                @if (row.selected && row.index >= 0) {
+                  <span aria-hidden="true" class="text-brand-800">✓</span>
+                }
+              </li>
+            }
+          </ul>
+          @if (hasNoMatches()) {
+            <p class="px-3 py-3 text-center text-sm text-slate-500">{{ noResultsText() }}</p>
+          }
+        </div>
+      }
+    </div>
+  } @else {
+    <select
+      [id]="uid"
+      [disabled]="isDisabled()"
+      [attr.aria-invalid]="errorMessage() ? 'true' : null"
+      [attr.aria-describedby]="describedBy()"
+      [class]="controlClass()"
+      (change)="onSelect($event)"
+      (blur)="markTouched()"
+    >
+      <option value="-1" [selected]="selectedIndex() < 0">{{ placeholder() }}</option>
+      @for (option of options(); track $index) {
+        <option [value]="$index" [selected]="$index === selectedIndex()">{{ option.label }}</option>
+      }
+    </select>
+  }
 </app-field>

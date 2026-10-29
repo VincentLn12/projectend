@@ -51,7 +51,7 @@ API ส่ง token ใน body (ไม่ใช้ cookie) แอปเก็�
 |---|---|
 | `app-text-input` (`type`: text, email, password, search, tel, url, number) | `string` (`number` เมื่อ `type="number"`, ว่าง = `null`) |
 | `app-text-area` | `string` |
-| `app-select-input` (`[options]` = `{ value, label }[]`) | ค่าจริงของตัวเลือก (ตัวเลข, enum, id ได้) หรือ `null` |
+| `app-select-input` (`[options]` = `{ value, label }[]`, `[searchable]`, `shape`) | ค่าจริงของตัวเลือก (ตัวเลข, enum, id ได้) หรือ `null` รายการตั้งแต่ 8 ตัวเลือกขึ้นไปมีช่องค้นหาอัตโนมัติ (ไม่สนตัวพิมพ์เล็ก/ใหญ่ ใช้ลูกศรขึ้นลง + Enter ได้ Esc ปิด) บังคับเปิด/ปิดด้วย `[searchable]="true"` / `"false"` รายการสั้นใช้ `<select>` ของ browser ตามเดิม |
 | `app-checkbox`, `app-toggle` | `boolean` |
 | `app-date-input` (`type`: date, datetime-local) | แบบ `date` เป็นปฏิทินไทย (ปี พ.ศ. ชื่อเดือนไทย รองรับ `min` / `max` ปุ่มล้างวันที่ ปิดด้วย Esc หรือคลิกข้างนอก) แบบ `datetime-local` ใช้ช่องของ browser ค่าเป็นข้อความ (`2030-01-31` / `2030-01-31T09:30`) หรือ `null` |
 | `app-file-upload` (`accept`: image, pdf, any; `[multiple]`) | รหัสไฟล์ (`string \| null`) หรือรายการรหัส (`string[]`) เมื่อ multiple โดยรหัสแรกคือรูปหลัก |

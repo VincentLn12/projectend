@@ -8,7 +8,7 @@
     <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4 rounded-xl bg-white p-6 shadow-sm">
       <app-text-input label="ชื่อหลักสูตร" formControlName="title" [maxLength]="300" />
       <app-text-area label="รายละเอียด" formControlName="description" [rows]="6" />
-      <app-select-input label="วิทยากร" formControlName="lecturerId" [options]="lecturerOptions()" />
+      <app-select-input label="วิทยากร" formControlName="lecturerId" [options]="lecturerOptions()" [searchable]="true" />
       <app-file-upload label="รูปภาพ" hint="รูปแรกเป็นรูปหลัก" formControlName="fileIds" [multiple]="true" accept="image" />
       <app-toggle label="เผยแพร่" formControlName="isPublished" />
 

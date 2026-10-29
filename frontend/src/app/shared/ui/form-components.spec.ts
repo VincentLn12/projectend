@@ -245,6 +245,34 @@ class SelectHost {
   control = new FormControl<number | null>(null, Validators.required);
 }
 
+@Component({
+  imports: [ReactiveFormsModule, SelectInput],
+  template: `<app-select-input
+    label="อาจารย์"
+    placeholder="เลือกอาจารย์"
+    [options]="options"
+    [searchable]="true"
+    [formControl]="control"
+  />`,
+})
+class SearchableSelectHost {
+  options: SelectOption<string>[] = [
+    { value: 'a', label: 'สมชาย ใจดี' },
+    { value: 'b', label: 'Somying Rakngan' },
+    { value: 'c', label: 'สมศักดิ์ มั่นคง' },
+  ];
+  control = new FormControl<string | null>(null);
+}
+
+@Component({
+  imports: [ReactiveFormsModule, SelectInput],
+  template: `<app-select-input label="ปี" [options]="options" [formControl]="control" />`,
+})
+class LongSelectHost {
+  options: SelectOption<number>[] = Array.from({ length: 8 }, (_, index) => ({ value: index, label: `ตัวเลือก ${index}` }));
+  control = new FormControl<number | null>(null);
+}
+
 describe('SelectInput', () => {
   const choose = (fixture: ComponentFixture<unknown>, index: number) => {
     const select = query<HTMLSelectElement>(fixture, 'select');
@@ -461,5 +489,93 @@ describe('DateInput', () => {
 
     typeInto(input, '');
     expect(fixture.componentInstance.control.value).toBeNull();
+  });
+});
+
+describe('SelectInput with search', () => {
+  const open = async (fixture: ComponentFixture<unknown>) => {
+    query<HTMLButtonElement>(fixture, 'button[role="combobox"]').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+  };
+  const type = (fixture: ComponentFixture<unknown>, text: string) => {
+    const box = query<HTMLInputElement>(fixture, '[role="listbox"]').parentElement!.querySelector('input') as HTMLInputElement;
+    box.value = text;
+    box.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  };
+  const optionLabels = (fixture: ComponentFixture<unknown>) =>
+    Array.from(fixture.nativeElement.querySelectorAll('[role="option"]')).map((o) => (o as HTMLElement).textContent?.replace('✓', '').trim());
+
+  it('shows a button instead of the browser select, listing the placeholder and every option', async () => {
+    const fixture = await render(SearchableSelectHost);
+    expect(query(fixture, 'select')).toBeNull();
+
+    await open(fixture);
+
+    expect(optionLabels(fixture)).toEqual(['เลือกอาจารย์', 'สมชาย ใจดี', 'Somying Rakngan', 'สมศักดิ์ มั่นคง']);
+  });
+
+  it('narrows the list while typing, ignoring upper and lower case', async () => {
+    const fixture = await render(SearchableSelectHost);
+    await open(fixture);
+
+    type(fixture, 'สมศ');
+    expect(optionLabels(fixture)).toEqual(['สมศักดิ์ มั่นคง']);
+
+    type(fixture, 'SOMYING');
+    expect(optionLabels(fixture)).toEqual(['Somying Rakngan']);
+
+    type(fixture, 'ไม่มีชื่อนี้');
+    expect(optionLabels(fixture)).toEqual([]);
+    expect(fixture.nativeElement.textContent).toContain('ไม่พบตัวเลือกที่ตรงกัน');
+  });
+
+  it('picks the clicked option, shows its label and closes', async () => {
+    const fixture = await render(SearchableSelectHost);
+    await open(fixture);
+
+    (fixture.nativeElement.querySelectorAll('[role="option"]')[2] as HTMLElement).click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.control.value).toBe('b');
+    expect(query(fixture, 'button[role="combobox"]').textContent?.trim()).toBe('Somying Rakngan');
+    expect(query(fixture, '[role="listbox"]')).toBeNull();
+  });
+
+  it('picks with the arrow keys and Enter, and the placeholder row clears the value', async () => {
+    const fixture = await render(SearchableSelectHost);
+    fixture.componentInstance.control.setValue('c');
+    fixture.detectChanges();
+    await open(fixture);
+
+    const box = query<HTMLInputElement>(fixture, 'input');
+    box.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+    box.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.control.value).toBe('b');
+
+    await open(fixture);
+    (fixture.nativeElement.querySelectorAll('[role="option"]')[0] as HTMLElement).click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.control.value).toBeNull();
+  });
+
+  it('closes on Escape', async () => {
+    const fixture = await render(SearchableSelectHost);
+    await open(fixture);
+
+    query(fixture, 'app-select-input').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+
+    expect(query(fixture, '[role="listbox"]')).toBeNull();
+  });
+
+  it('a list of 8 or more options is searchable without asking, a short one is not', async () => {
+    const longList = await render(LongSelectHost);
+    expect(query(longList, 'button[role="combobox"]')).not.toBeNull();
+
+    const shortList = await render(SelectHost);
+    expect(query(shortList, 'select')).not.toBeNull();
   });
 });

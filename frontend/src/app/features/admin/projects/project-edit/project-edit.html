@@ -178,6 +178,7 @@
               placeholder="เลือกนักศึกษา..."
               formControlName="studentId"
               [options]="studentOptions()"
+              [searchable]="true"
             />
 
             <app-text-input
@@ -193,6 +194,7 @@
               placeholder="เลือกอาจารย์ที่ปรึกษาหลัก (ถ้ามี)..."
               formControlName="mainAdvisorId"
               [options]="lecturerOptions()"
+              [searchable]="true"
             />
 
             <app-select-input
@@ -201,6 +203,7 @@
               hint="ต้องไม่ซ้ำกับอาจารย์ที่ปรึกษาหลัก"
               formControlName="coAdvisorId"
               [options]="lecturerOptions()"
+              [searchable]="true"
             />
           </div>
         </div>
