@@ -1,0 +1,23 @@
+<section class="space-y-4">
+  <div class="flex items-baseline justify-between gap-3">
+    <h1 class="text-xl font-semibold text-slate-900">ผู้ลงทะเบียนรุ่นอบรม</h1>
+    <a [routerLink]="['/admin/courses', courseId]" class="text-sm text-slate-600 underline hover:text-slate-900">← กลับไปหลักสูตร</a>
+  </div>
+
+  <app-data-table
+    [columns]="columns"
+    [rows]="rows()"
+    [trackBy]="rowKey"
+    [loading]="loading()"
+    [error]="error()"
+    emptyMessage="ยังไม่มีผู้ลงทะเบียน"
+    (retry)="load()"
+  >
+    <ng-template appCell="registeredAt" let-row>{{ row.registeredAt | thaiDate: 'short' }}</ng-template>
+    <ng-template appCell="actions" let-row>
+      @if (isActive(row)) {
+        <button type="button" app-button size="sm" variant="danger" (click)="cancel(row)">ยกเลิกการลงทะเบียน</button>
+      }
+    </ng-template>
+  </app-data-table>
+</section>

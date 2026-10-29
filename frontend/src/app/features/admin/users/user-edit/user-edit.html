@@ -1,0 +1,46 @@
+<section class="mx-auto max-w-3xl space-y-4">
+  <div class="flex items-baseline justify-between gap-3">
+    <h1 class="text-xl font-semibold text-slate-900">{{ isNew ? 'เพิ่มผู้ใช้' : 'แก้ไขผู้ใช้' }}</h1>
+    <a routerLink="/admin/users" class="text-sm text-slate-600 underline hover:text-slate-900">← กลับไปรายการผู้ใช้</a>
+  </div>
+
+  <app-data-state [loading]="loading()" [error]="loadError()" (retry)="load()">
+    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4 rounded-xl bg-white p-6 shadow-sm">
+      <app-text-input label="อีเมล" type="email" formControlName="email" [maxLength]="256" />
+      <app-text-input label="ชื่อ-สกุล" formControlName="fullName" [maxLength]="200" />
+      @if (isNew) {
+        <app-text-input label="รหัสผ่านเริ่มต้น" type="password" hint="อย่างน้อย 8 ตัวอักษร" formControlName="password" autocomplete="new-password" />
+      }
+      <app-select-input label="ประเภทผู้ใช้" formControlName="userType" [options]="typeOptions" />
+
+      @if (isStudent()) {
+        <div class="grid gap-4 sm:grid-cols-2">
+          <app-text-input label="รหัสนักศึกษา" formControlName="studentCode" [maxLength]="20" />
+          <app-text-input label="ปีที่เข้าศึกษา (พ.ศ.)" type="number" formControlName="entryYear" />
+        </div>
+        <app-text-input label="โรงเรียน/สถานศึกษาเดิม" formControlName="previousSchool" [maxLength]="200" />
+        <app-text-area label="ที่อยู่" formControlName="address" [rows]="3" />
+      }
+
+      @if (formError(); as message) {
+        <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ message }}</p>
+      }
+
+      <div class="flex justify-end gap-2">
+        <a app-button variant="secondary" routerLink="/admin/users">ยกเลิก</a>
+        <button type="submit" app-button [loading]="saving()">บันทึก</button>
+      </div>
+    </form>
+
+    @if (!isNew) {
+      <form [formGroup]="passwordForm" (ngSubmit)="resetPassword()" class="mt-6 space-y-3 rounded-xl bg-white p-6 shadow-sm">
+        <h2 class="font-semibold text-slate-900">ตั้งรหัสผ่านใหม่</h2>
+        <p class="text-sm text-slate-500">ผู้ใช้จะถูกออกจากระบบทุกอุปกรณ์ และต้องเข้าสู่ระบบด้วยรหัสผ่านใหม่</p>
+        <app-text-input label="รหัสผ่านใหม่" type="password" hint="อย่างน้อย 8 ตัวอักษร" formControlName="newPassword" autocomplete="new-password" />
+        <div class="flex justify-end">
+          <button type="submit" app-button variant="danger" [loading]="resetting()">ตั้งรหัสผ่านใหม่</button>
+        </div>
+      </form>
+    }
+  </app-data-state>
+</section>

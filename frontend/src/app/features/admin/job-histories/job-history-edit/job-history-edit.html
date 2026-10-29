@@ -1,0 +1,27 @@
+<section class="mx-auto max-w-3xl space-y-4">
+  <div class="flex items-baseline justify-between gap-3">
+    <h1 class="text-xl font-semibold text-slate-900">{{ isNew ? 'เพิ่มประวัติการทำงาน' : 'แก้ไขประวัติการทำงาน' }}</h1>
+    <a routerLink="/admin/job-histories" class="text-sm text-slate-600 underline hover:text-slate-900">← กลับไปรายการ</a>
+  </div>
+
+  <app-data-state [loading]="loading()" [error]="loadError()" (retry)="load()">
+    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4 rounded-xl bg-white p-6 shadow-sm">
+      <app-select-input label="บัณฑิต" formControlName="userId" [options]="userIdOptions()" />
+      <app-text-input label="อาชีพ/งาน" formControlName="jobName" [maxLength]="200" />
+      <app-text-input label="สถานที่ทำงาน" formControlName="company" [maxLength]="200" />
+      <app-text-input label="ตำแหน่ง" formControlName="position" [maxLength]="200" />
+      <app-date-input label="วันที่เริ่มงาน" formControlName="startDate" />
+      <app-text-area label="รายละเอียด" formControlName="description" [rows]="4" />
+      <app-toggle label="เผยแพร่" formControlName="isPublished" />
+
+      @if (formError(); as message) {
+        <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ message }}</p>
+      }
+
+      <div class="flex justify-end gap-2">
+        <a app-button variant="secondary" routerLink="/admin/job-histories">ยกเลิก</a>
+        <button type="submit" app-button [loading]="saving()">บันทึก</button>
+      </div>
+    </form>
+  </app-data-state>
+</section>

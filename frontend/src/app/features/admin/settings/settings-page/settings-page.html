@@ -1,0 +1,23 @@
+<section class="mx-auto max-w-3xl space-y-4">
+  <h1 class="text-xl font-semibold text-slate-900">ตั้งค่าเว็บไซต์</h1>
+
+  <app-data-state [loading]="loading()" [error]="loadError()" (retry)="load()">
+    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4 rounded-xl bg-white p-6 shadow-sm">
+      <app-text-input label="ชื่อเว็บไซต์" formControlName="webName" [maxLength]="200" />
+      <app-file-upload label="โลโก้" formControlName="logoFileId" accept="image" />
+      <app-text-input label="ลิงก์สมัครเรียน" type="url" formControlName="registerUrl" />
+      <app-text-input label="ลิงก์เว็บมหาวิทยาลัย" type="url" formControlName="kruUrl" />
+      <app-text-input label="ลิงก์เพจ Facebook" type="url" formControlName="pageFacebook" />
+      <app-text-input label="วิดีโอแนะนำ" hint="ลิงก์วิดีโอ หรือหลายลิงก์คั่นด้วยเครื่องหมายจุลภาค" formControlName="videoUrl" [maxLength]="500" />
+      <app-text-input label="แผนที่ที่ตั้ง" formControlName="mapLocation" [maxLength]="500" />
+
+      @if (formError(); as message) {
+        <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ message }}</p>
+      }
+
+      <div class="flex justify-end">
+        <button type="submit" app-button [loading]="saving()">บันทึก</button>
+      </div>
+    </form>
+  </app-data-state>
+</section>

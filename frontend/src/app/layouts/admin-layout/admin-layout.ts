@@ -23,5 +23,12 @@ export class AdminLayout {
     { label: 'ข่าว', path: '/admin/news', exact: false },
     { label: 'โครงงาน', path: '/admin/projects', exact: false },
     { label: 'อาจารย์', path: '/admin/lecturers', exact: false },
+    { label: 'เทคโนโลยี', path: '/admin/tech-subjects', exact: false },
+    { label: 'แบนเนอร์', path: '/admin/home-banners', exact: false },
+    { label: 'ประวัติการทำงาน', path: '/admin/job-histories', exact: false },
+    { label: 'หลักสูตร', path: '/admin/syllabuses', exact: false },
+    { label: 'หลักสูตรระยะสั้น', path: '/admin/courses', exact: false },
+    { label: 'ผู้ใช้', path: '/admin/users', exact: false },
+    { label: 'ตั้งค่าเว็บไซต์', path: '/admin/settings', exact: false },
   ];
 }

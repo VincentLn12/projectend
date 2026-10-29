@@ -1,0 +1,27 @@
+<section class="mx-auto max-w-3xl space-y-4">
+  <div class="flex items-baseline justify-between gap-3">
+    <h1 class="text-xl font-semibold text-slate-900">{{ isNew ? 'เพิ่มเทคโนโลยี' : 'แก้ไขเทคโนโลยี' }}</h1>
+    <a routerLink="/admin/tech-subjects" class="text-sm text-slate-600 underline hover:text-slate-900">← กลับไปรายการเทคโนโลยี</a>
+  </div>
+
+  <app-data-state [loading]="loading()" [error]="loadError()" (retry)="load()">
+    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4 rounded-xl bg-white p-6 shadow-sm">
+      <app-text-input label="ไอคอน" formControlName="icon" [maxLength]="100" />
+      <app-text-input label="ชื่อเทคโนโลยี" formControlName="subjectName" [maxLength]="200" />
+      <app-text-input label="คำอธิบายสั้น" formControlName="subTitle" [maxLength]="300" />
+      <app-text-area label="รายละเอียด" formControlName="description" [rows]="8" />
+      <app-text-input label="ลำดับการแสดง" hint="เลขน้อยแสดงก่อน" formControlName="sortOrder" type="number" />
+      <app-file-upload label="รูปภาพ" hint="รูปแรกเป็นรูปหลัก" formControlName="fileIds" [multiple]="true" accept="image" />
+      <app-toggle label="เผยแพร่" formControlName="isPublished" />
+
+      @if (formError(); as message) {
+        <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ message }}</p>
+      }
+
+      <div class="flex justify-end gap-2">
+        <a app-button variant="secondary" routerLink="/admin/tech-subjects">ยกเลิก</a>
+        <button type="submit" app-button [loading]="saving()">บันทึก</button>
+      </div>
+    </form>
+  </app-data-state>
+</section>
