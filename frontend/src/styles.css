@@ -1,7 +1,17 @@
 @import 'tailwindcss';
 
+/* ฟอนต์ TH Sarabun (Sarabun) เก็บในแอปเอง ไม่เรียกจากเว็บภายนอก */
+@import '@fontsource/sarabun/thai-400.css';
+@import '@fontsource/sarabun/thai-500.css';
+@import '@fontsource/sarabun/thai-600.css';
+@import '@fontsource/sarabun/thai-700.css';
+@import '@fontsource/sarabun/latin-400.css';
+@import '@fontsource/sarabun/latin-500.css';
+@import '@fontsource/sarabun/latin-600.css';
+@import '@fontsource/sarabun/latin-700.css';
+
 @theme {
-  --font-sans: 'Sarabun', 'Noto Sans Thai', 'Leelawadee UI', Tahoma, system-ui, sans-serif;
+  --font-sans: 'Sarabun', 'Leelawadee UI', Tahoma, system-ui, sans-serif;
 
   /* สีประจำสถาบัน: น้ำเงินเข้ม + ทอง เปลี่ยนที่นี่ที่เดียวมีผลทั้งแถบเมนูผู้ดูแล */
   --color-brand-950: #07152b;
