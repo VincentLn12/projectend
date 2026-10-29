@@ -45,6 +45,13 @@ export class DataTable<T> {
     return this.templatesByKey().get(key) ?? null;
   }
 
+  protected readonly sortableColumns = computed(() => this.columns().filter((column) => column.sortable));
+
+  protected sortArrow(column: TableColumn<T>): string {
+    const direction = this.ariaSort(column);
+    return direction === 'ascending' ? '▲' : direction === 'descending' ? '▼' : '↕';
+  }
+
   protected ariaSort(column: TableColumn<T>): 'ascending' | 'descending' | null {
     const sort = this.sort();
     if (!column.sortable || sort?.key !== column.key) {

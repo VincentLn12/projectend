@@ -11,7 +11,7 @@
     <div class="min-w-60 flex-1">
       <app-search-box placeholder="ค้นหาหัวข้อข่าว" (searchChange)="list.setSearch($event)" />
     </div>
-    <div class="w-44">
+    <div class="w-full sm:w-44">
       <app-select-input
         label="สถานะ"
         shape="soft"
@@ -20,7 +20,7 @@
         [formControl]="statusControl"
       />
     </div>
-    <div class="w-44">
+    <div class="w-[calc(50%-0.375rem)] sm:w-44">
       <app-date-input
         label="เผยแพร่ตั้งแต่วันที่"
         shape="soft"
@@ -28,7 +28,7 @@
         [formControl]="publishedFromControl"
       />
     </div>
-    <div class="w-44">
+    <div class="w-[calc(50%-0.375rem)] sm:w-44">
       <app-date-input
         label="ถึงวันที่"
         shape="soft"
