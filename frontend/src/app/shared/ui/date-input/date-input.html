@@ -1,15 +1,126 @@
 <app-field [label]="label()" [hint]="hint()" [error]="errorMessage()" [required]="isRequired()" [inputId]="uid">
-  <input
-    [id]="uid"
-    [type]="type()"
-    [value]="value() ?? ''"
-    [disabled]="isDisabled()"
-    [attr.min]="min()"
-    [attr.max]="max()"
-    [attr.aria-invalid]="errorMessage() ? 'true' : null"
-    [attr.aria-describedby]="describedBy()"
-    [class]="inputClass(!!errorMessage())"
-    (input)="onInput($event)"
-    (blur)="markTouched()"
-  />
+  @if (type() === 'date') {
+    <div class="relative">
+      <button
+        type="button"
+        [id]="uid"
+        [disabled]="isDisabled()"
+        aria-haspopup="dialog"
+        [attr.aria-expanded]="isOpen()"
+        [attr.aria-invalid]="errorMessage() ? 'true' : null"
+        [attr.aria-describedby]="describedBy()"
+        [class]="inputClass(!!errorMessage()) + ' cursor-pointer pr-10 text-left'"
+        [class.text-slate-400]="!value()"
+        (click)="toggleCalendar()"
+      >
+        {{ displayText() }}
+      </button>
+      <svg
+        class="pointer-events-none absolute right-3 top-1/2 size-5 -translate-y-1/2 text-slate-500"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        aria-hidden="true"
+      >
+        <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
+        <path d="M3.5 10h17M8 3v4M16 3v4" stroke-linecap="round" />
+      </svg>
+
+      @if (isOpen()) {
+        <div
+          role="dialog"
+          aria-label="เลือกวันที่"
+          class="absolute left-0 z-30 mt-1 w-72 rounded-xl bg-white p-3 shadow-lg ring-1 ring-slate-300"
+        >
+          <div class="mb-2 flex items-center justify-between gap-1">
+            <button
+              type="button"
+              class="rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
+              aria-label="ปีก่อนหน้า"
+              (click)="moveMonths(-12)"
+            >
+              «
+            </button>
+            <button
+              type="button"
+              class="rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
+              aria-label="เดือนก่อนหน้า"
+              (click)="moveMonths(-1)"
+            >
+              ‹
+            </button>
+            <span class="flex-1 text-center font-semibold text-slate-900" aria-live="polite">{{ monthTitle() }}</span>
+            <button
+              type="button"
+              class="rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
+              aria-label="เดือนถัดไป"
+              (click)="moveMonths(1)"
+            >
+              ›
+            </button>
+            <button
+              type="button"
+              class="rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100"
+              aria-label="ปีถัดไป"
+              (click)="moveMonths(12)"
+            >
+              »
+            </button>
+          </div>
+
+          <div class="grid grid-cols-7 gap-0.5 text-center text-sm">
+            @for (weekday of weekdayNames; track weekday) {
+              <span class="py-1 font-medium text-slate-500">{{ weekday }}</span>
+            }
+            @for (day of calendarDays(); track day.iso) {
+              <button
+                type="button"
+                class="rounded-md py-1.5 disabled:cursor-not-allowed disabled:text-slate-300"
+                [class]="
+                  day.selected
+                    ? 'bg-brand-800 font-semibold text-white'
+                    : day.inViewedMonth
+                      ? 'text-slate-900 hover:bg-sky-100'
+                      : 'text-slate-400 hover:bg-slate-100'
+                "
+                [class.ring-1]="day.today && !day.selected"
+                [class.ring-gold-500]="day.today && !day.selected"
+                [disabled]="day.disabled"
+                [attr.aria-label]="day.label"
+                [attr.aria-pressed]="day.selected"
+                (click)="pickDay(day)"
+              >
+                {{ day.dayOfMonth }}
+              </button>
+            }
+          </div>
+
+          <div class="mt-2 flex justify-end border-t border-slate-200 pt-2">
+            <button
+              type="button"
+              class="rounded-md px-2 py-1 text-sm text-slate-600 hover:bg-slate-100"
+              (click)="clearDate()"
+            >
+              ล้างวันที่
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <input
+      [id]="uid"
+      type="datetime-local"
+      [value]="value() ?? ''"
+      [disabled]="isDisabled()"
+      [attr.min]="min()"
+      [attr.max]="max()"
+      [attr.aria-invalid]="errorMessage() ? 'true' : null"
+      [attr.aria-describedby]="describedBy()"
+      [class]="inputClass(!!errorMessage())"
+      (input)="onInput($event)"
+      (blur)="markTouched()"
+    />
+  }
 </app-field>
