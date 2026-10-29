@@ -3,7 +3,6 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { SiteSettingsStore } from '../../core/settings/api/site-settings.store';
-import { ThaiDatePipe } from '../../shared/pipes/thai-date.pipe';
 import { Button } from '../../shared/ui/button/button';
 import { FileImage } from '../../shared/ui/file-image/file-image';
 import { MENU_ICONS } from './menu-icons';
@@ -22,7 +21,7 @@ export interface MenuGroup {
 
 @Component({
   selector: 'app-admin-layout',
-  imports: [NgTemplateOutlet, RouterOutlet, RouterLink, RouterLinkActive, ThaiDatePipe, Button, FileImage],
+  imports: [NgTemplateOutlet, RouterOutlet, RouterLink, RouterLinkActive, Button, FileImage],
   templateUrl: './admin-layout.html',
   host: { '(document:keydown.escape)': 'closeMobileMenu()' },
 })
@@ -30,7 +29,6 @@ export class AdminLayout {
   protected readonly auth = inject(AuthService);
   protected readonly siteSettings = inject(SiteSettingsStore);
   protected readonly isMobileMenuOpen = signal(false);
-  protected readonly today = new Date();
 
   protected readonly userInitial = computed(() => {
     const name = this.auth.user()?.fullName?.trim();
