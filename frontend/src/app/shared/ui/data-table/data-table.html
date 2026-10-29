@@ -28,7 +28,7 @@
           >
             @for (column of columns(); track column.key) {
               <td
-                class="block px-5 py-3.5 align-middle text-slate-800 md:table-cell max-md:flex max-md:items-start max-md:justify-between max-md:gap-4 max-md:border-b max-md:border-slate-200 max-md:px-4 max-md:py-3 max-md:before:shrink-0 max-md:before:text-sm max-md:before:font-medium max-md:before:text-slate-500 max-md:before:content-[attr(data-label)] max-md:first:bg-brand-900 max-md:first:font-semibold max-md:first:text-white max-md:first:before:hidden max-md:last:border-b-0"
+                class="block px-5 py-3.5 align-middle text-slate-800 md:table-cell max-md:flex max-md:items-start max-md:justify-between max-md:gap-4 max-md:border-b max-md:border-slate-200 max-md:px-4 max-md:py-3 max-md:before:shrink-0 max-md:before:text-sm max-md:before:font-medium max-md:before:text-slate-500 max-md:before:content-[attr(data-label)] max-md:first:border-b-2 max-md:first:border-brand-800 max-md:first:bg-slate-100 max-md:first:font-semibold max-md:first:text-slate-900 max-md:first:before:hidden max-md:last:border-b-0"
                 [class]="cellClasses(column)"
                 [attr.data-label]="column.header"
               >
