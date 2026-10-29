@@ -849,8 +849,8 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<decimal>("Credit")
-                        .HasPrecision(3, 1)
-                        .HasColumnType("decimal(3,1)");
+                        .HasPrecision(6, 1)
+                        .HasColumnType("decimal(6,1)");
 
                     b.Property<string>("Name")
                         .IsRequired()

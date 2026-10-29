@@ -17,7 +17,6 @@ public class SaveSystemSettingRequest
     [StringLength(500)]
     public string? PageFacebook { get; set; }
     public Guid? LogoFileId { get; set; }
-    [Url]
     [StringLength(500)]
     public string? VideoUrl { get; set; }
     [StringLength(500)]

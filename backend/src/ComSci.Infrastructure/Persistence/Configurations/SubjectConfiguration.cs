@@ -15,7 +15,7 @@ public class SubjectConfiguration : IEntityTypeConfiguration<Subject>
             .HasMaxLength(200);
 
         builder.Property(subject => subject.Credit)
-            .HasPrecision(3, 1);
+            .HasPrecision(6, 1);
 
         builder.HasOne(subject => subject.Syllabus)
             .WithMany(syllabus => syllabus.Subjects)
