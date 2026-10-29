@@ -1,0 +1,26 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.log
+TestResults/
+
+## Angular / Node
+node_modules/
+dist/
+.angular/
+
+## Secrets and local config
+appsettings.*.local.json
+.env
+*.pfx
+
+## Uploaded files
+backend/src/ComSci.Api/uploads/
+
+## IDE / OS
+.idea/
+.vscode/
+Thumbs.db
