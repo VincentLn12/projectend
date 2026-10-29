@@ -1,5 +1,7 @@
 using ComSci.Application.Abstractions;
 using ComSci.Domain.Entities;
+using ComSci.Application.Options;
+using ComSci.Infrastructure.Files;
 using ComSci.Infrastructure.Identity;
 using ComSci.Infrastructure.Services;
 using ComSci.Infrastructure.Persistence;
@@ -17,6 +19,8 @@ public static class DependencyInjection
         services.AddScoped<AuditSaveChangesInterceptor>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<INewsService, NewsService>();
+        services.AddScoped<IFileService, FileService>();
+        services.AddSingleton<IFileStorage, LocalFileStorage>();
 
         services.AddDbContext<AppDbContext>((sp, options) => options
             .UseSqlServer(config.GetConnectionString("Default"))

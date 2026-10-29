@@ -13,6 +13,7 @@ public class ApiExceptionHandler(IProblemDetailsService problems) : IExceptionHa
         {
             NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
             BadRequestException => (StatusCodes.Status400BadRequest, "Bad request"),
+            ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
             _ => (0, null),
         };
         if (title is null) return false;

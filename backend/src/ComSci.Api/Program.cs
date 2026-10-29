@@ -17,6 +17,9 @@ if (jwt.Key.Length < 32)
     throw new InvalidOperationException("Jwt:Key must be set (at least 32 characters), e.g. with dotnet user-secrets.");
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.Section));
+builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection(StorageOptions.Section));
+builder.Services.PostConfigure<StorageOptions>(o =>
+    o.RootPath = Path.GetFullPath(o.RootPath, builder.Environment.ContentRootPath));
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
@@ -69,6 +72,11 @@ var app = builder.Build();
 
 await DbSeeder.SeedAsync(app.Services);
 
+app.Use(async (ctx, next) =>
+{
+    ctx.Response.Headers.XContentTypeOptions = "nosniff";
+    await next();
+});
 app.UseExceptionHandler();
 if (app.Environment.IsDevelopment())
 {
