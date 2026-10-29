@@ -21,8 +21,10 @@ describe('authInterceptor', () => {
 
   beforeEach(() => {
     installMemoryLocalStorage();
+    // Without the Web Locks API a refresh starts at once, which keeps these tests simple; the lock itself has its own test.
+    vi.stubGlobal('navigator', {});
     TestBed.configureTestingModule({
-      providers: [provideRouter([]), provideHttpClient(withInterceptors([authInterceptor])), provideHttpClientTesting()],
+      providers: [provideRouter([{ path: '**', children: [] }]), provideHttpClient(withInterceptors([authInterceptor])), provideHttpClientTesting()],
     });
     client = TestBed.inject(HttpClient);
     auth = TestBed.inject(AuthService);
@@ -32,7 +34,10 @@ describe('authInterceptor', () => {
     http.expectOne('/api/auth/login').flush(loginResponse('access-1', 'refresh-1'));
   });
 
-  afterEach(() => http.verify());
+  afterEach(() => {
+    http.verify();
+    vi.unstubAllGlobals();
+  });
 
   it('sends the access token to the API', () => {
     client.get('/api/me').subscribe();
@@ -62,5 +67,27 @@ describe('authInterceptor', () => {
     retry.flush({ ok: true });
 
     expect(result).toEqual({ ok: true });
+  });
+  it('stays signed in when the refresh call fails only because the API is unreachable', () => {
+    let failed = false;
+    client.get('/api/admin/news').subscribe({ error: () => (failed = true) });
+
+    http.expectOne('/api/admin/news').flush({}, { status: 401, statusText: 'Unauthorized' });
+    http.expectOne('/api/auth/refresh').flush({}, { status: 503, statusText: 'Service Unavailable' });
+
+    expect(failed).toBe(true);
+    expect(auth.isLoggedIn()).toBe(true);
+    expect(localStorage.getItem('comsci.refreshToken')).toBe('refresh-1');
+  });
+
+  it('signs out when the server refuses the refresh token', () => {
+    client.get('/api/admin/news').subscribe({ error: () => undefined });
+
+    http.expectOne('/api/admin/news').flush({}, { status: 401, statusText: 'Unauthorized' });
+    http.expectOne('/api/auth/refresh').flush({}, { status: 401, statusText: 'Unauthorized' });
+    http.expectOne('/api/auth/logout').flush(null);
+
+    expect(auth.isLoggedIn()).toBe(false);
+    expect(localStorage.getItem('comsci.refreshToken')).toBeNull();
   });
 });

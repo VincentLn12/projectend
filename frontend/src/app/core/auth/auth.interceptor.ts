@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from
 import { inject } from '@angular/core';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { API_BASE } from '../api.config';
-import { AuthService } from './auth.service';
+import { AuthService, isSessionRejected } from './auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const auth = inject(AuthService);
@@ -22,7 +22,10 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
       return auth.refreshAccessToken().pipe(
         switchMap((token) => sendWithToken(request, next, token)),
         catchError((refreshError: unknown) => {
-          auth.logout();
+          // Sign out only when the server refused the refresh token; if it is just unreachable the person stays signed in.
+          if (isSessionRejected(refreshError)) {
+            auth.logout();
+          }
           return throwError(() => refreshError);
         }),
       );

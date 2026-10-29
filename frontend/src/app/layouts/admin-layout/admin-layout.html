@@ -22,7 +22,9 @@
       <a routerLink="/" class="text-slate-600 hover:text-slate-900">← กลับหน้าเว็บ</a>
       <div class="flex items-center gap-3">
         <span class="text-slate-500">{{ auth.user()?.fullName }}</span>
-        <button type="button" app-button variant="secondary" size="sm" (click)="auth.logout()">ออกจากระบบ</button>
+        <button type="button" app-button variant="secondary" size="sm" (click)="auth.logout()">
+          ออกจากระบบ
+        </button>
       </div>
     </header>
 

@@ -3,6 +3,7 @@ using ComSci.Application.Constants;
 using ComSci.Application.Dtos.Files;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ComSci.Api.Controllers;
 
@@ -19,6 +20,7 @@ public class FilesController : ControllerBase
 
     [HttpPost]
     [Authorize]
+    [EnableRateLimiting("upload")]
     [RequestSizeLimit(FileRules.MaxRequestBytes)]
     public async Task<ActionResult<FileDto>> Upload(IFormFile file, CancellationToken cancellationToken)
     {

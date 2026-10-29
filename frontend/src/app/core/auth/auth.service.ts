@@ -1,11 +1,18 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, catchError, finalize, firstValueFrom, map, of, shareReplay, tap, throwError } from 'rxjs';
+import { Observable, catchError, defer, finalize, firstValueFrom, from, map, of, shareReplay, tap, throwError } from 'rxjs';
 import { API_BASE } from '../api.config';
 import { AuthResponse, UserInfo } from './types/auth.types';
 
 const REFRESH_TOKEN_KEY = 'comsci.refreshToken';
+const REFRESH_LOCK_NAME = 'comsci.refresh';
+
+// True only when the server answered that the refresh token is no good (so the person must sign in again).
+// A network failure, a 5xx or a 429 says nothing about the token: it must be kept and tried again later.
+export function isSessionRejected(error: unknown): boolean {
+  return error instanceof HttpErrorResponse && error.status === 401;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -44,14 +51,11 @@ export class AuthService {
       return this.refreshRequest$;
     }
 
-    const refreshToken = this.readRefreshToken();
-    if (!refreshToken) {
+    if (!this.readRefreshToken()) {
       return throwError(() => new Error('No refresh token'));
     }
 
-    this.refreshRequest$ = this.http.post<AuthResponse>(`${API_BASE}/auth/refresh`, { refreshToken }).pipe(
-      tap((response) => this.applyResponse(response)),
-      map((response) => response.accessToken),
+    this.refreshRequest$ = this.runExclusively(this.requestNewTokens()).pipe(
       finalize(() => (this.refreshRequest$ = null)),
       shareReplay(1),
     );
@@ -66,8 +70,11 @@ export class AuthService {
 
     return firstValueFrom(
       this.refreshAccessToken().pipe(
-        catchError(() => {
-          this.clearSession();
+        catchError((error: unknown) => {
+          // Only a rejected token ends the session. If the API is merely unreachable, keep the token for the next try.
+          if (isSessionRejected(error)) {
+            this.clearSession();
+          }
           return of('');
         }),
       ),
@@ -82,6 +89,33 @@ export class AuthService {
       this.http.post(`${API_BASE}/auth/logout`, { refreshToken }).subscribe({ error: () => undefined });
     }
     this.router.navigate(['/login']);
+  }
+
+  // The refresh token is read when the request starts, which (with the lock) is after any other tab has finished:
+  // sending a token that tab already replaced would look like a stolen token and sign the person out everywhere.
+  private requestNewTokens(): Observable<string> {
+    return defer(() => {
+      const refreshToken = this.readRefreshToken();
+      if (!refreshToken) {
+        return throwError(() => new Error('No refresh token'));
+      }
+
+      return this.http.post<AuthResponse>(`${API_BASE}/auth/refresh`, { refreshToken }).pipe(
+        tap((response) => this.applyResponse(response)),
+        map((response) => response.accessToken),
+      );
+    });
+  }
+
+  // Tabs of the same browser share one refresh token, so only one of them may refresh at a time.
+  // Browsers without the Web Locks API simply refresh at once.
+  private runExclusively(task: Observable<string>): Observable<string> {
+    const locks = typeof navigator === 'undefined' ? undefined : navigator.locks;
+    if (!locks) {
+      return task;
+    }
+    // request() hands back whatever the task returns; unwrap the promise it holds
+    return from(locks.request(REFRESH_LOCK_NAME, () => firstValueFrom(task)).then((token) => token));
   }
 
   private applyResponse(response: AuthResponse): void {
