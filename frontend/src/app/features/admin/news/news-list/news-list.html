@@ -1,6 +1,9 @@
 <section class="space-y-4">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <h1 class="text-xl font-semibold text-slate-900">จัดการข่าว</h1>
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900">จัดการข่าว</h1>
+      <p class="text-base text-slate-500">ทั้งหมด {{ list.total() }} รายการ</p>
+    </div>
     <a app-button routerLink="/admin/news/new">เพิ่มข่าว</a>
   </div>
 
