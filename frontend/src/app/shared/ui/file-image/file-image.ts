@@ -15,6 +15,8 @@ export class FileImage {
 
   readonly fileId = input<string | null | undefined>(null);
   readonly alt = input('');
+  // 'contain' shows the whole picture (logos); 'cover' fills the box and crops (photos).
+  readonly fit = input<'cover' | 'contain'>('cover');
 
   private readonly failedId = signal<string | null>(null);
 
