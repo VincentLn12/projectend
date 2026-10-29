@@ -1,45 +1,59 @@
-<div class="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
-  <p>{{ summary() }}</p>
+<div class="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+  <p class="text-base text-slate-700">{{ summary() }}</p>
 
   @if (totalPages() > 1) {
-    <nav aria-label="แบ่งหน้า" class="flex flex-wrap items-center gap-1">
+    <nav aria-label="แบ่งหน้า" class="flex items-center gap-2">
       <button
         type="button"
         app-button
         variant="secondary"
-        size="sm"
+        class="h-10 gap-1 px-3! text-base!"
         [disabled]="page() <= 1"
         (click)="go(page() - 1)"
       >
+        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
         ก่อนหน้า
       </button>
 
-      @for (item of pages(); track $index) {
-        @if (item === null) {
-          <span class="px-2 text-slate-400" aria-hidden="true">…</span>
-        } @else {
-          <button
-            type="button"
-            app-button
-            size="sm"
-            [variant]="item === page() ? 'primary' : 'ghost'"
-            [attr.aria-current]="item === page() ? 'page' : null"
-            (click)="go(item)"
-          >
-            {{ item }}
-          </button>
+      <!-- Phones have no room for every page number: show "page X of Y" instead -->
+      <span class="min-w-20 text-center text-base font-medium text-slate-800 sm:hidden">
+        หน้า {{ page() }} / {{ totalPages() }}
+      </span>
+
+      <div class="hidden items-center gap-1.5 sm:flex">
+        @for (item of pages(); track $index) {
+          @if (item === null) {
+            <span class="w-6 text-center text-slate-500" aria-hidden="true">…</span>
+          } @else {
+            <button
+              type="button"
+              app-button
+              [variant]="item === page() ? 'primary' : 'secondary'"
+              class="size-10 p-0! text-base!"
+              [attr.aria-current]="item === page() ? 'page' : null"
+              [attr.aria-label]="'หน้า ' + item"
+              (click)="go(item)"
+            >
+              {{ item }}
+            </button>
+          }
         }
-      }
+      </div>
 
       <button
         type="button"
         app-button
         variant="secondary"
-        size="sm"
+        class="h-10 gap-1 px-3! text-base!"
         [disabled]="page() >= totalPages()"
         (click)="go(page() + 1)"
       >
         ถัดไป
+        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
       </button>
     </nav>
   }
