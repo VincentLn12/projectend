@@ -1,0 +1,49 @@
+<section class="mx-auto max-w-3xl space-y-4">
+  <h1 class="text-2xl font-semibold text-slate-900">การลงทะเบียนของฉัน</h1>
+
+  <app-data-state
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="!loading() && registrations().length === 0"
+    emptyMessage="คุณยังไม่ได้ลงทะเบียนหลักสูตรใด"
+    (retry)="load()"
+  >
+    <ul class="space-y-3">
+      @for (registration of registrations(); track registration.generationId) {
+        <li class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm">
+          <div class="space-y-1 text-sm">
+            <a [routerLink]="['/courses', registration.courseId]" class="font-semibold text-slate-900 hover:underline">{{
+              registration.courseTitle
+            }}</a>
+            @if (registration.generationName) {
+              <p class="text-slate-600">{{ registration.generationName }}</p>
+            }
+            <p class="text-slate-500">
+              {{ registration.startDate | thaiDate: 'short' }} – {{ registration.endDate | thaiDate: 'short' }}
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span
+              class="rounded-full px-3 py-1 text-xs"
+              [class]="isActive(registration) ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'"
+              >{{ statusLabel(registration) }}</span
+            >
+            @if (isActive(registration)) {
+              <button
+                type="button"
+                app-button
+                variant="secondary"
+                size="sm"
+                [loading]="busyGenerationId() === registration.generationId"
+                (click)="cancel(registration)"
+              >
+                ยกเลิก
+              </button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  </app-data-state>
+</section>

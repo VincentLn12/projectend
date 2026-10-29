@@ -15,6 +15,17 @@ export const routes: Routes = [
       { path: 'projects', loadComponent: () => import('./features/public/projects/project-list/project-list').then((m) => m.PublicProjectList) },
       { path: 'projects/:id', loadComponent: () => import('./features/public/projects/project-detail/project-detail').then((m) => m.PublicProjectDetail) },
       { path: 'lecturers', loadComponent: () => import('./features/public/lecturers/lecturer-list/lecturer-list').then((m) => m.PublicLecturerList) },
+      { path: 'syllabus', loadComponent: () => import('./features/public/syllabus/syllabus-page/syllabus-page').then((m) => m.PublicSyllabus) },
+      { path: 'syllabus/:id', loadComponent: () => import('./features/public/syllabus/syllabus-page/syllabus-page').then((m) => m.PublicSyllabus) },
+      { path: 'tech-subjects', loadComponent: () => import('./features/public/tech-subjects/tech-subject-list/tech-subject-list').then((m) => m.PublicTechSubjectList) },
+      { path: 'tech-subjects/:id', loadComponent: () => import('./features/public/tech-subjects/tech-subject-detail/tech-subject-detail').then((m) => m.PublicTechSubjectDetail) },
+      { path: 'courses', loadComponent: () => import('./features/public/courses/course-list/course-list').then((m) => m.PublicCourseList) },
+      { path: 'courses/:id', loadComponent: () => import('./features/public/courses/course-detail/course-detail').then((m) => m.PublicCourseDetail) },
+      {
+        path: 'me/registrations',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/public/courses/my-registrations/my-registrations').then((m) => m.MyRegistrations),
+      },
       { path: 'login', loadComponent: () => import('./features/public/login/login').then((m) => m.Login) },
       // Component showcase, only reachable while developing
       ...(isDevMode()

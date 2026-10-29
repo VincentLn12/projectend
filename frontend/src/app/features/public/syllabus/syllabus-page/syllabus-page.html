@@ -1,0 +1,102 @@
+<section class="mx-auto max-w-4xl space-y-6">
+  <h1 class="text-2xl font-semibold text-slate-900">หลักสูตร</h1>
+
+  <app-data-state [loading]="loading()" [error]="error()" (retry)="load()">
+    @if (syllabus(); as item) {
+      <div class="space-y-6 rounded-xl bg-white p-6 shadow-sm">
+        <header class="space-y-1">
+          <h2 class="text-xl font-semibold text-slate-900">{{ item.nameTH }}</h2>
+          @if (item.nameEN) {
+            <p class="text-slate-500">{{ item.nameEN }}</p>
+          }
+          <p class="text-sm text-slate-600">
+            ฉบับปี พ.ศ. {{ item.year }}
+            @if (item.isCurrent) {
+              <span class="ml-2 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800">ฉบับปัจจุบัน</span>
+            }
+          </p>
+        </header>
+
+        <dl class="grid gap-3 text-sm sm:grid-cols-2">
+          @if (item.degreeTH) {
+            <div>
+              <dt class="text-slate-500">ชื่อปริญญา</dt>
+              <dd class="text-slate-900">{{ item.degreeTH }}@if (item.degreeEN) { ({{ item.degreeEN }}) }</dd>
+            </div>
+          }
+          @if (item.totalCredits) {
+            <div>
+              <dt class="text-slate-500">จำนวนหน่วยกิตรวม</dt>
+              <dd class="text-slate-900">{{ item.totalCredits }} หน่วยกิต</dd>
+            </div>
+          }
+        </dl>
+
+        @if (pdfUrl(); as url) {
+          <a app-button size="sm" [href]="url" target="_blank" rel="noopener noreferrer">ดาวน์โหลดเอกสารหลักสูตร (PDF)</a>
+        }
+
+        @if (item.objectives.length > 0) {
+          <section class="space-y-2">
+            <h3 class="font-semibold text-slate-900">วัตถุประสงค์ของหลักสูตร</h3>
+            <ol class="list-decimal space-y-1 pl-6 text-slate-800">
+              @for (objective of item.objectives; track $index) {
+                <li>{{ objective }}</li>
+              }
+            </ol>
+          </section>
+        }
+
+        @if (item.occupations.length > 0) {
+          <section class="space-y-2">
+            <h3 class="font-semibold text-slate-900">อาชีพที่สามารถประกอบได้หลังสำเร็จการศึกษา</h3>
+            <ul class="list-disc space-y-1 pl-6 text-slate-800">
+              @for (occupation of item.occupations; track $index) {
+                <li>{{ occupation }}</li>
+              }
+            </ul>
+          </section>
+        }
+
+        @if (groups().length > 0) {
+          <section class="space-y-4">
+            <h3 class="font-semibold text-slate-900">โครงสร้างหลักสูตร</h3>
+            @for (group of groups(); track group.category) {
+              <div class="overflow-hidden rounded-lg border border-slate-200">
+                <div class="flex items-center justify-between bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700">
+                  <span>{{ group.label }}</span>
+                  <span>{{ group.totalCredits }} หน่วยกิต</span>
+                </div>
+                <ul class="divide-y divide-slate-100 text-sm">
+                  @for (subject of group.subjects; track subject.id) {
+                    <li class="flex items-center justify-between gap-3 px-4 py-2 text-slate-700">
+                      <span>@if (subject.code) { <span class="text-slate-500">{{ subject.code }}</span> } {{ subject.name }}</span>
+                      <span class="shrink-0 text-slate-500">{{ subject.credit }}</span>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          </section>
+        }
+      </div>
+    }
+  </app-data-state>
+
+  @if (others().length > 1) {
+    <section class="space-y-2">
+      <h2 class="font-semibold text-slate-900">หลักสูตรฉบับอื่น</h2>
+      <ul class="flex flex-wrap gap-2 text-sm">
+        @for (other of others(); track other.id) {
+          <li>
+            <a
+              [routerLink]="['/syllabus', other.id]"
+              class="inline-block rounded-full border border-slate-300 bg-white px-3 py-1 text-slate-700 hover:bg-slate-100"
+              >พ.ศ. {{ other.year }}{{ other.isCurrent ? ' (ปัจจุบัน)' : '' }}</a
+            >
+          </li>
+        }
+      </ul>
+    </section>
+  }
+</section>

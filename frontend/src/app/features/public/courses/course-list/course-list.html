@@ -1,0 +1,35 @@
+<section class="space-y-6">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h1 class="text-2xl font-semibold text-slate-900">หลักสูตรระยะสั้น</h1>
+    <div class="w-64"><app-search-box placeholder="ค้นหาหลักสูตร" (searchChange)="list.setSearch($event)" /></div>
+  </div>
+
+  <app-data-state
+    [loading]="list.loading() && list.items().length === 0"
+    [error]="list.error()"
+    [empty]="!list.loading() && list.items().length === 0"
+    emptyMessage="ยังไม่มีหลักสูตรระยะสั้น"
+    (retry)="list.reload()"
+  >
+    <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      @for (course of list.items(); track course.id) {
+        <li class="overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md">
+          <a [routerLink]="['/courses', course.id]" class="block">
+            <app-file-image [fileId]="course.mainImageFileId" [alt]="course.title" class="h-44 w-full" />
+            <div class="space-y-1 p-4">
+              <h2 class="line-clamp-2 font-semibold text-slate-900">{{ course.title }}</h2>
+              @if (course.lecturerName) {
+                <p class="text-sm text-slate-600">วิทยากร: {{ course.lecturerName }}</p>
+              }
+              @if (course.description) {
+                <p class="line-clamp-3 text-sm text-slate-500">{{ course.description }}</p>
+              }
+            </div>
+          </a>
+        </li>
+      }
+    </ul>
+  </app-data-state>
+
+  <app-pagination [page]="list.page()" [pageSize]="list.pageSize" [total]="list.total()" (pageChange)="list.setPage($event)" />
+</section>
