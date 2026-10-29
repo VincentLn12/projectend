@@ -1,0 +1,3 @@
+<h1 class="text-2xl font-semibold text-slate-900">แดชบอร์ด</h1>
+<p class="mt-2 text-slate-600">สวัสดี {{ auth.user()?.fullName }}</p>
+<p class="mt-1 text-sm text-slate-500">บทบาท: {{ auth.user()?.roles?.join(', ') }}</p>

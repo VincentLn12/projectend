@@ -1,0 +1,47 @@
+<section class="mx-auto max-w-sm rounded-xl bg-white p-8 shadow-sm">
+  <h1 class="text-xl font-semibold text-slate-900">เข้าสู่ระบบ</h1>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="mt-6 space-y-4">
+    <div>
+      <label for="identifier" class="block text-sm font-medium text-slate-700"
+        >อีเมล ชื่อผู้ใช้ หรือรหัสนักศึกษา</label
+      >
+      <input
+        id="identifier"
+        type="text"
+        formControlName="identifier"
+        autocomplete="username"
+        class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-slate-500 focus:outline-none"
+      />
+      @if (form.controls.identifier.touched && form.controls.identifier.invalid) {
+        <p class="mt-1 text-sm text-red-600">กรุณากรอกข้อมูล</p>
+      }
+    </div>
+
+    <div>
+      <label for="password" class="block text-sm font-medium text-slate-700">รหัสผ่าน</label>
+      <input
+        id="password"
+        type="password"
+        formControlName="password"
+        autocomplete="current-password"
+        class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-slate-500 focus:outline-none"
+      />
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <p class="mt-1 text-sm text-red-600">กรุณากรอกรหัสผ่าน</p>
+      }
+    </div>
+
+    @if (errorMessage(); as message) {
+      <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ message }}</p>
+    }
+
+    <button
+      type="submit"
+      [disabled]="submitting()"
+      class="w-full rounded-md bg-slate-900 px-4 py-2 text-white hover:bg-slate-700 disabled:opacity-60"
+    >
+      {{ submitting() ? 'กำลังเข้าสู่ระบบ…' : 'เข้าสู่ระบบ' }}
+    </button>
+  </form>
+</section>

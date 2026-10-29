@@ -1,0 +1,39 @@
+<div class="flex min-h-screen">
+  <aside class="w-56 shrink-0 border-r border-slate-200 bg-white">
+    <div class="px-4 py-4 text-lg font-semibold text-slate-900">จัดการระบบ</div>
+    <nav class="flex flex-col gap-1 px-2 text-sm">
+      @for (item of menu; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="bg-slate-100 font-semibold text-slate-900"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="rounded-md px-3 py-2 text-slate-600 hover:bg-slate-50"
+        >
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+  </aside>
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header
+      class="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 text-sm"
+    >
+      <a routerLink="/" class="text-slate-600 hover:text-slate-900">← กลับหน้าเว็บ</a>
+      <div class="flex items-center gap-3">
+        <span class="text-slate-500">{{ auth.user()?.fullName }}</span>
+        <button
+          type="button"
+          (click)="auth.logout()"
+          class="rounded-md border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-100"
+        >
+          ออกจากระบบ
+        </button>
+      </div>
+    </header>
+
+    <main class="flex-1 p-6">
+      <router-outlet />
+    </main>
+  </div>
+</div>
