@@ -1,0 +1,33 @@
+<section class="space-y-6">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h1 class="text-2xl font-semibold text-slate-900">ข่าวประชาสัมพันธ์</h1>
+    <div class="w-64"><app-search-box placeholder="ค้นหาข่าว" (searchChange)="list.setSearch($event)" /></div>
+  </div>
+
+  <app-data-state
+    [loading]="list.loading() && list.items().length === 0"
+    [error]="list.error()"
+    [empty]="!list.loading() && list.items().length === 0"
+    emptyMessage="ไม่พบข่าว"
+    (retry)="list.reload()"
+  >
+    <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      @for (news of list.items(); track news.id) {
+        <li class="overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md">
+          <a [routerLink]="['/news', news.id]" class="block">
+            <app-file-image [fileId]="news.mainImageFileId" [alt]="news.title" class="h-44 w-full" />
+            <div class="space-y-1 p-4">
+              <p class="text-xs text-slate-500">{{ news.publishedAt | thaiDate }}</p>
+              <h2 class="line-clamp-2 font-semibold text-slate-900">{{ news.title }}</h2>
+              @if (news.subTitle) {
+                <p class="line-clamp-2 text-sm text-slate-600">{{ news.subTitle }}</p>
+              }
+            </div>
+          </a>
+        </li>
+      }
+    </ul>
+  </app-data-state>
+
+  <app-pagination [page]="list.page()" [pageSize]="list.pageSize" [total]="list.total()" (pageChange)="list.setPage($event)" />
+</section>

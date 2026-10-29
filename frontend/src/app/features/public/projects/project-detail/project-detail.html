@@ -1,0 +1,62 @@
+<article class="mx-auto max-w-3xl space-y-4">
+  <a routerLink="/projects" class="text-sm text-slate-600 underline hover:text-slate-900">← โครงงานทั้งหมด</a>
+
+  <app-data-state [loading]="loading()" [error]="error()" (retry)="load()">
+    @if (project(); as item) {
+      <div class="space-y-5 rounded-xl bg-white p-6 shadow-sm">
+        <app-file-image [fileId]="item.imageFileId" [alt]="item.nameTH" class="h-64 w-full rounded-lg" />
+
+        <header class="space-y-1">
+          <h1 class="text-2xl font-semibold text-slate-900">{{ item.nameTH }}</h1>
+          @if (item.nameEN) {
+            <p class="text-slate-500">{{ item.nameEN }}</p>
+          }
+        </header>
+
+        <dl class="grid gap-3 text-sm sm:grid-cols-2">
+          <div>
+            <dt class="text-slate-500">นักศึกษา</dt>
+            <dd class="text-slate-900">{{ item.studentName }}</dd>
+          </div>
+          <div>
+            <dt class="text-slate-500">ปีการศึกษา</dt>
+            <dd class="text-slate-900">{{ item.academicYear }}</dd>
+          </div>
+          @for (advisor of item.advisors; track advisor.lecturerId) {
+            <div>
+              <dt class="text-slate-500">{{ roleLabel(advisor.role) }}</dt>
+              <dd class="text-slate-900">{{ advisor.lecturerName }}</dd>
+            </div>
+          }
+        </dl>
+
+        @if (item.description) {
+          <p class="whitespace-pre-line text-slate-800">{{ item.description }}</p>
+        }
+
+        @if (keywords().length > 0) {
+          <ul class="flex flex-wrap gap-2">
+            @for (word of keywords(); track word) {
+              <li class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">{{ word }}</li>
+            }
+          </ul>
+        }
+
+        <div class="flex flex-wrap gap-2">
+          @if (item.videoUrl) {
+            <a app-button variant="secondary" size="sm" [href]="item.videoUrl" target="_blank" rel="noopener noreferrer">วิดีโอ</a>
+          }
+          @if (item.webUrl) {
+            <a app-button variant="secondary" size="sm" [href]="item.webUrl" target="_blank" rel="noopener noreferrer">เว็บไซต์</a>
+          }
+          @if (item.githubUrl) {
+            <a app-button variant="secondary" size="sm" [href]="item.githubUrl" target="_blank" rel="noopener noreferrer">GitHub</a>
+          }
+          @if (pdfUrl(); as url) {
+            <a app-button size="sm" [href]="url" target="_blank" rel="noopener noreferrer">เอกสาร PDF</a>
+          }
+        </div>
+      </div>
+    }
+  </app-data-state>
+</article>

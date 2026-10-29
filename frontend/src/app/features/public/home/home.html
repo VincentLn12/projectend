@@ -1,31 +1,92 @@
-<section class="rounded-xl bg-white p-8 shadow-sm">
-  @if (siteSettings.settings(); as settings) {
-    <h1 class="text-2xl font-semibold text-slate-900">{{ settings.webName }}</h1>
-    <p class="mt-2 text-slate-600">มหาวิทยาลัยราชภัฏกาญจนบุรี</p>
+<div class="space-y-10">
+  <section class="rounded-xl bg-white p-6 shadow-sm sm:p-8">
+    @if (siteSettings.settings(); as settings) {
+      <h1 class="text-2xl font-semibold text-slate-900">{{ settings.webName }}</h1>
+      <p class="mt-1 text-slate-600">มหาวิทยาลัยราชภัฏกาญจนบุรี</p>
 
-    <div class="mt-6 flex flex-wrap gap-3 text-sm">
-      @if (settings.registerUrl) {
-        <a
-          [href]="settings.registerUrl"
-          target="_blank"
-          rel="noopener"
-          class="rounded-md bg-slate-900 px-4 py-2 text-white hover:bg-slate-700"
-          >สมัครเรียน</a
-        >
+      <div class="mt-5 flex flex-wrap gap-3">
+        @if (settings.registerUrl) {
+          <a app-button [href]="settings.registerUrl" target="_blank" rel="noopener noreferrer">สมัครเรียน</a>
+        }
+        @if (settings.pageFacebook) {
+          <a app-button variant="secondary" [href]="settings.pageFacebook" target="_blank" rel="noopener noreferrer">Facebook</a>
+        }
+        @if (settings.kruUrl) {
+          <a app-button variant="secondary" [href]="settings.kruUrl" target="_blank" rel="noopener noreferrer">เว็บมหาวิทยาลัย</a>
+        }
+      </div>
+    } @else if (siteSettings.loadFailed()) {
+      <p class="text-red-600">เชื่อมต่อระบบไม่ได้ กรุณาลองใหม่ภายหลัง</p>
+    } @else {
+      <p class="text-slate-500">กำลังโหลด…</p>
+    }
+  </section>
+
+  @if (banners().length > 0) {
+    <section class="relative overflow-hidden rounded-xl" aria-label="ภาพประชาสัมพันธ์">
+      @if (banners()[bannerIndex()]; as banner) {
+        @if (banner.linkUrl) {
+          <a [href]="banner.linkUrl" target="_blank" rel="noopener noreferrer" class="block">
+            <app-file-image [fileId]="banner.fileId" [alt]="banner.title ?? 'ภาพประชาสัมพันธ์'" class="h-56 w-full sm:h-80" />
+          </a>
+        } @else {
+          <app-file-image [fileId]="banner.fileId" [alt]="banner.title ?? 'ภาพประชาสัมพันธ์'" class="h-56 w-full sm:h-80" />
+        }
+        @if (banner.title) {
+          <p class="absolute inset-x-0 bottom-0 bg-black/50 px-4 py-2 text-sm text-white">{{ banner.title }}</p>
+        }
       }
-      @if (settings.pageFacebook) {
-        <a
-          [href]="settings.pageFacebook"
-          target="_blank"
-          rel="noopener"
-          class="rounded-md border border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-100"
-          >Facebook</a
-        >
+      @if (banners().length > 1) {
+        <div class="absolute inset-x-2 top-1/2 flex -translate-y-1/2 justify-between">
+          <button type="button" app-button variant="secondary" size="sm" aria-label="ภาพก่อนหน้า" (click)="showPreviousBanner()">‹</button>
+          <button type="button" app-button variant="secondary" size="sm" aria-label="ภาพถัดไป" (click)="showNextBanner()">›</button>
+        </div>
       }
-    </div>
-  } @else if (siteSettings.loadFailed()) {
-    <p class="text-red-600">เชื่อมต่อระบบไม่ได้ กรุณาลองใหม่ภายหลัง</p>
-  } @else {
-    <p class="text-slate-500">กำลังโหลด…</p>
+    </section>
   }
-</section>
+
+  @if (news().length > 0) {
+    <section class="space-y-4">
+      <div class="flex items-baseline justify-between">
+        <h2 class="text-xl font-semibold text-slate-900">ข่าวล่าสุด</h2>
+        <a routerLink="/news" class="text-sm text-slate-600 underline hover:text-slate-900">ดูทั้งหมด</a>
+      </div>
+      <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        @for (item of news(); track item.id) {
+          <li class="overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md">
+            <a [routerLink]="['/news', item.id]" class="block">
+              <app-file-image [fileId]="item.mainImageFileId" [alt]="item.title" class="h-40 w-full" />
+              <div class="space-y-1 p-4">
+                <p class="text-xs text-slate-500">{{ item.publishedAt | thaiDate }}</p>
+                <h3 class="line-clamp-2 font-semibold text-slate-900">{{ item.title }}</h3>
+              </div>
+            </a>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  @if (projects().length > 0) {
+    <section class="space-y-4">
+      <div class="flex items-baseline justify-between">
+        <h2 class="text-xl font-semibold text-slate-900">โครงงานล่าสุด</h2>
+        <a routerLink="/projects" class="text-sm text-slate-600 underline hover:text-slate-900">ดูทั้งหมด</a>
+      </div>
+      <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        @for (item of projects(); track item.id) {
+          <li class="overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md">
+            <a [routerLink]="['/projects', item.id]" class="block">
+              <app-file-image [fileId]="item.imageFileId" [alt]="item.nameTH" class="h-40 w-full" />
+              <div class="space-y-1 p-4">
+                <p class="text-xs text-slate-500">ปีการศึกษา {{ item.academicYear }}</p>
+                <h3 class="line-clamp-2 font-semibold text-slate-900">{{ item.nameTH }}</h3>
+                <p class="text-sm text-slate-600">{{ item.studentName }}</p>
+              </div>
+            </a>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+</div>

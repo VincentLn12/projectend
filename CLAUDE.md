@@ -25,6 +25,8 @@ Pages under `frontend/src/app/features/` and `layouts/` must be built from the s
 | Table | `app-data-table` with `appCell` templates | `<table>` |
 | Paging / search | `app-pagination`, `app-search-box`, state in `PagedList` | own page buttons or debounce code |
 | Loading / error / empty | `app-data-state` | own `@if` spinners |
+| Uploaded picture | `app-file-image` (placeholder when missing) | raw `<img src="/api/files/...">` |
+| Date shown to visitors | `thaiDate` pipe (Buddhist year) | `date` pipe with English months |
 | Confirm | `await ConfirmService.ask({...})` | `window.confirm`, own modal |
 | Notice | `ToastService.success/info/error` | `alert()`, own banner |
 | Server validation errors | `applyServerErrors`, `describeHttpError` | own parsing of the error body |

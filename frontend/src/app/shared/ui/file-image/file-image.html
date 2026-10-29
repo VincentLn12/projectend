@@ -1,0 +1,7 @@
+@if (source(); as url) {
+  <img [src]="url" [alt]="alt()" loading="lazy" (error)="markFailed()" class="h-full w-full object-cover" />
+} @else {
+  <div class="flex h-full w-full items-center justify-center text-xs text-slate-400" role="img" [attr.aria-label]="alt() || 'ไม่มีรูปภาพ'">
+    ไม่มีรูปภาพ
+  </div>
+}

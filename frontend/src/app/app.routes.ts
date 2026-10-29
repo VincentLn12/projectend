@@ -10,6 +10,11 @@ export const routes: Routes = [
     component: PublicLayout,
     children: [
       { path: '', pathMatch: 'full', loadComponent: () => import('./features/public/home/home').then((m) => m.Home) },
+      { path: 'news', loadComponent: () => import('./features/public/news/news-list/news-list').then((m) => m.PublicNewsList) },
+      { path: 'news/:id', loadComponent: () => import('./features/public/news/news-detail/news-detail').then((m) => m.PublicNewsDetail) },
+      { path: 'projects', loadComponent: () => import('./features/public/projects/project-list/project-list').then((m) => m.PublicProjectList) },
+      { path: 'projects/:id', loadComponent: () => import('./features/public/projects/project-detail/project-detail').then((m) => m.PublicProjectDetail) },
+      { path: 'lecturers', loadComponent: () => import('./features/public/lecturers/lecturer-list/lecturer-list').then((m) => m.PublicLecturerList) },
       { path: 'login', loadComponent: () => import('./features/public/login/login').then((m) => m.Login) },
       // Component showcase, only reachable while developing
       ...(isDevMode()

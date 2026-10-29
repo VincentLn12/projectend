@@ -1,0 +1,37 @@
+<section class="space-y-6">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <h1 class="text-2xl font-semibold text-slate-900">โครงงานนักศึกษา</h1>
+    <div class="flex flex-wrap items-end gap-3">
+      <div class="w-52"><app-select-input [formControl]="year" [options]="yearOptions" placeholder="ทุกปีการศึกษา" /></div>
+      <div class="w-64"><app-search-box placeholder="ค้นหาชื่อโครงงาน" (searchChange)="list.setSearch($event)" /></div>
+    </div>
+  </div>
+
+  <app-data-state
+    [loading]="list.loading() && list.items().length === 0"
+    [error]="list.error()"
+    [empty]="!list.loading() && list.items().length === 0"
+    emptyMessage="ไม่พบโครงงาน"
+    (retry)="list.reload()"
+  >
+    <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      @for (project of list.items(); track project.id) {
+        <li class="overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md">
+          <a [routerLink]="['/projects', project.id]" class="block">
+            <app-file-image [fileId]="project.imageFileId" [alt]="project.nameTH" class="h-44 w-full" />
+            <div class="space-y-1 p-4">
+              <p class="text-xs text-slate-500">ปีการศึกษา {{ project.academicYear }}</p>
+              <h2 class="line-clamp-2 font-semibold text-slate-900">{{ project.nameTH }}</h2>
+              @if (project.nameEN) {
+                <p class="line-clamp-1 text-sm text-slate-500">{{ project.nameEN }}</p>
+              }
+              <p class="text-sm text-slate-600">{{ project.studentName }}</p>
+            </div>
+          </a>
+        </li>
+      }
+    </ul>
+  </app-data-state>
+
+  <app-pagination [page]="list.page()" [pageSize]="list.pageSize" [total]="list.total()" (pageChange)="list.setPage($event)" />
+</section>

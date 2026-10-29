@@ -1,0 +1,38 @@
+<section class="space-y-6">
+  <h1 class="text-2xl font-semibold text-slate-900">คณาจารย์</h1>
+
+  <app-data-state
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="!loading() && lecturers().length === 0"
+    emptyMessage="ยังไม่มีข้อมูลอาจารย์"
+    (retry)="load()"
+  >
+    <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      @for (lecturer of lecturers(); track lecturer.id) {
+        <li class="flex gap-4 rounded-xl bg-white p-4 shadow-sm">
+          <app-file-image
+            [fileId]="lecturer.imageFileId"
+            [alt]="lecturer.fullName"
+            class="h-28 w-24 shrink-0 rounded-lg"
+          />
+          <div class="min-w-0 space-y-1 text-sm">
+            <h2 class="font-semibold text-slate-900">{{ lecturer.prefix }}{{ lecturer.fullName }}</h2>
+            @if (lecturer.position) {
+              <p class="text-slate-600">{{ lecturer.position }}</p>
+            }
+            @if (lecturer.educationLevel) {
+              <p class="text-slate-500">{{ lecturer.educationLevel }}</p>
+            }
+            @if (lecturer.program) {
+              <p class="text-slate-500">{{ lecturer.program }}</p>
+            }
+            @if (lecturer.expertise) {
+              <p class="line-clamp-5 whitespace-pre-line text-slate-600">{{ lecturer.expertise }}</p>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  </app-data-state>
+</section>

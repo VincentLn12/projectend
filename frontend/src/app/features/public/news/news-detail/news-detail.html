@@ -1,0 +1,27 @@
+<article class="mx-auto max-w-3xl space-y-4">
+  <a routerLink="/news" class="text-sm text-slate-600 underline hover:text-slate-900">← ข่าวทั้งหมด</a>
+
+  <app-data-state [loading]="loading()" [error]="error()" (retry)="load()">
+    @if (news(); as item) {
+      <div class="space-y-4 rounded-xl bg-white p-6 shadow-sm">
+        <header class="space-y-1">
+          <h1 class="text-2xl font-semibold text-slate-900">{{ item.title }}</h1>
+          @if (item.subTitle) {
+            <p class="text-slate-600">{{ item.subTitle }}</p>
+          }
+          <p class="text-sm text-slate-500">{{ item.publishedAt | thaiDate }} · {{ item.authorName }}</p>
+        </header>
+
+        <p class="whitespace-pre-line text-slate-800">{{ item.body }}</p>
+
+        @if (item.imageFileIds.length > 0) {
+          <div class="grid gap-3 sm:grid-cols-2">
+            @for (fileId of item.imageFileIds; track fileId) {
+              <app-file-image [fileId]="fileId" [alt]="item.title" class="h-56 w-full rounded-lg" />
+            }
+          </div>
+        }
+      </div>
+    }
+  </app-data-state>
+</article>
