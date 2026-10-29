@@ -1,10 +1,20 @@
 <div class="relative">
+  <svg
+    class="pointer-events-none absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-slate-500"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    stroke-width="2"
+    aria-hidden="true"
+  >
+    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
+  </svg>
   <input
     type="search"
     [value]="text()"
     [placeholder]="placeholder()"
     [attr.aria-label]="placeholder()"
-    [class]="inputClass(false)"
+    [class]="inputClass(false) + ' h-11 rounded-full! pl-11 pr-11 text-base shadow-sm [&::-webkit-search-cancel-button]:hidden'"
     (input)="onInput($event)"
     (keydown.enter)="submitNow()"
   />
@@ -12,10 +22,12 @@
     <button
       type="button"
       (click)="clear()"
-      class="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-slate-700"
+      class="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-brand-700"
       aria-label="ล้างคำค้นหา"
     >
-      ✕
+      <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
     </button>
   }
 </div>
