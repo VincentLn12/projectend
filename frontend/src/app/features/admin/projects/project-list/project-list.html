@@ -1,0 +1,41 @@
+<section class="space-y-4">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h1 class="text-xl font-semibold text-slate-900">จัดการโครงงาน</h1>
+    <div class="flex items-center gap-3">
+      <div class="w-64"><app-search-box placeholder="ค้นหาชื่อโครงงาน" (searchChange)="list.setSearch($event)" /></div>
+      <a app-button routerLink="/admin/projects/new">เพิ่มโครงงาน</a>
+    </div>
+  </div>
+
+  <app-data-table
+    [columns]="columns"
+    [rows]="list.items()"
+    [trackBy]="rowKey"
+    [loading]="list.loading()"
+    [error]="list.error()"
+    emptyMessage="ยังไม่มีโครงงาน"
+    (retry)="list.reload()"
+  >
+    <ng-template appCell="nameTH" let-row>
+      <a [routerLink]="['/admin/projects', row.id]" class="font-medium text-slate-900 hover:underline">{{ row.nameTH }}</a>
+    </ng-template>
+    <ng-template appCell="status" let-row>
+      <span
+        class="rounded-full px-2 py-0.5 text-xs"
+        [class]="row.isPublished ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'"
+        >{{ row.isPublished ? 'เผยแพร่' : 'ฉบับร่าง' }}</span
+      >
+    </ng-template>
+    <ng-template appCell="actions" let-row>
+      <div class="flex justify-end gap-1">
+        <button type="button" app-button size="sm" variant="ghost" (click)="togglePublished(row)">
+          {{ row.isPublished ? 'ยกเลิกเผยแพร่' : 'เผยแพร่' }}
+        </button>
+        <a app-button size="sm" variant="secondary" [routerLink]="['/admin/projects', row.id]">แก้ไข</a>
+        <button type="button" app-button size="sm" variant="danger" (click)="askToDelete(row)">ลบ</button>
+      </div>
+    </ng-template>
+  </app-data-table>
+
+  <app-pagination [page]="list.page()" [pageSize]="list.pageSize" [total]="list.total()" (pageChange)="list.setPage($event)" />
+</section>

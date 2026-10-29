@@ -2,7 +2,9 @@
   <div class="flex flex-wrap items-center justify-between gap-3">
     <h1 class="text-xl font-semibold text-slate-900">จัดการข่าว</h1>
     <div class="flex items-center gap-3">
-      <div class="w-64"><app-search-box placeholder="ค้นหาหัวข้อข่าว" (searchChange)="list.setSearch($event)" /></div>
+      <div class="w-64">
+        <app-search-box placeholder="ค้นหาหัวข้อข่าว" (searchChange)="list.setSearch($event)" />
+      </div>
       <a app-button routerLink="/admin/news/new">เพิ่มข่าว</a>
     </div>
   </div>
@@ -17,7 +19,11 @@
     (retry)="list.reload()"
   >
     <ng-template appCell="title" let-row>
-      <a [routerLink]="['/admin/news', row.id]" class="font-medium text-slate-900 hover:underline">{{ row.title }}</a>
+      <a
+        [routerLink]="['/admin/news', row.id]"
+        class="font-medium text-slate-900 hover:underline"
+        >{{ row.title }}</a
+      >
     </ng-template>
     <ng-template appCell="status" let-row>
       <span
@@ -35,10 +41,17 @@
           {{ row.isPublished ? 'ยกเลิกเผยแพร่' : 'เผยแพร่' }}
         </button>
         <a app-button size="sm" variant="secondary" [routerLink]="['/admin/news', row.id]">แก้ไข</a>
-        <button type="button" app-button size="sm" variant="danger" (click)="askToDelete(row)">ลบ</button>
+        <button type="button" app-button size="sm" variant="danger" (click)="askToDelete(row)">
+          ลบ
+        </button>
       </div>
     </ng-template>
   </app-data-table>
 
-  <app-pagination [page]="list.page()" [pageSize]="list.pageSize" [total]="list.total()" (pageChange)="list.setPage($event)" />
+  <app-pagination
+    [page]="list.page()"
+    [pageSize]="list.pageSize"
+    [total]="list.total()"
+    (pageChange)="list.setPage($event)"
+  />
 </section>

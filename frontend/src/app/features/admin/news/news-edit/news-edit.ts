@@ -14,7 +14,16 @@ import { AdminNews, SaveNewsRequest } from '../types/news.types';
 
 @Component({
   selector: 'app-news-edit',
-  imports: [ReactiveFormsModule, RouterLink, Button, DataState, FileUpload, TextArea, TextInput, Toggle],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    Button,
+    DataState,
+    FileUpload,
+    TextArea,
+    TextInput,
+    Toggle,
+  ],
   templateUrl: './news-edit.html',
 })
 export class NewsEdit implements OnInit {
@@ -88,7 +97,9 @@ export class NewsEdit implements OnInit {
 
   private fillForm(news: AdminNews): void {
     // The first id is the main picture, as in the upload component.
-    const orderedFiles = [...news.files].sort((a, b) => Number(b.isMain) - Number(a.isMain) || a.sortOrder - b.sortOrder);
+    const orderedFiles = [...news.files].sort(
+      (a, b) => Number(b.isMain) - Number(a.isMain) || a.sortOrder - b.sortOrder,
+    );
     this.form.reset({
       title: news.title,
       subTitle: news.subTitle ?? '',

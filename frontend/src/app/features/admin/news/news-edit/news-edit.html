@@ -1,11 +1,17 @@
 <section class="mx-auto max-w-3xl space-y-4">
   <div class="flex items-baseline justify-between gap-3">
     <h1 class="text-xl font-semibold text-slate-900">{{ isNew ? 'เพิ่มข่าว' : 'แก้ไขข่าว' }}</h1>
-    <a routerLink="/admin/news" class="text-sm text-slate-600 underline hover:text-slate-900">← กลับไปรายการข่าว</a>
+    <a routerLink="/admin/news" class="text-sm text-slate-600 underline hover:text-slate-900"
+      >← กลับไปรายการข่าว</a
+    >
   </div>
 
   <app-data-state [loading]="loading()" [error]="loadError()" (retry)="loadNews()">
-    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4 rounded-xl bg-white p-6 shadow-sm">
+    <form
+      [formGroup]="form"
+      (ngSubmit)="save()"
+      class="space-y-4 rounded-xl bg-white p-6 shadow-sm"
+    >
       <app-text-input label="หัวข้อ" formControlName="title" [maxLength]="300" />
       <app-text-input label="หัวข้อรอง" formControlName="subTitle" [maxLength]="500" />
       <app-text-area label="เนื้อหา" formControlName="body" [rows]="12" />
@@ -19,7 +25,9 @@
       <app-toggle label="เผยแพร่ทันที" formControlName="isPublished" />
 
       @if (formError(); as message) {
-        <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ message }}</p>
+        <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+          {{ message }}
+        </p>
       }
 
       <div class="flex justify-end gap-2">
