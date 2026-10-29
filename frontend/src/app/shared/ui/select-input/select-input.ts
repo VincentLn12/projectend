@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { FormControlBase } from '../../forms/form-control-base';
 import { Field } from '../field/field';
-import { inputClass } from '../styles';
+import { inputClass, pillInputClass } from '../styles';
 
 export interface SelectOption<T> {
   value: T;
@@ -19,8 +19,11 @@ export interface SelectOption<T> {
 export class SelectInput<T> extends FormControlBase<T> {
   readonly options = input.required<SelectOption<T>[]>();
   readonly placeholder = input('เลือก…');
+  readonly shape = input<'default' | 'pill'>('default');
 
-  protected readonly inputClass = inputClass;
+  protected readonly controlClass = computed(() =>
+    this.shape() === 'pill' ? pillInputClass(!!this.errorMessage()) : inputClass(!!this.errorMessage()),
+  );
   protected readonly selectedIndex = computed(() => this.options().findIndex((option) => option.value === this.value()));
 
   protected onSelect(event: Event): void {

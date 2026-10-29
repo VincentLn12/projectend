@@ -4,7 +4,7 @@
     [disabled]="isDisabled()"
     [attr.aria-invalid]="errorMessage() ? 'true' : null"
     [attr.aria-describedby]="describedBy()"
-    [class]="inputClass(!!errorMessage())"
+    [class]="controlClass()"
     (change)="onSelect($event)"
     (blur)="markTouched()"
   >
