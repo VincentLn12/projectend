@@ -7,6 +7,8 @@ const LONG_DATE = new Intl.DateTimeFormat('th-TH-u-ca-buddhist', { day: 'numeric
 const MONTH_AND_YEAR = new Intl.DateTimeFormat('th-TH-u-ca-buddhist', { month: 'long', year: 'numeric' });
 
 const WEEKDAY_NAMES = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
+const CALENDAR_WIDTH_PX = 320;
+const SCREEN_EDGE_MARGIN_PX = 16;
 const WEEKS_SHOWN = 6;
 const DAYS_PER_WEEK = 7;
 
@@ -60,6 +62,7 @@ export class DateInput extends FormControlBase<string> {
   );
   protected readonly weekdayNames = WEEKDAY_NAMES;
   protected readonly isOpen = signal(false);
+  protected readonly opensTowardsStart = signal(false);
 
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly viewedMonth = signal(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
@@ -110,6 +113,9 @@ export class DateInput extends FormControlBase<string> {
     const selected = fromIsoDate(this.value());
     const monthToShow = selected ?? new Date();
     this.viewedMonth.set(new Date(monthToShow.getFullYear(), monthToShow.getMonth(), 1));
+
+    const fieldLeft = this.hostElement.nativeElement.getBoundingClientRect().left;
+    this.opensTowardsStart.set(fieldLeft + CALENDAR_WIDTH_PX > window.innerWidth - SCREEN_EDGE_MARGIN_PX);
     this.isOpen.set(true);
   }
 

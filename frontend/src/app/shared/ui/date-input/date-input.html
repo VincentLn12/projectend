@@ -31,7 +31,9 @@
         <div
           role="dialog"
           aria-label="เลือกวันที่"
-          class="absolute left-0 z-30 mt-2 w-80 rounded-xl bg-white p-4 shadow-lg ring-1 ring-slate-200"
+          [class.left-0]="!opensTowardsStart()"
+          [class.right-0]="opensTowardsStart()"
+          class="absolute z-30 mt-2 w-80 rounded-xl bg-white p-4 shadow-lg ring-1 ring-slate-200"
         >
           <div class="mb-2 flex items-center justify-between gap-1">
             <button
