@@ -16,4 +16,6 @@ export interface SiteSettings {
 export interface QuickMenuItemSetting {
   key: string;
   enabled: boolean;
+  title: string | null;
+  imageFileId: string | null;
 }

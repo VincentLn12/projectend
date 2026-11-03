@@ -121,7 +121,11 @@
       <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
         @for (link of quickLinks(); track link.path) {
           <li>
-            <a [routerLink]="link.path" class="group flex h-full flex-col justify-between rounded-xl bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+            <a [routerLink]="link.path" class="group flex h-full flex-col justify-between overflow-hidden rounded-xl bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+              @if (link.imageFileId) {
+                <app-file-image [fileId]="link.imageFileId" [alt]="link.label" class="h-40 w-full" />
+              }
+              <div class="flex h-full flex-col justify-between p-6">
               <div class="flex items-start justify-between">
                 <span class="flex size-12 items-center justify-center rounded-lg bg-[#e7eeff] text-[#1c5bb8] transition-colors group-hover:bg-[#1c5bb8] group-hover:text-white">
                   <svg class="size-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
@@ -137,6 +141,7 @@
               <span class="mt-4 flex items-center gap-1 text-sm font-semibold text-[#1c5bb8] transition-all group-hover:gap-2">
                 {{ link.action }} <span aria-hidden="true">→</span>
               </span>
+              </div>
             </a>
           </li>
         }

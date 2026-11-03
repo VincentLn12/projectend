@@ -57,6 +57,20 @@ public class SystemSettingService : ISystemSettingService
             }
         }
 
+        List<Guid> itemImageIds = (request.QuickMenuItems ?? new List<QuickMenuItemDto>())
+            .Where(item => item.ImageFileId.HasValue)
+            .Select(item => item.ImageFileId!.Value)
+            .Distinct()
+            .ToList();
+        if (itemImageIds.Count > 0)
+        {
+            int existingCount = await _dbContext.Files.CountAsync(file => itemImageIds.Contains(file.Id), cancellationToken);
+            if (existingCount != itemImageIds.Count)
+            {
+                throw new BadRequestException("Quick menu card image file does not exist.");
+            }
+        }
+
         setting.WebName = request.WebName.Trim();
         setting.RegisterUrl = request.RegisterUrl?.Trim();
         setting.KruUrl = request.KruUrl?.Trim();
@@ -101,7 +115,13 @@ public class SystemSettingService : ISystemSettingService
 
         List<QuickMenuItemDto> distinctItems = items
             .GroupBy(item => item.Key.Trim())
-            .Select(group => new QuickMenuItemDto { Key = group.Key, Enabled = group.First().Enabled })
+            .Select(group => new QuickMenuItemDto
+            {
+                Key = group.Key,
+                Enabled = group.First().Enabled,
+                Title = string.IsNullOrWhiteSpace(group.First().Title) ? null : group.First().Title!.Trim(),
+                ImageFileId = group.First().ImageFileId,
+            })
             .ToList();
         return JsonSerializer.Serialize(distinctItems);
     }

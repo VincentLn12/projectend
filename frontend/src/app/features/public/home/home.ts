@@ -84,9 +84,15 @@ export class Home implements OnInit {
       const index = savedItems.findIndex((item) => item.key === path.slice(1));
       return index === -1 ? savedItems.length : index;
     };
+    const customization = (path: string) => savedItems.find((item) => item.key === path.slice(1));
     return this.allQuickLinks
       .filter((link) => savedItems.find((item) => item.key === link.path.slice(1))?.enabled !== false)
-      .sort((first, second) => position(first.path) - position(second.path));
+      .sort((first, second) => position(first.path) - position(second.path))
+      .map((link) => ({
+        ...link,
+        label: customization(link.path)?.title || link.label,
+        imageFileId: customization(link.path)?.imageFileId ?? null,
+      }));
   });
 
   // The settings field may hold several links separated by commas.

@@ -86,7 +86,7 @@ describe('SettingsPage', () => {
       mapLocation: null,
       quickMenuEnabled: true,
       quickMenuBackgroundFileId: null,
-      quickMenuItems: [{ key: 'news', enabled: false }],
+      quickMenuItems: [{ key: 'news', enabled: false, title: null, imageFileId: null }],
     });
     expect(page.form.get('webName')?.value).toBe('เดิม');
 

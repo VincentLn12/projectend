@@ -23,7 +23,12 @@ const QUICK_MENU_LABELS: Record<string, string> = {
   news: 'ข่าวสาร',
 };
 
-type QuickMenuItemGroup = FormGroup<{ key: FormControl<string>; enabled: FormControl<boolean> }>;
+type QuickMenuItemGroup = FormGroup<{
+    key: FormControl<string>;
+    enabled: FormControl<boolean>;
+    title: FormControl<string>;
+    imageFileId: FormControl<string | null>;
+  }>;
 
 @Component({
   selector: 'app-settings-page',
@@ -144,7 +149,7 @@ export class SettingsPage implements OnInit {
     const ordered = (saved ?? []).filter((item) => knownKeys.includes(item.key));
     const missing = knownKeys
       .filter((key) => !ordered.some((item) => item.key === key))
-      .map((key) => ({ key, enabled: true }));
+      .map((key) => ({ key, enabled: true, title: null, imageFileId: null }));
     return [...ordered, ...missing];
   }
 
@@ -155,6 +160,8 @@ export class SettingsPage implements OnInit {
         new FormGroup({
           key: new FormControl(item.key, { nonNullable: true }),
           enabled: new FormControl(item.enabled, { nonNullable: true }),
+          title: new FormControl(item.title ?? '', { nonNullable: true, validators: Validators.maxLength(100) }),
+          imageFileId: new FormControl(item.imageFileId ?? null),
         }),
       );
     }
@@ -190,7 +197,12 @@ export class SettingsPage implements OnInit {
       aboutDescription: this.emptyToNull(value.aboutDescription),
       quickMenuEnabled: value.quickMenuEnabled ?? true,
       quickMenuBackgroundFileId: value.quickMenuBackgroundFileId,
-      quickMenuItems: value.quickMenuItems ?? [],
+      quickMenuItems: (value.quickMenuItems ?? []).map((item) => ({
+        key: item.key ?? '',
+        enabled: item.enabled ?? true,
+        title: this.emptyToNull(item.title),
+        imageFileId: item.imageFileId ?? null,
+      })),
     };
   }
 

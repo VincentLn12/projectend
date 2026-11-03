@@ -55,13 +55,22 @@
             />
             <ul formArrayName="quickMenuItems" class="divide-y divide-slate-100 rounded-xl border border-slate-200">
               @for (item of quickMenuItems.controls; track item.controls.key.value; let index = $index; let first = $first; let last = $last) {
-                <li [formGroupName]="index" class="flex items-center justify-between gap-3 px-4 py-3">
-                  <span class="font-medium text-slate-800">{{ quickMenuLabel(item.controls.key.value) }}</span>
-                  <div class="flex items-center gap-2">
-                    <app-toggle formControlName="enabled" />
-                    <button type="button" app-button variant="ghost" size="sm" [disabled]="first" (click)="moveQuickMenuItem(index, -1)" aria-label="เลื่อนขึ้น">↑</button>
-                    <button type="button" app-button variant="ghost" size="sm" [disabled]="last" (click)="moveQuickMenuItem(index, 1)" aria-label="เลื่อนลง">↓</button>
+                <li [formGroupName]="index" class="space-y-3 px-4 py-3">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="font-medium text-slate-800">{{ quickMenuLabel(item.controls.key.value) }}</span>
+                    <div class="flex items-center gap-2">
+                      <app-toggle formControlName="enabled" />
+                      <button type="button" app-button variant="ghost" size="sm" [disabled]="first" (click)="moveQuickMenuItem(index, -1)" aria-label="เลื่อนขึ้น">↑</button>
+                      <button type="button" app-button variant="ghost" size="sm" [disabled]="last" (click)="moveQuickMenuItem(index, 1)" aria-label="เลื่อนลง">↓</button>
+                    </div>
                   </div>
+                  <app-text-input
+                    label="ชื่อที่แสดง"
+                    [hint]="'เว้นว่างเพื่อใช้ชื่อเดิม: ' + quickMenuLabel(item.controls.key.value)"
+                    formControlName="title"
+                    [maxLength]="100"
+                  />
+                  <app-file-upload label="รูปของการ์ดนี้" accept="image" formControlName="imageFileId" />
                 </li>
               }
             </ul>
