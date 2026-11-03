@@ -84,6 +84,9 @@ describe('SettingsPage', () => {
       logoFileId: null,
       videoUrl: null,
       mapLocation: null,
+      quickMenuEnabled: true,
+      quickMenuBackgroundFileId: null,
+      quickMenuItems: [{ key: 'news', enabled: false }],
     });
     expect(page.form.get('webName')?.value).toBe('เดิม');
 
@@ -92,7 +95,8 @@ describe('SettingsPage', () => {
 
     const request = http.expectOne('/api/admin/settings');
     expect(request.request.method).toBe('PUT');
-    expect(request.request.body).toMatchObject({ webName: 'ชื่อใหม่', registerUrl: null, kruUrl: null });
+    expect(request.request.body).toMatchObject({ webName: 'ชื่อใหม่', registerUrl: null, kruUrl: null, quickMenuEnabled: true });
+    expect((request.request.body as { quickMenuItems: { key: string }[] }).quickMenuItems[0].key).toBe('news');
     request.flush(request.request.body);
   });
 });

@@ -21,4 +21,12 @@ public class SaveSystemSettingRequest
     public string? VideoUrl { get; set; }
     [StringLength(500)]
     public string? MapLocation { get; set; }
+    [StringLength(300)]
+    public string? AboutTitle { get; set; }
+    [StringLength(2000)]
+    public string? AboutDescription { get; set; }
+    public bool QuickMenuEnabled { get; set; } = true;
+    public Guid? QuickMenuBackgroundFileId { get; set; }
+    [MaxLength(20)]
+    public List<QuickMenuItemDto>? QuickMenuItems { get; set; }
 }

@@ -984,6 +984,14 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AboutDescription")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("AboutTitle")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
                     b.Property<string>("KruUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -998,6 +1006,18 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.Property<string>("PageFacebook")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid?>("QuickMenuBackgroundFileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("QuickMenuEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("QuickMenuItems")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("RegisterUrl")
                         .HasMaxLength(500)
@@ -1015,6 +1035,8 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("LogoFileId");
+
+                    b.HasIndex("QuickMenuBackgroundFileId");
 
                     b.ToTable("SystemSettings");
                 });
@@ -1474,7 +1496,14 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                         .HasForeignKey("LogoFileId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("ComSci.Domain.Entities.FileRecord", "QuickMenuBackgroundFile")
+                        .WithMany()
+                        .HasForeignKey("QuickMenuBackgroundFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("LogoFile");
+
+                    b.Navigation("QuickMenuBackgroundFile");
                 });
 
             modelBuilder.Entity("ComSci.Domain.Entities.TechSubjectFile", b =>

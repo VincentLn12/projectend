@@ -6,4 +6,14 @@ export interface SystemSetting {
   logoFileId: string | null;
   videoUrl: string | null;
   mapLocation: string | null;
+  aboutTitle: string | null;
+  aboutDescription: string | null;
+  quickMenuEnabled: boolean;
+  quickMenuBackgroundFileId: string | null;
+  quickMenuItems: QuickMenuItemSetting[];
+}
+
+export interface QuickMenuItemSetting {
+  key: string;
+  enabled: boolean;
 }
