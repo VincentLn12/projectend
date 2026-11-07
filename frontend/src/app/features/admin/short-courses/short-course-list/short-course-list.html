@@ -1,6 +1,6 @@
 <section class="space-y-4">
   <div class="flex flex-wrap items-center justify-between gap-3">
-    <h1 class="text-xl font-semibold text-slate-900">จัดการหลักสูตรระยะสั้น</h1>
+    <h1 class="text-xl font-semibold text-slate-900">จัดการอบรม</h1>
     <div class="flex flex-wrap items-center gap-3">
       <div class="w-64"><app-search-box placeholder="ค้นหาชื่อหลักสูตร" (searchChange)="list.setSearch($event)" /></div>
       <a app-button variant="secondary" routerLink="/admin/certificate-templates">แม่แบบเกียรติบัตร</a>
@@ -14,7 +14,7 @@
     [trackBy]="rowKey"
     [loading]="list.loading()"
     [error]="list.error()"
-    emptyMessage="ยังไม่มีหลักสูตรระยะสั้น"
+    emptyMessage="ยังไม่มีรายการอบรม"
     (retry)="list.reload()"
   >
     <ng-template appCell="title" let-row>

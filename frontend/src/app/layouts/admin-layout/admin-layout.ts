@@ -53,7 +53,7 @@ export class AdminLayout {
       items: [
         { label: 'ข้อมูลอาจารย์', path: '/admin/lecturers', exact: false, icon: 'lecturers' },
         { label: 'หลักสูตรการศึกษา', path: '/admin/syllabuses', exact: false, icon: 'syllabuses' },
-        { label: 'หลักสูตรอบรมระยะสั้น', path: '/admin/short-courses', exact: false, icon: 'courses' },
+        { label: 'อบรม', path: '/admin/short-courses', exact: false, icon: 'courses' },
         { label: 'รายวิชาเทคโนโลยี', path: '/admin/tech-subjects', exact: false, icon: 'tech-subjects' },
         { label: 'ประวัติการทำงานศิษย์เก่า', path: '/admin/job-histories', exact: false, icon: 'job-histories' },
       ],
