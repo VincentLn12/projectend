@@ -19,12 +19,6 @@
       </div>
     </header>
 
-    @if (auth.user()?.pendingStudentApproval) {
-      <p class="rounded-xl border-2 border-[#f7be33] bg-[#fff6dd] px-5 py-4 text-lg text-[#261a00]" role="status">
-        บัญชีของคุณ <strong>รอเจ้าหน้าที่อนุมัติ</strong> เมื่อได้รับอนุมัติแล้วจะเพิ่มโครงงานนักศึกษาได้ที่นี่
-      </p>
-    }
-
     <div class="grid gap-3 sm:grid-cols-3">
       <app-select-input [formControl]="year" [options]="yearOptions" placeholder="ทุกปีการศึกษา" />
       <app-select-input [formControl]="semester" [options]="semesterOptions" [searchable]="false" placeholder="ทุกภาคเรียน" />

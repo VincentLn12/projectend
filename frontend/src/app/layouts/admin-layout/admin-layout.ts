@@ -45,7 +45,6 @@ export class AdminLayout {
       items: [
         { label: 'ข่าวสารและกิจกรรม', path: '/admin/news', exact: false, icon: 'news' },
         { label: 'โครงงานวิจัยนักศึกษา', path: '/admin/projects', exact: false, icon: 'projects' },
-        { label: 'อนุมัตินักศึกษา', path: '/admin/student-approvals', exact: false, icon: 'students' },
         { label: 'โครงงานนักศึกษา', path: '/admin/student-projects', exact: false, icon: 'projects' },
         { label: 'แบนเนอร์ประชาสัมพันธ์', path: '/admin/home-banners', exact: false, icon: 'banners' },
       ],

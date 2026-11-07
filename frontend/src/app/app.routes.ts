@@ -76,7 +76,6 @@ export const routes: Routes = [
       { path: 'syllabuses', loadComponent: () => import('./features/admin/syllabuses/syllabus-list/syllabus-list').then((m) => m.SyllabusList) },
       { path: 'syllabuses/new', loadComponent: () => import('./features/admin/syllabuses/syllabus-edit/syllabus-edit').then((m) => m.SyllabusEdit) },
       { path: 'syllabuses/:id', loadComponent: () => import('./features/admin/syllabuses/syllabus-edit/syllabus-edit').then((m) => m.SyllabusEdit) },
-      { path: 'student-approvals', loadComponent: () => import('./features/admin/student-approvals/student-approval-list/student-approval-list').then((m) => m.StudentApprovalList) },
       { path: 'student-projects', loadComponent: () => import('./features/admin/student-projects/student-project-list/student-project-list').then((m) => m.AdminStudentProjectList) },
       { path: 'short-courses', loadComponent: () => import('./features/admin/short-courses/short-course-list/short-course-list').then((m) => m.ShortCourseList) },
       { path: 'short-courses/new', loadComponent: () => import('./features/admin/short-courses/short-course-edit/short-course-edit').then((m) => m.ShortCourseEdit) },

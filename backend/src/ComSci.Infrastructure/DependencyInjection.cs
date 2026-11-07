@@ -66,7 +66,6 @@ public static class DependencyInjection
         services.AddScoped<IStudentProjectService, StudentProjectService>();
         services.AddScoped<IMyProjectService, MyProjectService>();
         services.AddScoped<IMyJobHistoryService, MyJobHistoryService>();
-        services.AddScoped<IStudentApprovalService, StudentApprovalService>();
         services.AddScoped<IShortCourseService, ShortCourseService>();
         services.AddScoped<IShortCourseRegistrationService, ShortCourseRegistrationService>();
         services.AddScoped<IShortCourseDocumentService, ShortCourseDocumentService>();

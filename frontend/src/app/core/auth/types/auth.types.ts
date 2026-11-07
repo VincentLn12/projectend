@@ -5,7 +5,6 @@ export interface UserInfo {
   fullName: string;
   email: string;
   roles: RoleName[];
-  pendingStudentApproval?: boolean;
 }
 
 export interface RegisterStudentRequest {

@@ -119,7 +119,7 @@ public class AuthService : IAuthService
         user.UserType = UserType.Student;
         user.ConsentAt = DateTime.UtcNow;
 
-        // บัญชีนักศึกษาที่สมัครเองได้บทบาท User ก่อน บทบาท Student จะได้เมื่อแอดมินอนุมัติ กันการแอบอ้างรหัสนักศึกษาของคนอื่น
+        // สมัครแล้วใช้ได้ทันที: ได้บทบาท Student เลย ไม่ต้องรออนุมัติ
         using (Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken))
         {
             IdentityResult createResult = await _userManager.CreateAsync(user, request.Password);
@@ -133,12 +133,12 @@ public class AuthService : IAuthService
             }
 
             await _userManager.AddToRoleAsync(user, Roles.User);
+            await _userManager.AddToRoleAsync(user, Roles.Student);
 
             StudentProfile profile = new StudentProfile();
             profile.UserId = user.Id;
             profile.StudentCode = studentCode;
             profile.EntryYear = (short)entryYear;
-            profile.IsApproved = false;
             _dbContext.StudentProfiles.Add(profile);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -290,7 +290,6 @@ public class AuthService : IAuthService
         userInfo.FullName = user.FullName;
         userInfo.Email = user.Email ?? string.Empty;
         userInfo.Roles = roles.ToList();
-        userInfo.PendingStudentApproval = await _dbContext.StudentProfiles.AnyAsync(profile => profile.UserId == user.Id && !profile.IsApproved);
         return userInfo;
     }
 
