@@ -83,6 +83,72 @@ public class AuthService : IAuthService
         return result;
     }
 
+    public async Task<RegisterResult> RegisterStudentAsync(RegisterStudentRequest request, CancellationToken cancellationToken)
+    {
+        RegisterResult result = new RegisterResult();
+
+        string email = request.Email.Trim();
+        string studentCode = request.StudentCode.Trim();
+
+        int entryYear = 2500 + int.Parse(studentCode.Substring(0, 2));
+        int currentBuddhistYear = DateTime.UtcNow.Year + 543;
+        if (entryYear > currentBuddhistYear)
+        {
+            result.FieldErrors["StudentCode"] = "รหัสนักศึกษาไม่ถูกต้อง (ปีที่เข้าเรียนเป็นอนาคต)";
+            return result;
+        }
+
+        bool codeInUse = await _dbContext.StudentProfiles.AnyAsync(profile => profile.StudentCode == studentCode, cancellationToken);
+        if (codeInUse)
+        {
+            result.FieldErrors["StudentCode"] = "รหัสนักศึกษานี้ถูกใช้สมัครแล้ว หากไม่ได้สมัครเอง กรุณาติดต่อเจ้าหน้าที่";
+            return result;
+        }
+
+        AppUser? existingUser = await _userManager.FindByEmailAsync(email);
+        if (existingUser != null)
+        {
+            result.FieldErrors["Email"] = "อีเมลนี้ถูกใช้สมัครแล้ว";
+            return result;
+        }
+
+        AppUser user = new AppUser();
+        user.UserName = email;
+        user.Email = email;
+        user.FullName = request.FullName.Trim();
+        user.UserType = UserType.Student;
+        user.ConsentAt = DateTime.UtcNow;
+
+        // บัญชีนักศึกษาที่สมัครเองได้บทบาท User ก่อน บทบาท Student จะได้เมื่อแอดมินอนุมัติ กันการแอบอ้างรหัสนักศึกษาของคนอื่น
+        using (Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken))
+        {
+            IdentityResult createResult = await _userManager.CreateAsync(user, request.Password);
+            if (!createResult.Succeeded)
+            {
+                foreach (IdentityError error in createResult.Errors)
+                {
+                    result.Errors.Add(error.Description);
+                }
+                return result;
+            }
+
+            await _userManager.AddToRoleAsync(user, Roles.User);
+
+            StudentProfile profile = new StudentProfile();
+            profile.UserId = user.Id;
+            profile.StudentCode = studentCode;
+            profile.EntryYear = (short)entryYear;
+            profile.IsApproved = false;
+            _dbContext.StudentProfiles.Add(profile);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+        }
+
+        result.Response = await CreateAuthResponseAsync(user, cancellationToken);
+        return result;
+    }
+
     public async Task<AuthResponse?> RefreshAsync(string refreshToken, CancellationToken cancellationToken)
     {
         string tokenHash = HashToken(refreshToken);
@@ -224,6 +290,7 @@ public class AuthService : IAuthService
         userInfo.FullName = user.FullName;
         userInfo.Email = user.Email ?? string.Empty;
         userInfo.Roles = roles.ToList();
+        userInfo.PendingStudentApproval = await _dbContext.StudentProfiles.AnyAsync(profile => profile.UserId == user.Id && !profile.IsApproved);
         return userInfo;
     }
 

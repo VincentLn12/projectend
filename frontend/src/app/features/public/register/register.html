@@ -1,0 +1,42 @@
+<section class="mx-auto max-w-lg rounded-xl bg-white p-6 shadow-sm sm:p-8">
+  @if (registered()) {
+    <div class="space-y-4" role="status">
+      <h1 class="text-xl font-semibold text-slate-900">สมัครสมาชิกเรียบร้อยแล้ว</h1>
+      <p class="rounded-lg bg-[#fff6dd] px-4 py-3 text-base text-[#261a00]">
+        บัญชีของคุณ <strong>รอเจ้าหน้าที่ตรวจสอบและอนุมัติ</strong> เพื่อยืนยันว่าคุณเป็นเจ้าของรหัสนักศึกษานี้ ระหว่างนี้คุณเข้าสู่ระบบได้แล้ว
+        แต่ยังเพิ่มโครงงานนักศึกษาไม่ได้จนกว่าจะได้รับการอนุมัติ
+      </p>
+      <div class="flex flex-wrap gap-2">
+        <a app-button variant="primary" routerLink="/student-projects">ดูโครงงานนักศึกษา</a>
+        <a app-button variant="secondary" routerLink="/home">กลับหน้าหลัก</a>
+      </div>
+    </div>
+  } @else {
+    <h1 class="text-xl font-semibold text-slate-900">สมัครสมาชิก (นักศึกษา)</h1>
+    <p class="mt-1 text-sm text-slate-600">สำหรับนักศึกษาสาขาวิทยาการคอมพิวเตอร์ ใช้อัปโครงงานระหว่างเรียนเป็น portfolio</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="mt-6 space-y-4">
+      <app-text-input label="รหัสนักศึกษา" hint="ตัวเลข 11 หลัก เช่น 67123250114" formControlName="studentCode" [maxLength]="11" />
+
+      <div class="grid gap-4 sm:grid-cols-[8rem_1fr_1fr]">
+        <app-select-input label="คำนำหน้า" formControlName="prefix" [options]="prefixOptions" [searchable]="false" />
+        <app-text-input label="ชื่อ" formControlName="firstName" autocomplete="given-name" [maxLength]="100" />
+        <app-text-input label="นามสกุล" formControlName="lastName" autocomplete="family-name" [maxLength]="100" />
+      </div>
+
+      <app-text-input label="อีเมล" hint="ใช้เข้าสู่ระบบ (หรือจะใช้รหัสนักศึกษาก็ได้)" type="email" formControlName="email" autocomplete="email" [maxLength]="256" />
+      <app-text-input label="รหัสผ่าน" hint="อย่างน้อย 8 ตัวอักษร" type="password" formControlName="password" autocomplete="new-password" />
+      <app-text-input label="ยืนยันรหัสผ่าน" type="password" formControlName="confirmPassword" autocomplete="new-password" />
+
+      <app-checkbox label="ยอมรับนโยบายความเป็นส่วนตัว และยินยอมให้เก็บข้อมูลชื่อและรหัสนักศึกษาเพื่อใช้ในเว็บไซต์สาขา" formControlName="acceptPrivacy" />
+
+      @if (formError(); as message) {
+        <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ message }}</p>
+      }
+
+      <button type="submit" app-button class="w-full" [loading]="submitting()">สมัครสมาชิก</button>
+    </form>
+
+    <p class="mt-4 text-center text-sm text-slate-600">มีบัญชีอยู่แล้ว? <a routerLink="/login" class="font-semibold text-brand-800 underline">เข้าสู่ระบบ</a></p>
+  }
+</section>

@@ -13,6 +13,9 @@ public class StudentProfileConfiguration : IEntityTypeConfiguration<StudentProfi
         builder.Property(studentProfile => studentProfile.StudentCode)
             .HasMaxLength(20);
 
+        builder.Property(studentProfile => studentProfile.IsApproved)
+            .HasDefaultValue(true);
+
         builder.Property(studentProfile => studentProfile.PreviousSchool)
             .HasMaxLength(200);
 

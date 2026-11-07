@@ -4,4 +4,5 @@ public class RegisterResult
 {
     public AuthResponse? Response { get; set; }
     public List<string> Errors { get; set; } = new List<string>();
+    public Dictionary<string, string> FieldErrors { get; set; } = new Dictionary<string, string>();
 }

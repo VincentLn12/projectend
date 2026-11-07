@@ -3,7 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, catchError, defer, finalize, firstValueFrom, from, map, of, shareReplay, tap, throwError } from 'rxjs';
 import { API_BASE } from '../api.config';
-import { AuthResponse, UserInfo } from './types/auth.types';
+import { AuthResponse, RegisterStudentRequest, UserInfo } from './types/auth.types';
 
 const REFRESH_TOKEN_KEY = 'comsci.refreshToken';
 const REFRESH_LOCK_NAME = 'comsci.refresh';
@@ -40,6 +40,13 @@ export class AuthService {
 
   login(identifier: string, password: string): Observable<void> {
     return this.http.post<AuthResponse>(`${API_BASE}/auth/login`, { identifier, password }).pipe(
+      tap((response) => this.applyResponse(response)),
+      map(() => undefined),
+    );
+  }
+
+  registerStudent(request: RegisterStudentRequest): Observable<void> {
+    return this.http.post<AuthResponse>(`${API_BASE}/auth/register-student`, request).pipe(
       tap((response) => this.applyResponse(response)),
       map(() => undefined),
     );

@@ -15,6 +15,15 @@ export const notEmptyListValidator: ValidatorFn = (control: AbstractControl): Va
   return Array.isArray(value) && value.length > 0 ? null : { required: true };
 };
 
+// Student code: exactly 11 digits (the first two are the entry year, for example 67 for 2567).
+export const studentCodeValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const value = control.value;
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  return /^\d{11}$/.test(String(value).trim()) ? null : { studentCode: true };
+};
+
 // Thai phone number as the API accepts it: 9 or 10 digits starting with 0 (spaces and dashes are ignored).
 export const thaiPhoneValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
   const value = control.value;

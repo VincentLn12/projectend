@@ -1026,6 +1026,11 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.Property<short>("EntryYear")
                         .HasColumnType("smallint");
 
+                    b.Property<bool>("IsApproved")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("PreviousSchool")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
