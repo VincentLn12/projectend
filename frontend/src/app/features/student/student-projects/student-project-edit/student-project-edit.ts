@@ -77,6 +77,27 @@ export class MyStudentProjectEdit implements OnInit {
     return this.otherProjects().find((project) => project.academicYear === value.academicYear && project.semester === value.semester) ?? null;
   });
 
+  protected readonly checklist = computed(() => {
+    const value = this.formValue();
+    const hasLink = !!(value.videoUrl?.trim() || value.webUrl?.trim() || value.githubUrl?.trim());
+    return [
+      { label: 'ชื่อโปรเจค', done: !!value.title?.trim(), required: true },
+      { label: 'รายละเอียด', done: !!value.description?.trim(), required: false },
+      { label: 'รูปปก', done: !!value.imageFileId, required: false },
+      { label: 'ไฟล์ PDF รายงาน/สไลด์', done: !!value.pdfFileId, required: false },
+      { label: 'ลิงก์ วิดีโอ / เว็บ / GitHub', done: hasLink, required: false },
+    ];
+  });
+
+  protected readonly doneCount = computed(() => this.checklist().filter((item) => item.done).length);
+
+  protected readonly tags = computed(() =>
+    (this.formValue().technologies ?? '')
+      .split(',')
+      .map((word) => word.trim())
+      .filter((word) => word.length > 0),
+  );
+
   protected readonly loading = signal(false);
   protected readonly loadError = signal<string | null>(null);
   protected readonly saving = signal(false);
