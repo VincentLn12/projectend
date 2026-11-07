@@ -2,7 +2,7 @@
   <app-data-state [loading]="loading()" [error]="error()" (retry)="load()">
     @if (student(); as item) {
       <header class="bg-gradient-to-br from-[#0f2854] via-[#14377a] to-[#1c5bb8] text-white print:bg-none print:text-[#0f2854]">
-        <div class="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:py-14">
+        <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-8 px-4 py-10 sm:px-6 lg:px-12 lg:py-14">
           <nav aria-label="เส้นทางหน้า" class="flex flex-wrap items-center gap-2 text-sm text-white/80 print:hidden">
             <a routerLink="/home" class="hover:text-white hover:underline">หน้าหลัก</a>
             <span aria-hidden="true">›</span>
@@ -39,7 +39,7 @@
         </div>
       </header>
 
-      <div class="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-8 sm:px-6 lg:py-12">
+      <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-10 px-4 py-8 sm:px-6 lg:px-12 lg:py-12">
         <section aria-label="สรุป">
           <ul class="grid grid-cols-2 gap-3 lg:grid-cols-4">
             @for (stat of stats(); track stat.label) {
@@ -93,7 +93,7 @@
               <div class="relative space-y-4">
                 <span class="absolute -left-[1.85rem] top-1.5 size-5 rounded-full border-4 border-white bg-[#1c5bb8] shadow sm:-left-[2.6rem]" aria-hidden="true"></span>
                 <h3 class="text-xl font-bold text-[#1c5bb8]">{{ term.label }}</h3>
-                <ul class="grid gap-5 md:grid-cols-2">
+                <ul class="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                   @for (project of term.items; track project.id) {
                     <li>
                       <a
@@ -130,7 +130,7 @@
               <span class="h-8 w-1.5 shrink-0 rounded-full bg-[#f7be33]" aria-hidden="true"></span>
               โครงงานวิจัย (โปรเจคจบ)
             </h2>
-            <ul class="grid gap-5 md:grid-cols-2">
+            <ul class="grid gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               @for (project of item.projects; track project.id) {
                 <li>
                   <a [routerLink]="['/projects', project.id]" class="group flex h-full flex-col overflow-hidden rounded-2xl border-2 border-slate-300 bg-white shadow-sm transition-all hover:border-[#1c5bb8] hover:shadow-md">
