@@ -12,7 +12,6 @@ public class StudentProject : AuditableEntity
     public byte Semester { get; set; }
     public string? CourseName { get; set; }
     public string? Technologies { get; set; }
-    public string? TeamMembers { get; set; }
     public Guid? LecturerId { get; set; }
     public Lecturer? Lecturer { get; set; }
     public Guid? ImageFileId { get; set; }

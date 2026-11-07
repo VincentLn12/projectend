@@ -1095,10 +1095,6 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("TeamMembers")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<string>("Technologies")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");

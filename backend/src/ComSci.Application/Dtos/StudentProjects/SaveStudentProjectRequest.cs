@@ -16,8 +16,6 @@ public class SaveStudentProjectRequest
     public string? CourseName { get; set; }
     [StringLength(500)]
     public string? Technologies { get; set; }
-    [StringLength(500)]
-    public string? TeamMembers { get; set; }
     public Guid? LecturerId { get; set; }
     public Guid? ImageFileId { get; set; }
     public Guid? PdfFileId { get; set; }

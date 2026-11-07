@@ -17,9 +17,6 @@ public class StudentProjectConfiguration : IEntityTypeConfiguration<StudentProje
         builder.Property(project => project.Technologies)
             .HasMaxLength(500);
 
-        builder.Property(project => project.TeamMembers)
-            .HasMaxLength(500);
-
         builder.Property(project => project.VideoUrl)
             .HasMaxLength(500);
 

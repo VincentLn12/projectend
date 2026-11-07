@@ -27,7 +27,6 @@
           <app-text-input label="วิชาที่ทำ" hint="เช่น การเขียนโปรแกรมเว็บ" formControlName="courseName" [maxLength]="200" />
           <app-text-area label="รายละเอียด" hint="โปรเจคนี้ทำอะไร ใช้ทำอะไร และคุณรับผิดชอบส่วนไหน" formControlName="description" [rows]="6" />
           <app-text-input label="เทคโนโลยีที่ใช้" hint="คั่นด้วยเครื่องหมายจุลภาค เช่น Angular, .NET, SQL Server" formControlName="technologies" [maxLength]="500" />
-          <app-text-input label="สมาชิกในทีม" hint="ถ้าทำเป็นกลุ่ม พิมพ์ชื่อเพื่อนร่วมทีม" formControlName="teamMembers" [maxLength]="500" />
           <app-select-input label="อาจารย์ผู้สอน" formControlName="lecturerId" [options]="lecturerOptions()" [searchable]="true" />
         </section>
 

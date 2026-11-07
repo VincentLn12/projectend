@@ -24,7 +24,6 @@ export interface StudentProjectDetail {
   semester: number;
   courseName: string | null;
   technologies: string | null;
-  teamMembers: string | null;
   lecturerName: string | null;
   imageFileId: string | null;
   pdfFileId: string | null;

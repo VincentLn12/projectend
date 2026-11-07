@@ -46,12 +46,6 @@
                   <dt class="text-base font-semibold text-[#1c5bb8]">ผู้จัดทำ</dt>
                   <dd><a [routerLink]="['/students', item.studentId]" class="hover:underline">{{ item.studentName }}</a></dd>
                 </div>
-                @if (item.teamMembers) {
-                  <div>
-                    <dt class="text-base font-semibold text-[#1c5bb8]">สมาชิกในทีม</dt>
-                    <dd>{{ item.teamMembers }}</dd>
-                  </div>
-                }
                 @if (item.courseName) {
                   <div>
                     <dt class="text-base font-semibold text-[#1c5bb8]">วิชา</dt>

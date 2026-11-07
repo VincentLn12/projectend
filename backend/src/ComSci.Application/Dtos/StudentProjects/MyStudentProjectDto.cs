@@ -9,7 +9,6 @@ public class MyStudentProjectDto
     public byte Semester { get; set; }
     public string? CourseName { get; set; }
     public string? Technologies { get; set; }
-    public string? TeamMembers { get; set; }
     public Guid? LecturerId { get; set; }
     public Guid? ImageFileId { get; set; }
     public Guid? PdfFileId { get; set; }

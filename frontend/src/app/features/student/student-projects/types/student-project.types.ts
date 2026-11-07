@@ -12,7 +12,6 @@ export interface MyStudentProject {
   semester: number;
   courseName: string | null;
   technologies: string | null;
-  teamMembers: string | null;
   lecturerId: string | null;
   imageFileId: string | null;
   pdfFileId: string | null;
@@ -30,7 +29,6 @@ export interface SaveStudentProjectRequest {
   semester: number;
   courseName: string | null;
   technologies: string | null;
-  teamMembers: string | null;
   lecturerId: string | null;
   imageFileId: string | null;
   pdfFileId: string | null;

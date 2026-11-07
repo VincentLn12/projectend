@@ -167,7 +167,6 @@ public class StudentProjectService : IStudentProjectService
                     Semester = project.Semester,
                     CourseName = project.CourseName,
                     Technologies = project.Technologies,
-                    TeamMembers = project.TeamMembers,
                     ImageFileId = project.ImageFileId,
                     PdfFileId = project.PdfFileId,
                     VideoUrl = project.VideoUrl,
@@ -344,7 +343,6 @@ public class StudentProjectService : IStudentProjectService
         project.Semester = request.Semester;
         project.CourseName = CleanText(request.CourseName);
         project.Technologies = CleanText(request.Technologies);
-        project.TeamMembers = CleanText(request.TeamMembers);
         project.LecturerId = request.LecturerId;
         project.ImageFileId = request.ImageFileId;
         project.PdfFileId = request.PdfFileId;
@@ -381,7 +379,6 @@ public class StudentProjectService : IStudentProjectService
         dto.Semester = project.Semester;
         dto.CourseName = project.CourseName;
         dto.Technologies = project.Technologies;
-        dto.TeamMembers = project.TeamMembers;
         dto.LecturerId = project.LecturerId;
         dto.ImageFileId = project.ImageFileId;
         dto.PdfFileId = project.PdfFileId;
