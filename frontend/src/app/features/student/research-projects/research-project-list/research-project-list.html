@@ -1,0 +1,50 @@
+<div class="relative left-1/2 -my-8 min-h-[60vh] w-screen -translate-x-1/2 bg-[#f9f9ff] text-[#111c2c]">
+  <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-12 lg:py-10">
+    <header class="flex flex-col gap-4 border-b-2 border-[#0f2854] pb-4 sm:flex-row sm:items-end sm:justify-between">
+      <div class="space-y-1">
+        <nav aria-label="เส้นทางหน้า" class="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+          <a routerLink="/home" class="hover:text-[#0f2854] hover:underline">หน้าหลัก</a>
+          <span aria-hidden="true">›</span>
+          <a routerLink="/projects" class="hover:text-[#0f2854] hover:underline">โครงงานวิจัยนักศึกษา</a>
+          <span aria-hidden="true">›</span>
+          <span class="font-semibold text-[#1c5bb8]">ของฉัน</span>
+        </nav>
+        <h1 class="text-2xl font-bold text-[#0f2854] sm:text-3xl">โครงงานวิจัยของฉัน (โปรเจคจบ)</h1>
+        <p class="text-base text-slate-600">เพิ่มและแก้ไขโครงงานวิจัยที่คุณทำ แสดงบนหน้า portfolio และหน้าโครงงานวิจัยนักศึกษา</p>
+      </div>
+      <a app-button variant="accent" routerLink="/my/projects/new">+ เพิ่มโครงงานวิจัย</a>
+    </header>
+
+    <nav aria-label="ประเภทโครงงาน" class="flex flex-wrap gap-2">
+      <a routerLink="/my/student-projects" class="rounded-lg border-2 border-slate-300 bg-white px-4 py-2 text-base font-semibold text-[#0f2854] hover:border-[#1c5bb8]">โครงงานนักศึกษา (ระหว่างเรียน)</a>
+      <a routerLink="/my/projects" class="rounded-lg border-2 border-[#0f2854] bg-[#0f2854] px-4 py-2 text-base font-semibold text-white" aria-current="page">โครงงานวิจัย (โปรเจคจบ)</a>
+    </nav>
+
+    <app-data-state [loading]="loading()" [error]="error()" [empty]="!loading() && projects().length === 0" emptyMessage="ยังไม่มีโครงงานวิจัย กด &quot;เพิ่มโครงงานวิจัย&quot; เพื่อเริ่มต้น" (retry)="load()">
+      <ul class="grid gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3 2xl:grid-cols-4">
+        @for (project of projects(); track project.id) {
+          <li class="flex flex-col overflow-hidden rounded-2xl border-2 border-slate-300 bg-white">
+            <app-file-image [fileId]="project.imageFileId" [alt]="project.nameTH" class="aspect-[2/1] w-full border-b-2 border-slate-200" />
+            <div class="flex min-w-0 flex-1 flex-col gap-2 p-4">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-md bg-[#ffdf9f] px-2.5 py-0.5 text-sm font-bold text-[#261a00]">ปีการศึกษา {{ project.academicYear }}</span>
+                <span class="rounded-md px-2.5 py-0.5 text-sm font-bold" [class]="project.isPublished ? 'bg-[#f7be33] text-[#261a00]' : 'bg-slate-500 text-white'">{{
+                  project.isPublished ? 'เผยแพร่แล้ว' : 'ฉบับร่าง'
+                }}</span>
+              </div>
+              <h2 class="text-lg font-bold leading-snug text-[#0f2854] sm:text-xl">{{ project.nameTH }}</h2>
+              <div class="mt-auto flex flex-wrap gap-2 pt-2">
+                <a app-button size="sm" variant="secondary" [routerLink]="['/my/projects', project.id]">แก้ไข</a>
+                <button type="button" app-button size="sm" variant="ghost" (click)="togglePublished(project)">{{ project.isPublished ? 'ซ่อน' : 'เผยแพร่' }}</button>
+                @if (project.isPublished) {
+                  <a app-button size="sm" variant="ghost" [routerLink]="['/projects', project.id]">ดูหน้าเว็บ</a>
+                }
+                <button type="button" app-button size="sm" variant="danger" (click)="askToDelete(project)">ลบ</button>
+              </div>
+            </div>
+          </li>
+        }
+      </ul>
+    </app-data-state>
+  </div>
+</div>
