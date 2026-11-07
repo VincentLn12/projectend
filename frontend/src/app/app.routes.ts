@@ -1,6 +1,6 @@
 import { isDevMode } from '@angular/core';
 import { Routes } from '@angular/router';
-import { adminGuard, authGuard } from './core/auth/auth.guards';
+import { adminGuard, authGuard, studentGuard } from './core/auth/auth.guards';
 import { PublicLayout } from './layouts/public-layout/public-layout';
 
 export const routes: Routes = [
@@ -18,6 +18,12 @@ export const routes: Routes = [
       { path: 'syllabus/:id', loadComponent: () => import('./features/public/syllabus/syllabus-page/syllabus-page').then((m) => m.PublicSyllabus) },
       { path: 'tech-subjects', loadComponent: () => import('./features/public/tech-subjects/tech-subject-list/tech-subject-list').then((m) => m.PublicTechSubjectList) },
       { path: 'tech-subjects/:id', loadComponent: () => import('./features/public/tech-subjects/tech-subject-detail/tech-subject-detail').then((m) => m.PublicTechSubjectDetail) },
+      { path: 'student-projects', loadComponent: () => import('./features/public/student-projects/student-project-list/student-project-list').then((m) => m.PublicStudentProjectList) },
+      { path: 'student-projects/:id', loadComponent: () => import('./features/public/student-projects/student-project-detail/student-project-detail').then((m) => m.PublicStudentProjectDetail) },
+      { path: 'students/:id', loadComponent: () => import('./features/public/students/student-portfolio/student-portfolio').then((m) => m.StudentPortfolioPage) },
+      { path: 'my/student-projects', canActivate: [authGuard, studentGuard], loadComponent: () => import('./features/student/student-projects/student-project-list/student-project-list').then((m) => m.MyStudentProjectList) },
+      { path: 'my/student-projects/new', canActivate: [authGuard, studentGuard], loadComponent: () => import('./features/student/student-projects/student-project-edit/student-project-edit').then((m) => m.MyStudentProjectEdit) },
+      { path: 'my/student-projects/:id', canActivate: [authGuard, studentGuard], loadComponent: () => import('./features/student/student-projects/student-project-edit/student-project-edit').then((m) => m.MyStudentProjectEdit) },
       { path: 'short-courses', loadComponent: () => import('./features/public/short-courses/short-course-list/short-course-list').then((m) => m.PublicShortCourseList) },
       { path: 'short-courses/my-registration', loadComponent: () => import('./features/public/short-courses/registration-lookup/registration-lookup').then((m) => m.RegistrationLookup) },
       { path: 'short-courses/:id', loadComponent: () => import('./features/public/short-courses/short-course-detail/short-course-detail').then((m) => m.PublicShortCourseDetail) },
@@ -65,6 +71,7 @@ export const routes: Routes = [
       { path: 'syllabuses', loadComponent: () => import('./features/admin/syllabuses/syllabus-list/syllabus-list').then((m) => m.SyllabusList) },
       { path: 'syllabuses/new', loadComponent: () => import('./features/admin/syllabuses/syllabus-edit/syllabus-edit').then((m) => m.SyllabusEdit) },
       { path: 'syllabuses/:id', loadComponent: () => import('./features/admin/syllabuses/syllabus-edit/syllabus-edit').then((m) => m.SyllabusEdit) },
+      { path: 'student-projects', loadComponent: () => import('./features/admin/student-projects/student-project-list/student-project-list').then((m) => m.AdminStudentProjectList) },
       { path: 'short-courses', loadComponent: () => import('./features/admin/short-courses/short-course-list/short-course-list').then((m) => m.ShortCourseList) },
       { path: 'short-courses/new', loadComponent: () => import('./features/admin/short-courses/short-course-edit/short-course-edit').then((m) => m.ShortCourseEdit) },
       { path: 'short-courses/:id', loadComponent: () => import('./features/admin/short-courses/short-course-edit/short-course-edit').then((m) => m.ShortCourseEdit) },
