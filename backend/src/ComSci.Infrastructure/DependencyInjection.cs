@@ -64,6 +64,7 @@ public static class DependencyInjection
         services.AddScoped<ILecturerService, LecturerService>();
         services.AddScoped<IProjectService, ProjectService>();
         services.AddScoped<IStudentProjectService, StudentProjectService>();
+        services.AddScoped<IMyProjectService, MyProjectService>();
         services.AddScoped<IStudentApprovalService, StudentApprovalService>();
         services.AddScoped<IShortCourseService, ShortCourseService>();
         services.AddScoped<IShortCourseRegistrationService, ShortCourseRegistrationService>();
