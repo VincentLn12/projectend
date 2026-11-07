@@ -28,6 +28,7 @@ export interface PortfolioJob {
   company: string | null;
   position: string | null;
   startDate: string | null;
+  description: string | null;
 }
 
 export interface StudentPortfolio {
