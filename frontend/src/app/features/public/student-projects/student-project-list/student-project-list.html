@@ -1,0 +1,79 @@
+<div class="relative left-1/2 -my-8 min-h-[60vh] w-screen -translate-x-1/2 bg-[#f9f9ff] text-[#111c2c]">
+  <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-12 lg:py-10">
+    <header class="flex flex-col gap-4 border-b-2 border-[#0f2854] pb-4 lg:flex-row lg:items-end lg:justify-between">
+      <div class="space-y-2">
+        <nav aria-label="เส้นทางหน้า" class="flex flex-wrap items-center gap-2 text-sm text-slate-600 sm:text-base">
+          <a routerLink="/home" class="hover:text-[#0f2854] hover:underline">หน้าหลัก</a>
+          <span aria-hidden="true">›</span>
+          <span class="font-semibold text-[#1c5bb8]">โครงงานนักศึกษา</span>
+        </nav>
+        <h1 class="text-2xl font-bold text-[#0f2854] sm:text-3xl">โครงงานนักศึกษา</h1>
+        <p class="text-base text-slate-700">ผลงานโปรเจคที่นักศึกษาทำระหว่างเรียนในแต่ละเทอม</p>
+      </div>
+      <div class="flex flex-col gap-3 lg:items-end">
+        @if (auth.isStudent()) {
+          <a app-button variant="accent" routerLink="/my/student-projects">โครงงานของฉัน / เพิ่มโปรเจค</a>
+        } @else if (!auth.isLoggedIn()) {
+          <a app-button variant="secondary" routerLink="/login" [queryParams]="{ returnUrl: '/my/student-projects' }">เข้าสู่ระบบเพื่ออัปโปรเจค (นักศึกษา)</a>
+        }
+      </div>
+    </header>
+
+    <div class="grid gap-3 sm:grid-cols-3">
+      <app-select-input [formControl]="year" [options]="yearOptions" placeholder="ทุกปีการศึกษา" />
+      <app-select-input [formControl]="semester" [options]="semesterOptions" [searchable]="false" placeholder="ทุกภาคเรียน" />
+      <app-search-box placeholder="ค้นหาชื่อโปรเจค เทคโนโลยี หรือชื่อนักศึกษา" (searchChange)="list.setSearch($event)" />
+    </div>
+
+    @if (!list.loading() || list.items().length > 0) {
+      <p class="text-base text-slate-700">พบ {{ list.total() }} โปรเจค</p>
+    }
+
+    <app-data-state
+      [loading]="list.loading() && list.items().length === 0"
+      [error]="list.error()"
+      [empty]="!list.loading() && list.items().length === 0"
+      emptyMessage="ยังไม่พบโปรเจค"
+      (retry)="list.reload()"
+    >
+      <div class="flex flex-col gap-8">
+        <ul class="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 2xl:grid-cols-4">
+          @for (project of list.items(); track project.id) {
+            <li>
+              <a
+                [routerLink]="['/student-projects', project.id]"
+                class="group flex h-full flex-col overflow-hidden rounded-2xl border-2 border-slate-300 bg-white transition-colors hover:border-[#1c5bb8]"
+              >
+                <app-file-image [fileId]="project.imageFileId" [alt]="project.title" class="aspect-[2/1] w-full border-b-2 border-slate-200" />
+                <div class="flex flex-1 flex-col gap-2 p-4">
+                  <span class="w-fit rounded-md bg-[#ffdf9f] px-2.5 py-0.5 text-sm font-bold text-[#261a00]"
+                    >ปี {{ project.academicYear }} · {{ semesterLabels[project.semester] }}</span
+                  >
+                  <h2 class="text-lg font-bold leading-snug text-[#0f2854] group-hover:text-[#1c5bb8]">{{ project.title }}</h2>
+                  @if (project.courseName) {
+                    <p class="text-base text-slate-700">วิชา {{ project.courseName }}</p>
+                  }
+                  @if (tags(project.technologies).length > 0) {
+                    <ul class="flex flex-wrap gap-1.5">
+                      @for (tag of tags(project.technologies); track tag) {
+                        <li class="rounded-md bg-[#f0f3ff] px-2 py-0.5 text-sm font-medium text-[#0f2854]">{{ tag }}</li>
+                      }
+                    </ul>
+                  }
+                  <div class="mt-auto flex items-end justify-between gap-3 border-t-2 border-slate-200 pt-3">
+                    <p class="min-w-0 text-base text-slate-700">
+                      <span class="font-semibold text-[#0f2854]">ผู้จัดทำ</span> {{ project.studentName }}
+                    </p>
+                    <span class="shrink-0 whitespace-nowrap text-base font-semibold text-[#1c5bb8]">ดูรายละเอียด →</span>
+                  </div>
+                </div>
+              </a>
+            </li>
+          }
+        </ul>
+
+        <app-pagination [page]="list.page()" [pageSize]="list.pageSize" [total]="list.total()" (pageChange)="list.setPage($event)" />
+      </div>
+    </app-data-state>
+  </div>
+</div>

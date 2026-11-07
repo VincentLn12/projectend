@@ -28,6 +28,7 @@ export class AuthService {
   readonly user = this.currentUser.asReadonly();
   readonly isLoggedIn = computed(() => this.currentUser() !== null);
   readonly isAdmin = computed(() => this.currentUser()?.roles.includes('Admin') ?? false);
+  readonly isStudent = computed(() => this.currentUser()?.roles.includes('Student') ?? false);
 
   getAccessToken(): string | null {
     return this.accessToken;

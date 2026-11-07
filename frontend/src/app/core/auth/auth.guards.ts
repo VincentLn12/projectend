@@ -19,3 +19,11 @@ export const adminGuard: CanActivateFn = () => {
 
   return auth.isAdmin() ? true : router.createUrlTree(['/']);
 };
+
+// The API checks the Student role on every call; this guard only keeps other users out of the student screens.
+export const studentGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  return auth.isStudent() ? true : router.createUrlTree(['/student-projects']);
+};
