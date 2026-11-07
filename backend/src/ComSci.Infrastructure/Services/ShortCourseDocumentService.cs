@@ -18,6 +18,7 @@ public class ShortCourseDocumentService : IShortCourseDocumentService
 {
     private const string FontFamily = "TH Sarabun New";
     private const string RegistrationNotFoundMessage = "ไม่พบข้อมูลการสมัคร กรุณาตรวจสอบรหัสการสมัครและเบอร์โทรอีกครั้ง";
+    private const float SignatureHeight = 56;
     private const string IssuerLine = "สาขาวิชาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยราชภัฏกาญจนบุรี";
 
     private static readonly object FontLock = new object();
@@ -196,7 +197,9 @@ public class ShortCourseDocumentService : IShortCourseDocumentService
     {
         CertificateTemplate? template = await FindTemplateAsync(shortCourse, cancellationToken);
 
-        byte[]? background = template == null ? null : await LoadBackgroundAsync(template, cancellationToken);
+        byte[]? background = template == null ? null : await LoadFileBytesAsync(template.BackgroundFile, cancellationToken);
+        byte[]? signature = template == null ? null : await LoadFileBytesAsync(template.SignatureFile, cancellationToken);
+        byte[]? secondSignature = template == null ? null : await LoadFileBytesAsync(template.SecondSignatureFile, cancellationToken);
 
         string dateText = ThaiDateFormatter.FormatRange(shortCourse.StartDate, shortCourse.EndDate);
         string hoursText = shortCourse.Hours.HasValue ? " จำนวน " + shortCourse.Hours.Value + " ชั่วโมง" : string.Empty;
@@ -232,15 +235,15 @@ public class ShortCourseDocumentService : IShortCourseDocumentService
                         column.Item().AlignCenter().Text("ได้เข้าร่วมการอบรมหลักสูตร").FontSize(26);
                         column.Item().AlignCenter().Text(shortCourse.Title).FontSize(30).Bold();
                         column.Item().AlignCenter().Text("เมื่อวันที่ " + dateText + hoursText).FontSize(24);
-                        column.Item().Height(28);
+                        column.Item().Height(8);
                         if (template != null)
                         {
                             column.Item().Row(row =>
                             {
-                                AddSigner(row, template.SignerName, template.SignerPosition);
+                                AddSigner(row, signature, template.SignerName, template.SignerPosition);
                                 if (!string.IsNullOrWhiteSpace(template.SecondSignerName))
                                 {
-                                    AddSigner(row, template.SecondSignerName, template.SecondSignerPosition);
+                                    AddSigner(row, secondSignature, template.SecondSignerName, template.SecondSignerPosition);
                                 }
                             });
                         }
@@ -257,7 +260,9 @@ public class ShortCourseDocumentService : IShortCourseDocumentService
     {
         IQueryable<CertificateTemplate> templates = _dbContext.CertificateTemplates
             .AsNoTracking()
-            .Include(item => item.BackgroundFile);
+            .Include(item => item.BackgroundFile)
+            .Include(item => item.SignatureFile)
+            .Include(item => item.SecondSignatureFile);
 
         if (shortCourse.CertificateTemplateId.HasValue)
         {
@@ -274,23 +279,30 @@ public class ShortCourseDocumentService : IShortCourseDocumentService
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    private static void AddSigner(RowDescriptor row, string? signerName, string? signerPosition)
+    private static void AddSigner(RowDescriptor row, byte[]? signature, string? signerName, string? signerPosition)
     {
         row.RelativeItem().Column(column =>
         {
+            column.Item().Height(SignatureHeight).AlignCenter().AlignBottom().Element(container =>
+            {
+                if (signature != null)
+                {
+                    container.Image(signature).FitArea();
+                }
+            });
             column.Item().AlignCenter().Text("(" + signerName + ")").FontSize(20).Bold();
             column.Item().AlignCenter().Text(signerPosition ?? string.Empty).FontSize(18);
         });
     }
 
-    private async Task<byte[]?> LoadBackgroundAsync(CertificateTemplate template, CancellationToken cancellationToken)
+    private async Task<byte[]?> LoadFileBytesAsync(FileRecord? file, CancellationToken cancellationToken)
     {
-        if (template.BackgroundFile == null)
+        if (file == null)
         {
             return null;
         }
 
-        using (Stream? stream = _fileStorage.OpenRead(template.BackgroundFile.StoragePath))
+        using (Stream? stream = _fileStorage.OpenRead(file.StoragePath))
         {
             if (stream == null)
             {

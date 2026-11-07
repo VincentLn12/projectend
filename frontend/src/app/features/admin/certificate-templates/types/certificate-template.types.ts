@@ -6,6 +6,8 @@ export interface CertificateTemplate {
   secondSignerName: string | null;
   secondSignerPosition: string | null;
   backgroundFileId: string | null;
+  signatureFileId: string | null;
+  secondSignatureFileId: string | null;
 }
 
 export interface SaveCertificateTemplateRequest {
@@ -15,4 +17,6 @@ export interface SaveCertificateTemplateRequest {
   secondSignerName: string | null;
   secondSignerPosition: string | null;
   backgroundFileId: string | null;
+  signatureFileId: string | null;
+  secondSignatureFileId: string | null;
 }

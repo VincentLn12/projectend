@@ -224,6 +224,9 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<Guid?>("SecondSignatureFileId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("SecondSignerName")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -231,6 +234,9 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.Property<string>("SecondSignerPosition")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
+
+                    b.Property<Guid?>("SignatureFileId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("SignerName")
                         .IsRequired()
@@ -251,6 +257,10 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BackgroundFileId");
+
+                    b.HasIndex("SecondSignatureFileId");
+
+                    b.HasIndex("SignatureFileId");
 
                     b.ToTable("CertificateTemplates");
                 });
@@ -1436,7 +1446,21 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                         .HasForeignKey("BackgroundFileId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("ComSci.Domain.Entities.FileRecord", "SecondSignatureFile")
+                        .WithMany()
+                        .HasForeignKey("SecondSignatureFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ComSci.Domain.Entities.FileRecord", "SignatureFile")
+                        .WithMany()
+                        .HasForeignKey("SignatureFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("BackgroundFile");
+
+                    b.Navigation("SecondSignatureFile");
+
+                    b.Navigation("SignatureFile");
                 });
 
             modelBuilder.Entity("ComSci.Domain.Entities.Course", b =>

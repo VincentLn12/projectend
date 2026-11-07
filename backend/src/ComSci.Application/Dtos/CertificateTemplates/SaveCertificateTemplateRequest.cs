@@ -18,4 +18,6 @@ public class SaveCertificateTemplateRequest
     [StringLength(300)]
     public string? SecondSignerPosition { get; set; }
     public Guid? BackgroundFileId { get; set; }
+    public Guid? SignatureFileId { get; set; }
+    public Guid? SecondSignatureFileId { get; set; }
 }

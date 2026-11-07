@@ -26,5 +26,13 @@ public class CertificateTemplateConfiguration : IEntityTypeConfiguration<Certifi
         builder.HasOne(template => template.BackgroundFile)
             .WithMany()
             .HasForeignKey(template => template.BackgroundFileId);
+
+        builder.HasOne(template => template.SignatureFile)
+            .WithMany()
+            .HasForeignKey(template => template.SignatureFileId);
+
+        builder.HasOne(template => template.SecondSignatureFile)
+            .WithMany()
+            .HasForeignKey(template => template.SecondSignatureFileId);
     }
 }

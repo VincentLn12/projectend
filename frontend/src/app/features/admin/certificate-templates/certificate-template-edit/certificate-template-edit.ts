@@ -32,6 +32,8 @@ export class CertificateTemplateEdit implements OnInit {
     secondSignerName: ['', Validators.maxLength(200)],
     secondSignerPosition: ['', Validators.maxLength(300)],
     backgroundFileId: [null as string | null],
+    signatureFileId: [null as string | null],
+    secondSignatureFileId: [null as string | null],
   });
 
   protected readonly loading = signal(false);
@@ -94,6 +96,8 @@ export class CertificateTemplateEdit implements OnInit {
       secondSignerName: template.secondSignerName ?? '',
       secondSignerPosition: template.secondSignerPosition ?? '',
       backgroundFileId: template.backgroundFileId,
+      signatureFileId: template.signatureFileId,
+      secondSignatureFileId: template.secondSignatureFileId,
     });
   }
 
@@ -106,6 +110,8 @@ export class CertificateTemplateEdit implements OnInit {
       secondSignerName: (value.secondSignerName ?? '').trim() || null,
       secondSignerPosition: (value.secondSignerPosition ?? '').trim() || null,
       backgroundFileId: value.backgroundFileId,
+      signatureFileId: value.signatureFileId,
+      secondSignatureFileId: value.secondSignatureFileId,
     };
   }
 }

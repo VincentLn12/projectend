@@ -84,20 +84,29 @@ public class CertificateTemplateService : ICertificateTemplateService
 
     private async Task ValidateAsync(SaveCertificateTemplateRequest request, CancellationToken cancellationToken)
     {
-        if (request.BackgroundFileId.HasValue)
-        {
-            FileRecord? file = await _dbContext.Files
-                .AsNoTracking()
-                .FirstOrDefaultAsync(item => item.Id == request.BackgroundFileId.Value, cancellationToken);
-            if (file == null)
-            {
-                throw new BadRequestException("ไม่พบไฟล์ภาพพื้นหลัง");
-            }
+        await EnsureImageFileAsync(request.BackgroundFileId, "ภาพพื้นหลัง", cancellationToken);
+        await EnsureImageFileAsync(request.SignatureFileId, "ภาพลายเซ็นคนที่ 1", cancellationToken);
+        await EnsureImageFileAsync(request.SecondSignatureFileId, "ภาพลายเซ็นคนที่ 2", cancellationToken);
+    }
 
-            if (!file.ContentType.StartsWith("image/"))
-            {
-                throw new BadRequestException("ภาพพื้นหลังต้องเป็นไฟล์รูปภาพ");
-            }
+    private async Task EnsureImageFileAsync(Guid? fileId, string label, CancellationToken cancellationToken)
+    {
+        if (!fileId.HasValue)
+        {
+            return;
+        }
+
+        FileRecord? file = await _dbContext.Files
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.Id == fileId.Value, cancellationToken);
+        if (file == null)
+        {
+            throw new BadRequestException("ไม่พบไฟล์" + label);
+        }
+
+        if (!file.ContentType.StartsWith("image/"))
+        {
+            throw new BadRequestException(label + "ต้องเป็นไฟล์รูปภาพ");
         }
     }
 
@@ -109,6 +118,8 @@ public class CertificateTemplateService : ICertificateTemplateService
         template.SecondSignerName = string.IsNullOrWhiteSpace(request.SecondSignerName) ? null : request.SecondSignerName.Trim();
         template.SecondSignerPosition = string.IsNullOrWhiteSpace(request.SecondSignerPosition) ? null : request.SecondSignerPosition.Trim();
         template.BackgroundFileId = request.BackgroundFileId;
+        template.SignatureFileId = request.SignatureFileId;
+        template.SecondSignatureFileId = request.SecondSignatureFileId;
     }
 
     private static CertificateTemplateDto MapToDto(CertificateTemplate template)
@@ -121,6 +132,8 @@ public class CertificateTemplateService : ICertificateTemplateService
         dto.SecondSignerName = template.SecondSignerName;
         dto.SecondSignerPosition = template.SecondSignerPosition;
         dto.BackgroundFileId = template.BackgroundFileId;
+        dto.SignatureFileId = template.SignatureFileId;
+        dto.SecondSignatureFileId = template.SecondSignatureFileId;
         return dto;
     }
 }

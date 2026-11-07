@@ -9,4 +9,6 @@ public class CertificateTemplateDto
     public string? SecondSignerName { get; set; }
     public string? SecondSignerPosition { get; set; }
     public Guid? BackgroundFileId { get; set; }
+    public Guid? SignatureFileId { get; set; }
+    public Guid? SecondSignatureFileId { get; set; }
 }

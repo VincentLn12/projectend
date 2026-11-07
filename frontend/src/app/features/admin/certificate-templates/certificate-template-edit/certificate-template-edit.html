@@ -11,8 +11,10 @@
       <div class="grid gap-4 sm:grid-cols-2">
         <app-text-input label="ผู้ลงนามคนที่ 1" formControlName="signerName" [maxLength]="200" />
         <app-text-input label="ตำแหน่งผู้ลงนามคนที่ 1" formControlName="signerPosition" [maxLength]="300" />
+        <app-file-upload label="ลายเซ็นผู้ลงนามคนที่ 1" hint="ไฟล์ PNG พื้นหลังโปร่งใสจะสวยที่สุด" formControlName="signatureFileId" accept="image" />
         <app-text-input label="ผู้ลงนามคนที่ 2 (ถ้ามี)" formControlName="secondSignerName" [maxLength]="200" />
         <app-text-input label="ตำแหน่งผู้ลงนามคนที่ 2" formControlName="secondSignerPosition" [maxLength]="300" />
+        <app-file-upload label="ลายเซ็นผู้ลงนามคนที่ 2" formControlName="secondSignatureFileId" accept="image" />
       </div>
 
       <app-file-upload

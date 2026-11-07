@@ -11,4 +11,8 @@ public class CertificateTemplate : AuditableEntity
     public string? SecondSignerPosition { get; set; }
     public Guid? BackgroundFileId { get; set; }
     public FileRecord? BackgroundFile { get; set; }
+    public Guid? SignatureFileId { get; set; }
+    public FileRecord? SignatureFile { get; set; }
+    public Guid? SecondSignatureFileId { get; set; }
+    public FileRecord? SecondSignatureFile { get; set; }
 }
