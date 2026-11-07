@@ -38,6 +38,10 @@ export interface StudentPortfolio {
   imageFileId: string | null;
   entryYear: number | null;
   email: string | null;
+  phone: string | null;
+  linkedInUrl: string | null;
+  githubUrl: string | null;
+  skills: string | null;
   projects: PortfolioFinalProject[];
   studentProjects: PortfolioStudentProject[];
   jobs: PortfolioJob[];

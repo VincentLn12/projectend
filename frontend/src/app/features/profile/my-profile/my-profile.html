@@ -1,0 +1,177 @@
+<div class="relative left-1/2 -my-8 min-h-[60vh] w-screen -translate-x-1/2 bg-[#f9f9ff] text-[#111c2c]">
+  <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-12 lg:py-10">
+    <header class="space-y-1 border-b-2 border-[#0f2854] pb-4">
+      <nav aria-label="เส้นทางหน้า" class="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+        <a routerLink="/home" class="hover:text-[#0f2854] hover:underline">หน้าหลัก</a>
+        <span aria-hidden="true">›</span>
+        <span class="font-semibold text-[#1c5bb8]">โปรไฟล์ของฉัน</span>
+      </nav>
+      <h1 class="text-2xl font-bold text-[#0f2854] sm:text-3xl">โปรไฟล์ของฉัน</h1>
+      <p class="text-base text-slate-600">ข้อมูลที่เปิดให้แสดง จะปรากฏบนหน้า portfolio เพื่อให้ผู้เข้าชมและ HR ติดต่อคุณได้</p>
+    </header>
+
+    <app-data-state [loading]="loading()" [error]="loadError()" (retry)="load()">
+      @if (profile(); as me) {
+        <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <div class="flex min-w-0 flex-col gap-6">
+            <form [formGroup]="form" (ngSubmit)="save()" id="profile-form" class="flex flex-col gap-6">
+              <section class="space-y-4 rounded-2xl border-2 border-slate-300 bg-white p-5 sm:p-6">
+                <h2 class="border-b-2 border-[#f7be33] pb-2 text-xl font-bold text-[#0f2854]">ข้อมูลที่แสดงต่อสาธารณะ</h2>
+                <app-file-upload label="รูปโปรไฟล์" hint="ภาพถ่ายหน้าตรง พื้นหลังเรียบ จะดูเป็นมืออาชีพ" formControlName="imageFileId" accept="image" />
+                <app-text-input label="ชื่อ-นามสกุล *" formControlName="fullName" [maxLength]="200" autocomplete="name" />
+                <app-text-area label="เกี่ยวกับฉัน" hint="แนะนำตัว เป้าหมายอาชีพ และสิ่งที่สนใจ" formControlName="bio" [rows]="5" />
+                <p class="-mt-2 text-right text-sm text-slate-500">{{ bioLength() }} / {{ bioMaxLength }}</p>
+                <div class="space-y-2">
+                  <app-text-input label="ทักษะ" hint="คั่นแต่ละอย่างด้วยเครื่องหมายจุลภาค (,)" formControlName="skills" [maxLength]="500" placeholder="Python, Figma, SQL, การทำงานเป็นทีม" />
+                  @if (skillTags().length > 0) {
+                    <ul class="flex flex-wrap gap-1.5" aria-label="ตัวอย่างที่ผู้เข้าชมจะเห็น">
+                      @for (tag of skillTags(); track tag) {
+                        <li class="rounded-md bg-[#f0f3ff] px-2 py-0.5 text-sm font-medium text-[#0f2854]">{{ tag }}</li>
+                      }
+                    </ul>
+                  }
+                </div>
+              </section>
+
+              <section class="space-y-4 rounded-2xl border-2 border-slate-300 bg-white p-5 sm:p-6">
+                <h2 class="border-b-2 border-[#f7be33] pb-2 text-xl font-bold text-[#0f2854]">ช่องทางติดต่อ</h2>
+                <div class="space-y-2">
+                  <p class="text-base text-slate-700">อีเมลเข้าสู่ระบบ: <strong>{{ me.email }}</strong></p>
+                  <app-toggle label="แสดงอีเมลบนหน้า portfolio" tone="success" boxed onHint="แสดงอีเมลให้ผู้เข้าชมเห็น" offHint="ซ่อนอีเมล" formControlName="showEmail" />
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <app-text-input label="เบอร์โทร" type="tel" formControlName="phone" autocomplete="tel" [maxLength]="20" />
+                  <div class="flex items-end">
+                    <app-toggle label="แสดงเบอร์โทรบนหน้า portfolio" tone="success" boxed onHint="แสดงเบอร์โทรให้ผู้เข้าชมเห็น" offHint="ซ่อนเบอร์โทร (แนะนำ)" formControlName="showPhone" class="w-full" />
+                  </div>
+                </div>
+                <app-text-input label="LinkedIn" type="url" formControlName="linkedInUrl" [maxLength]="500" placeholder="https://www.linkedin.com/in/ชื่อของคุณ" />
+                <app-text-input label="GitHub" type="url" formControlName="githubUrl" [maxLength]="500" placeholder="https://github.com/ชื่อผู้ใช้" />
+              </section>
+
+              @if (auth.isStudent() && me.student; as student) {
+                <section class="space-y-4 rounded-2xl border-2 border-slate-300 bg-white p-5 sm:p-6">
+                  <h2 class="border-b-2 border-[#f7be33] pb-2 text-xl font-bold text-[#0f2854]">ข้อมูลนักศึกษา (ไม่แสดงต่อสาธารณะ)</h2>
+                  <dl class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <dt class="text-base font-semibold text-[#1c5bb8]">รหัสนักศึกษา</dt>
+                      <dd class="text-lg">{{ student.studentCode }}</dd>
+                    </div>
+                    <div>
+                      <dt class="text-base font-semibold text-[#1c5bb8]">ปีที่เข้าเรียน</dt>
+                      <dd class="text-lg">{{ student.entryYear }}</dd>
+                    </div>
+                  </dl>
+                  <p class="text-sm text-slate-500">รหัสนักศึกษาและปีที่เข้าเรียนแก้ได้เฉพาะเจ้าหน้าที่</p>
+                  <app-text-input label="โรงเรียนเดิม" formControlName="previousSchool" [maxLength]="200" />
+                  <app-text-input label="ที่อยู่" formControlName="address" [maxLength]="500" />
+                </section>
+              }
+            </form>
+
+            @if (auth.isStudent()) {
+              <section class="space-y-4 rounded-2xl border-2 border-slate-300 bg-white p-5 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#f7be33] pb-2">
+                  <h2 class="text-xl font-bold text-[#0f2854]">ประสบการณ์ทำงาน / ฝึกงาน</h2>
+                  @if (!editingJobId()) {
+                    <button type="button" app-button size="sm" variant="secondary" (click)="startJob(null)">+ เพิ่มประสบการณ์</button>
+                  }
+                </div>
+
+                @if (editingJobId()) {
+                  <form [formGroup]="jobForm" (ngSubmit)="saveJob()" class="space-y-4 rounded-xl bg-[#f0f3ff] p-4">
+                    <div class="grid gap-4 sm:grid-cols-2">
+                      <app-text-input label="งาน / โครงการ *" formControlName="jobName" [maxLength]="200" placeholder="เช่น ฝึกงานนักพัฒนาเว็บ" />
+                      <app-text-input label="บริษัท / หน่วยงาน" formControlName="company" [maxLength]="200" />
+                      <app-text-input label="ตำแหน่ง" formControlName="position" [maxLength]="200" />
+                      <app-date-input label="เริ่มงานเมื่อ *" type="date" formControlName="startDate" />
+                    </div>
+                    <app-text-area label="รายละเอียด" hint="หน้าที่และสิ่งที่ได้เรียนรู้" formControlName="description" [rows]="3" />
+                    <app-toggle label="แสดงบนหน้า portfolio" tone="success" boxed onHint="ผู้เข้าชมเห็นรายการนี้" offHint="ซ่อน เห็นเฉพาะคุณ" formControlName="isPublished" />
+                    @if (jobError(); as message) {
+                      <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-base text-red-700">{{ message }}</p>
+                    }
+                    <div class="flex gap-2">
+                      <button type="submit" app-button variant="primary" [loading]="savingJob()">บันทึก</button>
+                      <button type="button" app-button variant="secondary" (click)="cancelJob()">ยกเลิก</button>
+                    </div>
+                  </form>
+                }
+
+                @if (jobs().length === 0 && !editingJobId()) {
+                  <p class="text-base text-slate-600">ยังไม่มีประสบการณ์ทำงาน การฝึกงานหรืองานพิเศษก็เพิ่มได้ ช่วยให้ portfolio น่าสนใจขึ้น</p>
+                }
+
+                <ul class="divide-y-2 divide-slate-200">
+                  @for (job of jobs(); track job.id) {
+                    <li class="flex flex-wrap items-start justify-between gap-3 py-3">
+                      <div class="min-w-0 space-y-0.5">
+                        <p class="text-lg font-bold text-[#0f2854]">{{ job.jobName }} @if (job.position) { <span class="font-normal text-slate-700">· {{ job.position }}</span> }</p>
+                        <p class="text-base text-slate-600">@if (job.company) { {{ job.company }} · } เริ่มงาน {{ job.startDate | thaiDate }}</p>
+                        <span class="inline-block rounded-md px-2 py-0.5 text-sm font-bold" [class]="job.isPublished ? 'bg-[#f7be33] text-[#261a00]' : 'bg-slate-500 text-white'">{{
+                          job.isPublished ? 'แสดงบน portfolio' : 'ซ่อน'
+                        }}</span>
+                      </div>
+                      <div class="flex gap-2">
+                        <button type="button" app-button size="sm" variant="secondary" (click)="startJob(job)">แก้ไข</button>
+                        <button type="button" app-button size="sm" variant="danger" (click)="deleteJob(job)">ลบ</button>
+                      </div>
+                    </li>
+                  }
+                </ul>
+              </section>
+            }
+
+            <section class="space-y-4 rounded-2xl border-2 border-slate-300 bg-white p-5 sm:p-6">
+              <h2 class="border-b-2 border-[#f7be33] pb-2 text-xl font-bold text-[#0f2854]">เปลี่ยนรหัสผ่าน</h2>
+              <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="space-y-4">
+                <app-text-input label="รหัสผ่านปัจจุบัน" type="password" formControlName="currentPassword" autocomplete="current-password" />
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <app-text-input label="รหัสผ่านใหม่" hint="อย่างน้อย 8 ตัวอักษร" type="password" formControlName="newPassword" autocomplete="new-password" />
+                  <app-text-input label="ยืนยันรหัสผ่านใหม่" type="password" formControlName="confirmPassword" autocomplete="new-password" />
+                </div>
+                @if (passwordError(); as message) {
+                  <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-base text-red-700">{{ message }}</p>
+                }
+                <p class="text-sm text-slate-500">หลังเปลี่ยนรหัสผ่าน ระบบจะให้เข้าสู่ระบบใหม่ทุกอุปกรณ์</p>
+                <button type="submit" app-button variant="secondary" [loading]="changingPassword()">เปลี่ยนรหัสผ่าน</button>
+              </form>
+            </section>
+          </div>
+
+          <aside class="flex flex-col gap-4 lg:sticky lg:top-24">
+            @if (auth.isStudent()) {
+              <section class="space-y-3 rounded-2xl border-2 border-slate-300 bg-white p-5">
+                <h2 class="border-b-2 border-[#f7be33] pb-2 text-lg font-bold text-[#0f2854]">ความพร้อมของ portfolio ({{ doneCount() }}/{{ checklist().length }})</h2>
+                <ul class="space-y-1.5 text-base">
+                  @for (item of checklist(); track item.label) {
+                    <li class="flex items-center gap-2" [class]="item.done ? 'text-[#0f2854]' : 'text-slate-500'">
+                      <span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-bold" [class]="item.done ? 'bg-[#f7be33] text-[#261a00]' : 'border-2 border-slate-300'">{{ item.done ? '✓' : '' }}</span>
+                      {{ item.label }}
+                    </li>
+                  }
+                </ul>
+              </section>
+
+              <section class="space-y-3 rounded-2xl border-2 border-slate-300 bg-white p-5" [formGroup]="form">
+                <h2 class="border-b-2 border-[#f7be33] pb-2 text-lg font-bold text-[#0f2854]">หน้า portfolio</h2>
+                <app-toggle label="เปิดหน้า portfolio" tone="success" boxed onHint="ผู้เข้าชมเปิดดูหน้า portfolio ของคุณได้" offHint="ปิดอยู่ ผู้เข้าชมยังไม่เห็น" formControlName="showProfile" />
+                @if (form.controls.showProfile.value) {
+                  <a [routerLink]="['/students', me.id]" class="inline-block text-base font-semibold text-[#1c5bb8] hover:underline">ดูหน้า portfolio ของฉัน →</a>
+                }
+                <p class="text-sm text-slate-500">กด "บันทึกโปรไฟล์" เพื่อให้การเปิด/ปิดมีผล</p>
+              </section>
+
+              <a routerLink="/my/student-projects" class="rounded-xl border-2 border-slate-300 bg-white px-4 py-3 text-center text-base font-semibold text-[#0f2854] hover:border-[#1c5bb8]">จัดการโครงงานของฉัน →</a>
+            }
+
+            @if (formError(); as message) {
+              <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-base text-red-700">{{ message }}</p>
+            }
+            <button type="submit" form="profile-form" app-button variant="accent" class="w-full" [loading]="saving()">บันทึกโปรไฟล์</button>
+          </aside>
+        </div>
+      }
+    </app-data-state>
+  </div>
+</div>

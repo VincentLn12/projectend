@@ -27,8 +27,21 @@
               <p class="text-lg text-white/90 sm:text-xl print:text-slate-700">
                 นักศึกษาสาขาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยราชภัฏกาญจนบุรี @if (item.entryYear) { · เข้าศึกษาปี {{ item.entryYear }} }
               </p>
-              @if (item.email) {
-                <a [href]="'mailto:' + item.email" class="inline-flex items-center gap-2 text-lg font-semibold text-[#ffdf9f] hover:underline print:text-[#1c5bb8]">✉ {{ item.email }}</a>
+              @if (item.email || item.phone || item.linkedInUrl || item.githubUrl) {
+                <ul class="flex flex-wrap gap-x-5 gap-y-1 text-lg font-semibold text-[#ffdf9f] print:text-[#1c5bb8]" aria-label="ช่องทางติดต่อ">
+                  @if (item.email) {
+                    <li><a [href]="'mailto:' + item.email" class="hover:underline">✉ {{ item.email }}</a></li>
+                  }
+                  @if (item.phone) {
+                    <li><a [href]="'tel:' + item.phone" class="hover:underline">☎ {{ item.phone }}</a></li>
+                  }
+                  @if (item.linkedInUrl) {
+                    <li><a [href]="item.linkedInUrl" target="_blank" rel="noopener noreferrer" class="hover:underline">LinkedIn ↗</a></li>
+                  }
+                  @if (item.githubUrl) {
+                    <li><a [href]="item.githubUrl" target="_blank" rel="noopener noreferrer" class="hover:underline">GitHub ↗</a></li>
+                  }
+                </ul>
               }
               <div class="flex flex-wrap gap-2 pt-2 print:hidden">
                 <button type="button" app-button variant="accent" (click)="print()">บันทึก / พิมพ์เป็น PDF</button>
@@ -61,11 +74,25 @@
           </section>
         }
 
+        @if (profileSkills().length > 0) {
+          <section class="space-y-3">
+            <h2 class="flex items-center gap-3 text-2xl font-bold text-[#0f2854]">
+              <span class="h-8 w-1.5 shrink-0 rounded-full bg-[#f7be33]" aria-hidden="true"></span>
+              ทักษะ
+            </h2>
+            <ul class="flex flex-wrap gap-2 rounded-2xl border-2 border-slate-300 bg-white p-5 sm:p-6">
+              @for (skill of profileSkills(); track skill) {
+                <li class="rounded-lg bg-[#f0f3ff] px-4 py-1.5 text-lg font-semibold text-[#0f2854]">{{ skill }}</li>
+              }
+            </ul>
+          </section>
+        }
+
         @if (skills().length > 0) {
           <section class="space-y-3">
             <h2 class="flex items-center gap-3 text-2xl font-bold text-[#0f2854]">
               <span class="h-8 w-1.5 shrink-0 rounded-full bg-[#f7be33]" aria-hidden="true"></span>
-              ทักษะและเทคโนโลยีที่ใช้
+              เทคโนโลยีที่ใช้ในโครงงาน
             </h2>
             <ul class="flex flex-wrap gap-2 rounded-2xl border-2 border-slate-300 bg-white p-5 sm:p-6">
               @for (skill of skills(); track skill.name) {

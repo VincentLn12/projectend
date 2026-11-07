@@ -46,6 +46,11 @@ export class StudentProjectsApi {
       imageFileId: profile.imageFileId,
       showEmail: profile.showEmail,
       showProfile,
+      phone: profile.phone,
+      showPhone: profile.showPhone,
+      linkedInUrl: profile.linkedInUrl,
+      githubUrl: profile.githubUrl,
+      skills: profile.skills,
       previousSchool: profile.student?.previousSchool ?? null,
       address: profile.student?.address ?? null,
     });

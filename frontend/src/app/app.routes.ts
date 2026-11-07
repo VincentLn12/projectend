@@ -21,6 +21,7 @@ export const routes: Routes = [
       { path: 'student-projects', loadComponent: () => import('./features/public/student-projects/student-project-list/student-project-list').then((m) => m.PublicStudentProjectList) },
       { path: 'student-projects/:id', loadComponent: () => import('./features/public/student-projects/student-project-detail/student-project-detail').then((m) => m.PublicStudentProjectDetail) },
       { path: 'students/:id', loadComponent: () => import('./features/public/students/student-portfolio/student-portfolio').then((m) => m.StudentPortfolioPage) },
+      { path: 'my/profile', canActivate: [authGuard], loadComponent: () => import('./features/profile/my-profile/my-profile').then((m) => m.MyProfilePage) },
       { path: 'my/projects', canActivate: [authGuard, studentGuard], loadComponent: () => import('./features/student/research-projects/research-project-list/research-project-list').then((m) => m.MyResearchProjectList) },
       { path: 'my/projects/new', canActivate: [authGuard, studentGuard], loadComponent: () => import('./features/student/research-projects/research-project-edit/research-project-edit').then((m) => m.MyResearchProjectEdit) },
       { path: 'my/projects/:id', canActivate: [authGuard, studentGuard], loadComponent: () => import('./features/student/research-projects/research-project-edit/research-project-edit').then((m) => m.MyResearchProjectEdit) },

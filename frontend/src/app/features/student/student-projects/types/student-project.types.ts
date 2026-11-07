@@ -45,6 +45,11 @@ export interface MyProfile {
   imageFileId: string | null;
   showEmail: boolean;
   showProfile: boolean;
+  phone: string | null;
+  showPhone: boolean;
+  linkedInUrl: string | null;
+  githubUrl: string | null;
+  skills: string | null;
   student: { studentCode: string; entryYear: number; previousSchool: string | null; address: string | null } | null;
 }
 

@@ -31,6 +31,8 @@ export class StudentPortfolioPage implements OnInit {
 
   protected readonly initial = computed(() => (Array.from(this.student()?.fullName.replace(/^(นาย|นางสาว|นาง)/, '').trim() ?? '')[0] ?? '?').toUpperCase());
 
+  protected readonly profileSkills = computed(() => this.splitTags(this.student()?.skills ?? null));
+
   protected readonly skills = computed<Skill[]>(() => {
     const counts = new Map<string, number>();
     for (const project of this.student()?.studentProjects ?? []) {
