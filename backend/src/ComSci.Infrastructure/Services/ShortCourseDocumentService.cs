@@ -194,21 +194,9 @@ public class ShortCourseDocumentService : IShortCourseDocumentService
 
     private async Task<byte[]> BuildCertificatesAsync(ShortCourse shortCourse, List<string> names, CancellationToken cancellationToken)
     {
-        if (!shortCourse.CertificateTemplateId.HasValue)
-        {
-            throw new BadRequestException("หลักสูตรนี้ยังไม่ได้เลือกแม่แบบเกียรติบัตร");
-        }
+        CertificateTemplate? template = await FindTemplateAsync(shortCourse, cancellationToken);
 
-        CertificateTemplate? template = await _dbContext.CertificateTemplates
-            .AsNoTracking()
-            .Include(item => item.BackgroundFile)
-            .FirstOrDefaultAsync(item => item.Id == shortCourse.CertificateTemplateId.Value, cancellationToken);
-        if (template == null)
-        {
-            throw new BadRequestException("ไม่พบแม่แบบเกียรติบัตรของหลักสูตรนี้");
-        }
-
-        byte[]? background = await LoadBackgroundAsync(template, cancellationToken);
+        byte[]? background = template == null ? null : await LoadBackgroundAsync(template, cancellationToken);
 
         string dateText = ThaiDateFormatter.FormatRange(shortCourse.StartDate, shortCourse.EndDate);
         string hoursText = shortCourse.Hours.HasValue ? " จำนวน " + shortCourse.Hours.Value + " ชั่วโมง" : string.Empty;
@@ -245,20 +233,45 @@ public class ShortCourseDocumentService : IShortCourseDocumentService
                         column.Item().AlignCenter().Text(shortCourse.Title).FontSize(30).Bold();
                         column.Item().AlignCenter().Text("เมื่อวันที่ " + dateText + hoursText).FontSize(24);
                         column.Item().Height(28);
-                        column.Item().Row(row =>
+                        if (template != null)
                         {
-                            AddSigner(row, template.SignerName, template.SignerPosition);
-                            if (!string.IsNullOrWhiteSpace(template.SecondSignerName))
+                            column.Item().Row(row =>
                             {
-                                AddSigner(row, template.SecondSignerName, template.SecondSignerPosition);
-                            }
-                        });
+                                AddSigner(row, template.SignerName, template.SignerPosition);
+                                if (!string.IsNullOrWhiteSpace(template.SecondSignerName))
+                                {
+                                    AddSigner(row, template.SecondSignerName, template.SecondSignerPosition);
+                                }
+                            });
+                        }
                     });
                 });
             }
         });
 
         return document.GeneratePdf();
+    }
+
+    // ใช้แม่แบบของหลักสูตร ถ้ายังไม่ได้เลือกใช้แม่แบบล่าสุดที่สร้างไว้ ถ้ายังไม่มีเลยจะออกเกียรติบัตรแบบกรอบเรียบไม่มีผู้ลงนาม
+    private async Task<CertificateTemplate?> FindTemplateAsync(ShortCourse shortCourse, CancellationToken cancellationToken)
+    {
+        IQueryable<CertificateTemplate> templates = _dbContext.CertificateTemplates
+            .AsNoTracking()
+            .Include(item => item.BackgroundFile);
+
+        if (shortCourse.CertificateTemplateId.HasValue)
+        {
+            CertificateTemplate? chosen = await templates
+                .FirstOrDefaultAsync(item => item.Id == shortCourse.CertificateTemplateId.Value, cancellationToken);
+            if (chosen != null)
+            {
+                return chosen;
+            }
+        }
+
+        return await templates
+            .OrderByDescending(item => item.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     private static void AddSigner(RowDescriptor row, string? signerName, string? signerPosition)
