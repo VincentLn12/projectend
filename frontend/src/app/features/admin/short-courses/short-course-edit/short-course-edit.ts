@@ -58,6 +58,7 @@ export class ShortCourseEdit implements OnInit {
   protected readonly loading = signal(false);
   protected readonly loadError = signal<string | null>(null);
   protected readonly saving = signal(false);
+  protected readonly submitted = signal(false);
   protected readonly formError = signal<string | null>(null);
 
   ngOnInit(): void {
@@ -91,6 +92,7 @@ export class ShortCourseEdit implements OnInit {
     if (this.saving()) {
       return;
     }
+    this.submitted.set(true);
 
     const value = this.form.getRawValue();
     if (value.startDate && value.endDate && new Date(value.endDate) < new Date(value.startDate)) {
