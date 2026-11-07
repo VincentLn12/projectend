@@ -1,0 +1,140 @@
+<div class="relative left-1/2 -my-8 min-h-[60vh] w-screen -translate-x-1/2 bg-[#f9f9ff] text-[#111c2c]">
+  <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-12 lg:py-10">
+    <nav aria-label="เส้นทางหน้า" class="flex flex-wrap items-center gap-2 text-sm text-slate-600 sm:text-base">
+      <a routerLink="/home" class="hover:text-[#0f2854] hover:underline">หน้าหลัก</a>
+      <span aria-hidden="true">›</span>
+      <a routerLink="/short-courses" class="hover:text-[#0f2854] hover:underline">หลักสูตรอบรมระยะสั้น</a>
+    </nav>
+
+    <app-data-state [loading]="loading() && !course()" [error]="error()" (retry)="load()">
+      @if (course(); as item) {
+        <div class="flex flex-col gap-6 sm:gap-8">
+          <header class="space-y-3 border-b-2 border-[#0f2854] pb-4">
+            <span class="inline-flex w-fit rounded-md px-3 py-1 text-sm font-bold {{ availabilityBadgeClasses[item.availability] }}">{{
+              availabilityLabels[item.availability]
+            }}</span>
+            <h1 class="text-3xl font-bold leading-snug text-[#0f2854] sm:text-4xl">{{ item.title }}</h1>
+          </header>
+
+          <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start">
+            <article class="flex min-w-0 flex-col gap-6">
+              @if (item.coverFileId) {
+                <app-file-image
+                  [fileId]="item.coverFileId"
+                  [alt]="item.title"
+                  fit="contain"
+                  class="h-64 w-full rounded-3xl border-4 border-white bg-[#e7eeff]! shadow-lg ring-2 ring-[#0f2854]/15 sm:h-[26rem]"
+                />
+              }
+
+              <section class="space-y-3">
+                <h2 class="flex items-center gap-3 text-xl font-bold text-[#0f2854] sm:text-2xl">
+                  <span class="h-7 w-1.5 shrink-0 rounded-full bg-[#f7be33]" aria-hidden="true"></span>
+                  ข้อมูลหลักสูตร
+                </h2>
+                <dl class="grid gap-x-6 gap-y-4 rounded-2xl border-2 border-slate-300 bg-white p-5 text-lg sm:grid-cols-2 sm:p-6">
+                  <div>
+                    <dt class="text-base font-semibold text-[#1c5bb8]">วันที่อบรม</dt>
+                    <dd>
+                      {{ item.startDate | thaiDate }}
+                      @if (!sameDay(item)) {
+                        – {{ item.endDate | thaiDate }}
+                      }
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="text-base font-semibold text-[#1c5bb8]">เวลา</dt>
+                    <dd>{{ timeText(item.startDate) }} – {{ timeText(item.endDate) }} น.</dd>
+                  </div>
+                  @if (item.hours) {
+                    <div>
+                      <dt class="text-base font-semibold text-[#1c5bb8]">จำนวนชั่วโมง</dt>
+                      <dd>{{ item.hours }} ชั่วโมง</dd>
+                    </div>
+                  }
+                  @if (item.location) {
+                    <div>
+                      <dt class="text-base font-semibold text-[#1c5bb8]">สถานที่</dt>
+                      <dd>{{ item.location }}</dd>
+                    </div>
+                  }
+                  @if (item.teacherName) {
+                    <div>
+                      <dt class="text-base font-semibold text-[#1c5bb8]">วิทยากร</dt>
+                      <dd>{{ item.teacherName }}</dd>
+                    </div>
+                  }
+                  @if (item.audience) {
+                    <div>
+                      <dt class="text-base font-semibold text-[#1c5bb8]">กลุ่มเป้าหมาย</dt>
+                      <dd>{{ item.audience }}</dd>
+                    </div>
+                  }
+                </dl>
+              </section>
+
+              @if (item.description) {
+                <section class="space-y-3">
+                  <h2 class="flex items-center gap-3 text-xl font-bold text-[#0f2854] sm:text-2xl">
+                    <span class="h-7 w-1.5 shrink-0 rounded-full bg-[#f7be33]" aria-hidden="true"></span>
+                    รายละเอียด
+                  </h2>
+                  <div class="rounded-2xl border-2 border-t-[6px] border-slate-300 border-t-[#1c5bb8] bg-white p-5 shadow-sm sm:p-8">
+                    <p class="whitespace-pre-line text-lg leading-8 text-[#111c2c] sm:text-xl sm:leading-9">{{ item.description }}</p>
+                  </div>
+                </section>
+              }
+            </article>
+
+            <aside class="flex flex-col gap-4 lg:sticky lg:top-24" aria-label="สมัครอบรม">
+              <section class="space-y-4 rounded-2xl border-2 border-slate-300 bg-white p-5 sm:p-6">
+                <h2 class="border-b-2 border-[#f7be33] pb-2 text-xl font-bold text-[#0f2854]">สมัครอบรม</h2>
+                <p class="text-lg text-slate-700">{{ seatsText(item) }}</p>
+                @if (item.registrationCloseAt) {
+                  <p class="text-base text-slate-600">ปิดรับสมัคร {{ item.registrationCloseAt | thaiDate }}</p>
+                }
+
+                @if (registration(); as done) {
+                  <div class="space-y-3 rounded-xl border-2 border-[#f7be33] bg-[#fff6dd] p-4" role="status">
+                    <p class="text-lg font-bold text-[#261a00]">สมัครเรียบร้อยแล้ว</p>
+                    <p class="text-base text-slate-800">
+                      {{ done.prefix }}{{ done.firstName }} {{ done.lastName }}<br />กรุณาจดรหัสการสมัครนี้ไว้ ใช้ตรวจสอบ แก้ไข ยกเลิก และดาวน์โหลดเกียรติบัตร
+                    </p>
+                    <p class="rounded-lg bg-white px-4 py-3 text-center font-mono text-3xl font-bold tracking-widest text-[#0f2854]">{{ done.code }}</p>
+                    <div class="flex flex-wrap gap-2">
+                      <button type="button" app-button variant="secondary" (click)="copyCode(done.code)">คัดลอกรหัส</button>
+                      <a app-button variant="primary" routerLink="/short-courses/my-registration" [queryParams]="{ code: done.code }">ตรวจสอบการสมัคร</a>
+                    </div>
+                  </div>
+                } @else if (isOpen()) {
+                  <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+                    <app-select-input label="คำนำหน้า" formControlName="prefix" [options]="prefixOptions" [searchable]="false" />
+                    <app-text-input label="ชื่อ" formControlName="firstName" autocomplete="given-name" [maxLength]="100" />
+                    <app-text-input label="นามสกุล" formControlName="lastName" autocomplete="family-name" [maxLength]="100" />
+                    <app-text-input label="เบอร์โทร" hint="ใช้ยืนยันตัวตนเมื่อตรวจสอบการสมัคร" type="tel" formControlName="phone" autocomplete="tel" [maxLength]="20" />
+
+                    @if (formError(); as message) {
+                      <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-base text-red-700">{{ message }}</p>
+                    }
+
+                    <button type="submit" app-button variant="accent" class="w-full" [loading]="saving()">สมัครอบรม</button>
+                  </form>
+                } @else {
+                  <p class="rounded-xl bg-[#e7eeff] px-4 py-3 text-lg text-[#0f2854]">{{ closedMessage() }}</p>
+                }
+
+                <a routerLink="/short-courses/my-registration" class="block text-center text-base font-semibold text-[#1c5bb8] hover:underline">สมัครไว้แล้ว? ตรวจสอบการสมัคร →</a>
+              </section>
+            </aside>
+          </div>
+
+          <a
+            routerLink="/short-courses"
+            class="inline-flex w-fit items-center gap-2 rounded-xl border-2 border-[#0f2854] px-5 py-2.5 text-base font-semibold text-[#0f2854] transition-colors hover:bg-[#0f2854] hover:text-white"
+            >← กลับไปหลักสูตรทั้งหมด</a
+          >
+        </div>
+      }
+    </app-data-state>
+  </div>
+</div>

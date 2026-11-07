@@ -18,6 +18,9 @@ export const routes: Routes = [
       { path: 'syllabus/:id', loadComponent: () => import('./features/public/syllabus/syllabus-page/syllabus-page').then((m) => m.PublicSyllabus) },
       { path: 'tech-subjects', loadComponent: () => import('./features/public/tech-subjects/tech-subject-list/tech-subject-list').then((m) => m.PublicTechSubjectList) },
       { path: 'tech-subjects/:id', loadComponent: () => import('./features/public/tech-subjects/tech-subject-detail/tech-subject-detail').then((m) => m.PublicTechSubjectDetail) },
+      { path: 'short-courses', loadComponent: () => import('./features/public/short-courses/short-course-list/short-course-list').then((m) => m.PublicShortCourseList) },
+      { path: 'short-courses/my-registration', loadComponent: () => import('./features/public/short-courses/registration-lookup/registration-lookup').then((m) => m.RegistrationLookup) },
+      { path: 'short-courses/:id', loadComponent: () => import('./features/public/short-courses/short-course-detail/short-course-detail').then((m) => m.PublicShortCourseDetail) },
       { path: 'courses', loadComponent: () => import('./features/public/courses/course-list/course-list').then((m) => m.PublicCourseList) },
       { path: 'courses/:id', loadComponent: () => import('./features/public/courses/course-detail/course-detail').then((m) => m.PublicCourseDetail) },
       {

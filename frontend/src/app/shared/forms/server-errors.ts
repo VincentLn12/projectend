@@ -30,6 +30,12 @@ export function describeHttpError(error: unknown): string {
   }
 }
 
+// Like describeHttpError, but shows the sentence the API wrote when it sent one (for example "this phone number is already registered").
+export function describeProblemDetail(error: unknown): string {
+  const detail = error instanceof HttpErrorResponse && error.status !== 429 ? error.error?.detail : null;
+  return typeof detail === 'string' && detail.length > 0 ? detail : describeHttpError(error);
+}
+
 // Puts the API's validation messages under the matching fields of the form.
 // The API names fields in PascalCase (Title) and the form controls use camelCase (title).
 // Returns a message for everything that does not belong to a single field, or null when there is nothing left to show.
