@@ -14,11 +14,16 @@ public class AdminShortCoursesController : ControllerBase
 {
     private readonly IShortCourseService _shortCourseService;
     private readonly IShortCourseRegistrationService _registrationService;
+    private readonly IShortCourseDocumentService _documentService;
 
-    public AdminShortCoursesController(IShortCourseService shortCourseService, IShortCourseRegistrationService registrationService)
+    public AdminShortCoursesController(
+        IShortCourseService shortCourseService,
+        IShortCourseRegistrationService registrationService,
+        IShortCourseDocumentService documentService)
     {
         _shortCourseService = shortCourseService;
         _registrationService = registrationService;
+        _documentService = documentService;
     }
 
     [HttpGet]
@@ -76,6 +81,27 @@ public class AdminShortCoursesController : ControllerBase
     {
         List<AdminShortCourseRegistrationDto> result = await _registrationService.GetByShortCourseAsync(id, cancellationToken);
         return Ok(result);
+    }
+
+    [HttpGet("{id:guid}/sign-in-sheet")]
+    public async Task<IActionResult> DownloadSignInSheet(Guid id, CancellationToken cancellationToken)
+    {
+        byte[] pdf = await _documentService.CreateSignInSheetAsync(id, cancellationToken);
+        return File(pdf, "application/pdf", "sign-in-sheet-" + id + ".pdf");
+    }
+
+    [HttpGet("{id:guid}/certificates")]
+    public async Task<IActionResult> DownloadCertificates(Guid id, CancellationToken cancellationToken)
+    {
+        byte[] pdf = await _documentService.CreateCertificatesForCourseAsync(id, cancellationToken);
+        return File(pdf, "application/pdf", "certificates-" + id + ".pdf");
+    }
+
+    [HttpGet("{id:guid}/registrations/{registrationId:guid}/certificate")]
+    public async Task<IActionResult> DownloadCertificate(Guid id, Guid registrationId, CancellationToken cancellationToken)
+    {
+        byte[] pdf = await _documentService.CreateCertificateForRegistrationAsync(id, registrationId, cancellationToken);
+        return File(pdf, "application/pdf", "certificate-" + registrationId + ".pdf");
     }
 
     [HttpPost("{id:guid}/registrations/{registrationId:guid}/cancel")]

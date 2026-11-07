@@ -11,10 +11,14 @@ namespace ComSci.Api.Controllers;
 public class ShortCourseRegistrationsController : ControllerBase
 {
     private readonly IShortCourseRegistrationService _registrationService;
+    private readonly IShortCourseDocumentService _documentService;
 
-    public ShortCourseRegistrationsController(IShortCourseRegistrationService registrationService)
+    public ShortCourseRegistrationsController(
+        IShortCourseRegistrationService registrationService,
+        IShortCourseDocumentService documentService)
     {
         _registrationService = registrationService;
+        _documentService = documentService;
     }
 
     [HttpPost("lookup")]
@@ -24,6 +28,15 @@ public class ShortCourseRegistrationsController : ControllerBase
     {
         ShortCourseRegistrationDto result = await _registrationService.LookupAsync(request, cancellationToken);
         return Ok(result);
+    }
+
+    [HttpPost("certificate")]
+    public async Task<IActionResult> DownloadCertificate(
+        LookupShortCourseRegistrationRequest request,
+        CancellationToken cancellationToken)
+    {
+        byte[] pdf = await _documentService.CreateCertificateForOwnerAsync(request, cancellationToken);
+        return File(pdf, "application/pdf", "certificate.pdf");
     }
 
     [HttpPut("{code}")]
