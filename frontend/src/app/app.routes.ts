@@ -21,13 +21,6 @@ export const routes: Routes = [
       { path: 'short-courses', loadComponent: () => import('./features/public/short-courses/short-course-list/short-course-list').then((m) => m.PublicShortCourseList) },
       { path: 'short-courses/my-registration', loadComponent: () => import('./features/public/short-courses/registration-lookup/registration-lookup').then((m) => m.RegistrationLookup) },
       { path: 'short-courses/:id', loadComponent: () => import('./features/public/short-courses/short-course-detail/short-course-detail').then((m) => m.PublicShortCourseDetail) },
-      { path: 'courses', loadComponent: () => import('./features/public/courses/course-list/course-list').then((m) => m.PublicCourseList) },
-      { path: 'courses/:id', loadComponent: () => import('./features/public/courses/course-detail/course-detail').then((m) => m.PublicCourseDetail) },
-      {
-        path: 'me/registrations',
-        canActivate: [authGuard],
-        loadComponent: () => import('./features/public/courses/my-registrations/my-registrations').then((m) => m.MyRegistrations),
-      },
       { path: 'login', loadComponent: () => import('./features/public/login/login').then((m) => m.Login) },
       // Component showcase, only reachable while developing
       ...(isDevMode()
@@ -79,12 +72,6 @@ export const routes: Routes = [
       { path: 'certificate-templates', loadComponent: () => import('./features/admin/certificate-templates/certificate-template-list/certificate-template-list').then((m) => m.CertificateTemplateList) },
       { path: 'certificate-templates/new', loadComponent: () => import('./features/admin/certificate-templates/certificate-template-edit/certificate-template-edit').then((m) => m.CertificateTemplateEdit) },
       { path: 'certificate-templates/:id', loadComponent: () => import('./features/admin/certificate-templates/certificate-template-edit/certificate-template-edit').then((m) => m.CertificateTemplateEdit) },
-      { path: 'courses', loadComponent: () => import('./features/admin/courses/course-list/course-list').then((m) => m.CourseList) },
-      { path: 'courses/new', loadComponent: () => import('./features/admin/courses/course-edit/course-edit').then((m) => m.CourseEdit) },
-      { path: 'courses/:id', loadComponent: () => import('./features/admin/courses/course-edit/course-edit').then((m) => m.CourseEdit) },
-      { path: 'courses/:courseId/generations/new', loadComponent: () => import('./features/admin/courses/generation-edit/generation-edit').then((m) => m.GenerationEdit) },
-      { path: 'courses/:courseId/generations/:id', loadComponent: () => import('./features/admin/courses/generation-edit/generation-edit').then((m) => m.GenerationEdit) },
-      { path: 'courses/:courseId/generations/:id/registrations', loadComponent: () => import('./features/admin/courses/generation-registrations/generation-registrations').then((m) => m.GenerationRegistrations) },
     ],
   },
   {
