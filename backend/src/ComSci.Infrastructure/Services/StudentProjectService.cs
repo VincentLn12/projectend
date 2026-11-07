@@ -208,10 +208,24 @@ public class StudentProjectService : IStudentProjectService
             projects = projects.Where(project => project.StudentId == wantedStudentId);
         }
 
+        if (query.AcademicYear.HasValue)
+        {
+            short wantedYear = query.AcademicYear.Value;
+            projects = projects.Where(project => project.AcademicYear == wantedYear);
+        }
+
+        if (query.Semester.HasValue)
+        {
+            byte wantedSemester = query.Semester.Value;
+            projects = projects.Where(project => project.Semester == wantedSemester);
+        }
+
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             string term = query.Search.Trim();
-            projects = projects.Where(project => project.Title.Contains(term) || project.Student.FullName.Contains(term));
+            projects = projects.Where(project => project.Title.Contains(term)
+                || project.Student.FullName.Contains(term)
+                || (project.CourseName != null && project.CourseName.Contains(term)));
         }
 
         int total = await projects.CountAsync(cancellationToken);
