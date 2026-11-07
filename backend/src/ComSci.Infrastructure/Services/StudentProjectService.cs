@@ -202,6 +202,12 @@ public class StudentProjectService : IStudentProjectService
             projects = projects.Where(project => project.IsPublished == wantedState);
         }
 
+        if (query.StudentId.HasValue)
+        {
+            Guid wantedStudentId = query.StudentId.Value;
+            projects = projects.Where(project => project.StudentId == wantedStudentId);
+        }
+
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             string term = query.Search.Trim();
@@ -221,6 +227,12 @@ public class StudentProjectService : IStudentProjectService
                 AcademicYear = project.AcademicYear,
                 Semester = project.Semester,
                 StudentName = project.Student.FullName,
+                CourseName = project.CourseName,
+                Technologies = project.Technologies,
+                ImageFileId = project.ImageFileId,
+                VideoUrl = project.VideoUrl,
+                WebUrl = project.WebUrl,
+                GithubUrl = project.GithubUrl,
                 IsPublished = project.IsPublished,
                 CreatedAt = project.CreatedAt
             })
