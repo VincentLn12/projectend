@@ -1,13 +1,11 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { API_BASE } from '../../../../core/api.config';
-import { PagedResult } from '../../../../shared/data/types/paging.types';
 import { LecturerOption, MyProfile, MyStudentProject, SaveStudentProjectRequest } from '../types/student-project.types';
 
 const PROJECTS_URL = `${API_BASE}/me/student-projects`;
 const PROFILE_URL = `${API_BASE}/me/profile`;
-const PICKER_PAGE_SIZE = 100;
 
 @Injectable({ providedIn: 'root' })
 export class StudentProjectsApi {
@@ -54,9 +52,8 @@ export class StudentProjectsApi {
   }
 
   lecturers(): Observable<LecturerOption[]> {
-    const params = new HttpParams().set('pageSize', PICKER_PAGE_SIZE);
     return this.http
-      .get<PagedResult<{ id: string; prefix: string | null; fullName: string }>>(`${API_BASE}/lecturers`, { params })
-      .pipe(map((result) => result.items.map((lecturer) => ({ id: lecturer.id, label: `${lecturer.prefix ?? ''}${lecturer.fullName}` }))));
+      .get<{ id: string; prefix: string | null; fullName: string }[]>(`${API_BASE}/lecturers`)
+      .pipe(map((lecturers) => lecturers.map((lecturer) => ({ id: lecturer.id, label: `${lecturer.prefix ?? ''}${lecturer.fullName}` }))));
   }
 }
