@@ -30,6 +30,7 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     public DbSet<Project> Projects { get; set; } = null!;
     public DbSet<ProjectAdvisor> ProjectAdvisors { get; set; } = null!;
     public DbSet<JobHistory> JobHistories { get; set; } = null!;
+    public DbSet<StudentProject> StudentProjects { get; set; } = null!;
 
     public DbSet<Course> Courses { get; set; } = null!;
     public DbSet<CoursePhoto> CoursePhotos { get; set; } = null!;

@@ -1043,6 +1043,95 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.ToTable("StudentProfiles");
                 });
 
+            modelBuilder.Entity("ComSci.Domain.Entities.StudentProject", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<short>("AcademicYear")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("CourseName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GithubUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid?>("ImageFileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("LecturerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("PdfFileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte>("Semester")
+                        .HasColumnType("tinyint");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TeamMembers")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Technologies")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("VideoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("WebUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImageFileId");
+
+                    b.HasIndex("LecturerId");
+
+                    b.HasIndex("PdfFileId");
+
+                    b.HasIndex("StudentId", "AcademicYear", "Semester");
+
+                    b.HasIndex("AcademicYear", "Semester", "IsPublished", "IsDeleted");
+
+                    b.ToTable("StudentProjects");
+                });
+
             modelBuilder.Entity("ComSci.Domain.Entities.Subject", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1701,6 +1790,38 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ComSci.Domain.Entities.StudentProject", b =>
+                {
+                    b.HasOne("ComSci.Domain.Entities.FileRecord", "ImageFile")
+                        .WithMany()
+                        .HasForeignKey("ImageFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ComSci.Domain.Entities.Lecturer", "Lecturer")
+                        .WithMany()
+                        .HasForeignKey("LecturerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ComSci.Domain.Entities.FileRecord", "PdfFile")
+                        .WithMany()
+                        .HasForeignKey("PdfFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ComSci.Domain.Entities.AppUser", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ImageFile");
+
+                    b.Navigation("Lecturer");
+
+                    b.Navigation("PdfFile");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("ComSci.Domain.Entities.Subject", b =>

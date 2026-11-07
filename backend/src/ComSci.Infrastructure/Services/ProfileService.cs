@@ -4,6 +4,7 @@ using ComSci.Application.Dtos.Common;
 using ComSci.Application.Dtos.JobHistories;
 using ComSci.Application.Dtos.Profiles;
 using ComSci.Application.Dtos.Projects;
+using ComSci.Application.Dtos.StudentProjects;
 using ComSci.Application.Exceptions;
 using ComSci.Domain.Entities;
 using ComSci.Domain.Enums;
@@ -181,6 +182,25 @@ public class ProfileService : IProfileService
                 AcademicYear = project.AcademicYear,
                 KeyWords = project.KeyWords,
                 ImageFileId = project.ImageFileId,
+                StudentName = studentName
+            })
+            .ToListAsync(cancellationToken);
+
+        detail.StudentProjects = await _dbContext.StudentProjects
+            .AsNoTracking()
+            .Where(project => project.StudentId == userId && project.IsPublished)
+            .OrderByDescending(project => project.AcademicYear)
+            .ThenByDescending(project => project.Semester)
+            .Select(project => new StudentProjectListItemDto
+            {
+                Id = project.Id,
+                Title = project.Title,
+                AcademicYear = project.AcademicYear,
+                Semester = project.Semester,
+                CourseName = project.CourseName,
+                Technologies = project.Technologies,
+                ImageFileId = project.ImageFileId,
+                StudentId = project.StudentId,
                 StudentName = studentName
             })
             .ToListAsync(cancellationToken);
