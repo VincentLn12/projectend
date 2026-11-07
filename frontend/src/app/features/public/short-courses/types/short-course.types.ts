@@ -58,7 +58,11 @@ export interface RegisterRequest {
 }
 
 export interface LookupRequest {
-  code: string;
+  phone: string;
+}
+
+export interface CertificateRequest {
+  registrationId: string;
   phone: string;
 }
 
@@ -71,7 +75,6 @@ export interface UpdateRegistrationRequest {
 
 export interface MyShortCourseRegistration {
   id: string;
-  code: string;
   shortCourseId: string;
   courseTitle: string;
   startDate: string;

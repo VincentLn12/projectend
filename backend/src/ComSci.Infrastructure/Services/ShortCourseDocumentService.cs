@@ -17,7 +17,7 @@ namespace ComSci.Infrastructure.Services;
 public class ShortCourseDocumentService : IShortCourseDocumentService
 {
     private const string FontFamily = "TH Sarabun New";
-    private const string RegistrationNotFoundMessage = "ไม่พบข้อมูลการสมัคร กรุณาตรวจสอบรหัสการสมัครและเบอร์โทรอีกครั้ง";
+    private const string RegistrationNotFoundMessage = "ไม่พบข้อมูลการสมัคร กรุณาตรวจสอบเบอร์โทรอีกครั้ง";
     private const float SignatureHeight = 56;
     private const string IssuerLine = "สาขาวิชาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยราชภัฏกาญจนบุรี";
 
@@ -134,7 +134,7 @@ public class ShortCourseDocumentService : IShortCourseDocumentService
         return await BuildCertificatesAsync(shortCourse, new List<string> { BuildFullName(registration) }, cancellationToken);
     }
 
-    public async Task<byte[]> CreateCertificateForOwnerAsync(LookupShortCourseRegistrationRequest request, CancellationToken cancellationToken)
+    public async Task<byte[]> CreateCertificateForOwnerAsync(ShortCourseCertificateRequest request, CancellationToken cancellationToken)
     {
         string? phone = PhoneNumberNormalizer.Normalize(request.Phone);
         if (phone == null)
@@ -142,12 +142,10 @@ public class ShortCourseDocumentService : IShortCourseDocumentService
             throw new NotFoundException(RegistrationNotFoundMessage);
         }
 
-        string code = request.Code.Trim().ToUpperInvariant();
-
         ShortCourseRegistration? registration = await _dbContext.ShortCourseRegistrations
             .AsNoTracking()
             .Include(item => item.ShortCourse)
-            .FirstOrDefaultAsync(item => item.Code == code && item.Phone == phone, cancellationToken);
+            .FirstOrDefaultAsync(item => item.Id == request.RegistrationId && item.Phone == phone, cancellationToken);
         if (registration == null)
         {
             throw new NotFoundException(RegistrationNotFoundMessage);

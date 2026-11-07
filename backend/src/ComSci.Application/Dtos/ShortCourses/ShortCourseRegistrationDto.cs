@@ -5,7 +5,6 @@ namespace ComSci.Application.Dtos.ShortCourses;
 public class ShortCourseRegistrationDto
 {
     public Guid Id { get; set; }
-    public string Code { get; set; } = string.Empty;
     public Guid ShortCourseId { get; set; }
     public string CourseTitle { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }

@@ -1,5 +1,4 @@
 using System.Data;
-using System.Security.Cryptography;
 using ComSci.Application.Abstractions;
 using ComSci.Application.Dtos.ShortCourses;
 using ComSci.Application.Exceptions;
@@ -14,11 +13,7 @@ namespace ComSci.Infrastructure.Services;
 
 public class ShortCourseRegistrationService : IShortCourseRegistrationService
 {
-    private const string CodePrefix = "SC-";
-    private const string CodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    private const int CodeLength = 6;
-    private const int MaximumCodeAttempts = 10;
-    private const string RegistrationNotFoundMessage = "ไม่พบข้อมูลการสมัคร กรุณาตรวจสอบรหัสการสมัครและเบอร์โทรอีกครั้ง";
+    private const string RegistrationNotFoundMessage = "ไม่พบการสมัครที่ใช้เบอร์โทรนี้ กรุณาตรวจสอบเบอร์โทรอีกครั้ง";
 
     private readonly AppDbContext _dbContext;
 
@@ -93,7 +88,6 @@ public class ShortCourseRegistrationService : IShortCourseRegistrationService
             }
 
             registration.ShortCourseId = shortCourseId;
-            registration.Code = await GenerateUniqueCodeAsync(cancellationToken);
             registration.Prefix = string.IsNullOrWhiteSpace(request.Prefix) ? null : request.Prefix.Trim();
             registration.FirstName = firstName;
             registration.LastName = lastName;
@@ -106,10 +100,10 @@ public class ShortCourseRegistrationService : IShortCourseRegistrationService
             await transaction.CommitAsync(cancellationToken);
         }
 
-        return await GetOwnedRegistrationAsync(registration.Code, phone, cancellationToken);
+        return await GetOwnedRegistrationAsync(registration.Id, phone, cancellationToken);
     }
 
-    public async Task<ShortCourseRegistrationDto> LookupAsync(LookupShortCourseRegistrationRequest request, CancellationToken cancellationToken)
+    public async Task<List<ShortCourseRegistrationDto>> LookupAsync(LookupShortCourseRegistrationRequest request, CancellationToken cancellationToken)
     {
         string? phone = PhoneNumberNormalizer.Normalize(request.Phone);
         if (phone == null)
@@ -117,12 +111,23 @@ public class ShortCourseRegistrationService : IShortCourseRegistrationService
             throw new NotFoundException(RegistrationNotFoundMessage);
         }
 
-        return await GetOwnedRegistrationAsync(NormalizeCode(request.Code), phone, cancellationToken);
+        List<ShortCourseRegistration> registrations = await _dbContext.ShortCourseRegistrations
+            .AsNoTracking()
+            .Include(item => item.ShortCourse)
+            .Where(item => item.Phone == phone && item.ShortCourse.IsPublished)
+            .OrderByDescending(item => item.RegisteredAt)
+            .ToListAsync(cancellationToken);
+        if (registrations.Count == 0)
+        {
+            throw new NotFoundException(RegistrationNotFoundMessage);
+        }
+
+        return registrations.Select(MapToDto).ToList();
     }
 
-    public async Task<ShortCourseRegistrationDto> UpdateAsync(string code, UpdateShortCourseRegistrationRequest request, CancellationToken cancellationToken)
+    public async Task<ShortCourseRegistrationDto> UpdateAsync(Guid registrationId, UpdateShortCourseRegistrationRequest request, CancellationToken cancellationToken)
     {
-        ShortCourseRegistration registration = await LoadOwnedRegistrationAsync(NormalizeCode(code), request.CurrentPhone, cancellationToken);
+        ShortCourseRegistration registration = await LoadOwnedRegistrationAsync(registrationId, request.CurrentPhone, cancellationToken);
         EnsureCanModify(registration);
 
         string firstName = request.FirstName.Trim();
@@ -137,12 +142,12 @@ public class ShortCourseRegistrationService : IShortCourseRegistrationService
         registration.LastName = lastName;
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return await GetOwnedRegistrationAsync(registration.Code, registration.Phone, cancellationToken);
+        return await GetOwnedRegistrationAsync(registration.Id, registration.Phone, cancellationToken);
     }
 
-    public async Task CancelAsync(string code, CancelShortCourseRegistrationRequest request, CancellationToken cancellationToken)
+    public async Task CancelAsync(Guid registrationId, CancelShortCourseRegistrationRequest request, CancellationToken cancellationToken)
     {
-        ShortCourseRegistration registration = await LoadOwnedRegistrationAsync(NormalizeCode(code), request.Phone, cancellationToken);
+        ShortCourseRegistration registration = await LoadOwnedRegistrationAsync(registrationId, request.Phone, cancellationToken);
         EnsureCanModify(registration);
 
         registration.Status = RegistrationStatus.Cancelled;
@@ -165,7 +170,6 @@ public class ShortCourseRegistrationService : IShortCourseRegistrationService
             .Select(registration => new AdminShortCourseRegistrationDto
             {
                 Id = registration.Id,
-                Code = registration.Code,
                 Prefix = registration.Prefix,
                 FirstName = registration.FirstName,
                 LastName = registration.LastName,
@@ -197,11 +201,6 @@ public class ShortCourseRegistrationService : IShortCourseRegistrationService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    private static string NormalizeCode(string code)
-    {
-        return code.Trim().ToUpperInvariant();
-    }
-
     private static void EnsureCanModify(ShortCourseRegistration registration)
     {
         if (registration.Status == RegistrationStatus.Cancelled)
@@ -228,7 +227,7 @@ public class ShortCourseRegistrationService : IShortCourseRegistrationService
         return DateTime.UtcNow < deadline;
     }
 
-    private async Task<ShortCourseRegistration> LoadOwnedRegistrationAsync(string code, string phoneInput, CancellationToken cancellationToken)
+    private async Task<ShortCourseRegistration> LoadOwnedRegistrationAsync(Guid registrationId, string phoneInput, CancellationToken cancellationToken)
     {
         string? phone = PhoneNumberNormalizer.Normalize(phoneInput);
         if (phone == null)
@@ -238,7 +237,7 @@ public class ShortCourseRegistrationService : IShortCourseRegistrationService
 
         ShortCourseRegistration? registration = await _dbContext.ShortCourseRegistrations
             .Include(item => item.ShortCourse)
-            .FirstOrDefaultAsync(item => item.Code == code && item.Phone == phone, cancellationToken);
+            .FirstOrDefaultAsync(item => item.Id == registrationId && item.Phone == phone, cancellationToken);
         if (registration == null)
         {
             throw new NotFoundException(RegistrationNotFoundMessage);
@@ -247,13 +246,16 @@ public class ShortCourseRegistrationService : IShortCourseRegistrationService
         return registration;
     }
 
-    private async Task<ShortCourseRegistrationDto> GetOwnedRegistrationAsync(string code, string phone, CancellationToken cancellationToken)
+    private async Task<ShortCourseRegistrationDto> GetOwnedRegistrationAsync(Guid registrationId, string phone, CancellationToken cancellationToken)
     {
-        ShortCourseRegistration registration = await LoadOwnedRegistrationAsync(code, phone, cancellationToken);
+        ShortCourseRegistration registration = await LoadOwnedRegistrationAsync(registrationId, phone, cancellationToken);
+        return MapToDto(registration);
+    }
 
+    private static ShortCourseRegistrationDto MapToDto(ShortCourseRegistration registration)
+    {
         ShortCourseRegistrationDto dto = new ShortCourseRegistrationDto();
         dto.Id = registration.Id;
-        dto.Code = registration.Code;
         dto.ShortCourseId = registration.ShortCourseId;
         dto.CourseTitle = registration.ShortCourse.Title;
         dto.StartDate = registration.ShortCourse.StartDate;
@@ -266,28 +268,5 @@ public class ShortCourseRegistrationService : IShortCourseRegistrationService
         dto.RegisteredAt = registration.RegisteredAt;
         dto.CanModify = CanModify(registration);
         return dto;
-    }
-
-    private async Task<string> GenerateUniqueCodeAsync(CancellationToken cancellationToken)
-    {
-        for (int attempt = 0; attempt < MaximumCodeAttempts; attempt++)
-        {
-            char[] characters = new char[CodeLength];
-            for (int index = 0; index < CodeLength; index++)
-            {
-                characters[index] = CodeAlphabet[RandomNumberGenerator.GetInt32(CodeAlphabet.Length)];
-            }
-
-            string code = CodePrefix + new string(characters);
-            bool exists = await _dbContext.ShortCourseRegistrations
-                .IgnoreQueryFilters()
-                .AnyAsync(item => item.Code == code, cancellationToken);
-            if (!exists)
-            {
-                return code;
-            }
-        }
-
-        throw new InvalidOperationException("Could not generate a unique registration code.");
     }
 }

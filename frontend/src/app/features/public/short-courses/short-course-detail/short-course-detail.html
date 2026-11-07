@@ -98,13 +98,9 @@
                   <div class="space-y-3 rounded-xl border-2 border-[#f7be33] bg-[#fff6dd] p-4" role="status">
                     <p class="text-lg font-bold text-[#261a00]">สมัครเรียบร้อยแล้ว</p>
                     <p class="text-base text-slate-800">
-                      {{ done.prefix }}{{ done.firstName }} {{ done.lastName }}<br />กรุณาจดรหัสการสมัครนี้ไว้ ใช้ตรวจสอบ แก้ไข ยกเลิก และดาวน์โหลดเกียรติบัตร
+                      {{ done.prefix }}{{ done.firstName }} {{ done.lastName }}<br />หากต้องการแก้ไข ยกเลิก หรือดาวน์โหลดเกียรติบัตร ให้ตรวจสอบการสมัครด้วยเบอร์โทร {{ done.phone }}
                     </p>
-                    <p class="rounded-lg bg-white px-4 py-3 text-center font-mono text-3xl font-bold tracking-widest text-[#0f2854]">{{ done.code }}</p>
-                    <div class="flex flex-wrap gap-2">
-                      <button type="button" app-button variant="secondary" (click)="copyCode(done.code)">คัดลอกรหัส</button>
-                      <a app-button variant="primary" routerLink="/short-courses/my-registration" [queryParams]="{ code: done.code }">ตรวจสอบการสมัคร</a>
-                    </div>
+                    <a app-button variant="primary" routerLink="/short-courses/my-registration">ตรวจสอบการสมัคร</a>
                   </div>
                 } @else if (isOpen()) {
                   <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">

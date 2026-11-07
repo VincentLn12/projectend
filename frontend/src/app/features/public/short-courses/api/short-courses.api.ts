@@ -5,6 +5,7 @@ import { API_BASE } from '../../../../core/api.config';
 import { PagedQuery } from '../../../../shared/data/paged-list';
 import { PagedResult } from '../../../../shared/data/types/paging.types';
 import {
+  CertificateRequest,
   LookupRequest,
   MyShortCourseRegistration,
   RegisterRequest,
@@ -36,19 +37,19 @@ export class ShortCoursesApi {
     return this.http.post<MyShortCourseRegistration>(`${SHORT_COURSES_URL}/${id}/registrations`, request);
   }
 
-  lookup(request: LookupRequest): Observable<MyShortCourseRegistration> {
-    return this.http.post<MyShortCourseRegistration>(`${REGISTRATIONS_URL}/lookup`, request);
+  lookup(request: LookupRequest): Observable<MyShortCourseRegistration[]> {
+    return this.http.post<MyShortCourseRegistration[]>(`${REGISTRATIONS_URL}/lookup`, request);
   }
 
-  update(code: string, request: UpdateRegistrationRequest): Observable<MyShortCourseRegistration> {
-    return this.http.put<MyShortCourseRegistration>(`${REGISTRATIONS_URL}/${encodeURIComponent(code)}`, request);
+  update(id: string, request: UpdateRegistrationRequest): Observable<MyShortCourseRegistration> {
+    return this.http.put<MyShortCourseRegistration>(`${REGISTRATIONS_URL}/${id}`, request);
   }
 
-  cancel(code: string, phone: string): Observable<void> {
-    return this.http.post<void>(`${REGISTRATIONS_URL}/${encodeURIComponent(code)}/cancel`, { phone });
+  cancel(id: string, phone: string): Observable<void> {
+    return this.http.post<void>(`${REGISTRATIONS_URL}/${id}/cancel`, { phone });
   }
 
-  certificate(request: LookupRequest): Observable<Blob> {
+  certificate(request: CertificateRequest): Observable<Blob> {
     return this.http.post(`${REGISTRATIONS_URL}/certificate`, request, { responseType: 'blob' });
   }
 }

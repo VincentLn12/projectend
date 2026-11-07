@@ -32,7 +32,6 @@ export class ShortCourseRegistrations implements OnInit {
 
   protected readonly columns: TableColumn<ShortCourseRegistration>[] = [
     { key: 'index', header: 'ที่', align: 'center' },
-    { key: 'code', header: 'รหัสการสมัคร', value: (row) => row.code },
     { key: 'name', header: 'ชื่อ-นามสกุล' },
     { key: 'phone', header: 'เบอร์โทร', value: (row) => row.phone },
     { key: 'status', header: 'สถานะ', value: (row) => REGISTRATION_LABELS[row.status] },
@@ -89,7 +88,7 @@ export class ShortCourseRegistrations implements OnInit {
   protected async cancel(row: ShortCourseRegistration): Promise<void> {
     const confirmed = await this.confirm.ask({
       title: 'ยกเลิกการสมัครของผู้นี้?',
-      message: `${this.fullName(row)} (${row.code})`,
+      message: `${this.fullName(row)} (${row.phone})`,
       confirmText: 'ยกเลิกการสมัคร',
       cancelText: 'ไม่ยกเลิก',
       danger: true,

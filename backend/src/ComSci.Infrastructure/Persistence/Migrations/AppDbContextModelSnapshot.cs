@@ -962,11 +962,6 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("CancelledAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -1011,9 +1006,6 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Code")
-                        .IsUnique();
 
                     b.HasIndex("ShortCourseId", "Phone")
                         .IsUnique()

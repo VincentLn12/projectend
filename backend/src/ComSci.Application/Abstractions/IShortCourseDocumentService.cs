@@ -10,5 +10,5 @@ public interface IShortCourseDocumentService
 
     Task<byte[]> CreateCertificateForRegistrationAsync(Guid shortCourseId, Guid registrationId, CancellationToken cancellationToken);
 
-    Task<byte[]> CreateCertificateForOwnerAsync(LookupShortCourseRegistrationRequest request, CancellationToken cancellationToken);
+    Task<byte[]> CreateCertificateForOwnerAsync(ShortCourseCertificateRequest request, CancellationToken cancellationToken);
 }

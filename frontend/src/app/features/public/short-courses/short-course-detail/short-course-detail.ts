@@ -133,13 +133,4 @@ export class PublicShortCourseDetail implements OnInit {
         },
       });
   }
-
-  protected async copyCode(code: string): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(code);
-      this.toast.success('คัดลอกรหัสการสมัครแล้ว');
-    } catch {
-      this.toast.info('คัดลอกไม่ได้ กรุณาจดรหัสไว้');
-    }
-  }
 }

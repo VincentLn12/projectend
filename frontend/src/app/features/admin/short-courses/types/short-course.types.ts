@@ -65,7 +65,6 @@ export interface SaveShortCourseRequest {
 
 export interface ShortCourseRegistration {
   id: string;
-  code: string;
   prefix: string | null;
   firstName: string;
   lastName: string;

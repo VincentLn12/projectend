@@ -6,11 +6,11 @@ public interface IShortCourseRegistrationService
 {
     Task<ShortCourseRegistrationDto> RegisterAsync(Guid shortCourseId, RegisterShortCourseRequest request, CancellationToken cancellationToken);
 
-    Task<ShortCourseRegistrationDto> LookupAsync(LookupShortCourseRegistrationRequest request, CancellationToken cancellationToken);
+    Task<List<ShortCourseRegistrationDto>> LookupAsync(LookupShortCourseRegistrationRequest request, CancellationToken cancellationToken);
 
-    Task<ShortCourseRegistrationDto> UpdateAsync(string code, UpdateShortCourseRegistrationRequest request, CancellationToken cancellationToken);
+    Task<ShortCourseRegistrationDto> UpdateAsync(Guid registrationId, UpdateShortCourseRegistrationRequest request, CancellationToken cancellationToken);
 
-    Task CancelAsync(string code, CancelShortCourseRegistrationRequest request, CancellationToken cancellationToken);
+    Task CancelAsync(Guid registrationId, CancelShortCourseRegistrationRequest request, CancellationToken cancellationToken);
 
     Task<List<AdminShortCourseRegistrationDto>> GetByShortCourseAsync(Guid shortCourseId, CancellationToken cancellationToken);
 

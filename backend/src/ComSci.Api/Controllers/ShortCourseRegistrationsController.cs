@@ -22,40 +22,40 @@ public class ShortCourseRegistrationsController : ControllerBase
     }
 
     [HttpPost("lookup")]
-    public async Task<ActionResult<ShortCourseRegistrationDto>> Lookup(
+    public async Task<ActionResult<List<ShortCourseRegistrationDto>>> Lookup(
         LookupShortCourseRegistrationRequest request,
         CancellationToken cancellationToken)
     {
-        ShortCourseRegistrationDto result = await _registrationService.LookupAsync(request, cancellationToken);
+        List<ShortCourseRegistrationDto> result = await _registrationService.LookupAsync(request, cancellationToken);
         return Ok(result);
     }
 
     [HttpPost("certificate")]
     public async Task<IActionResult> DownloadCertificate(
-        LookupShortCourseRegistrationRequest request,
+        ShortCourseCertificateRequest request,
         CancellationToken cancellationToken)
     {
         byte[] pdf = await _documentService.CreateCertificateForOwnerAsync(request, cancellationToken);
         return File(pdf, "application/pdf", "certificate.pdf");
     }
 
-    [HttpPut("{code}")]
+    [HttpPut("{id:guid}")]
     public async Task<ActionResult<ShortCourseRegistrationDto>> Update(
-        string code,
+        Guid id,
         UpdateShortCourseRegistrationRequest request,
         CancellationToken cancellationToken)
     {
-        ShortCourseRegistrationDto result = await _registrationService.UpdateAsync(code, request, cancellationToken);
+        ShortCourseRegistrationDto result = await _registrationService.UpdateAsync(id, request, cancellationToken);
         return Ok(result);
     }
 
-    [HttpPost("{code}/cancel")]
+    [HttpPost("{id:guid}/cancel")]
     public async Task<IActionResult> Cancel(
-        string code,
+        Guid id,
         CancelShortCourseRegistrationRequest request,
         CancellationToken cancellationToken)
     {
-        await _registrationService.CancelAsync(code, request, cancellationToken);
+        await _registrationService.CancelAsync(id, request, cancellationToken);
         return NoContent();
     }
 }

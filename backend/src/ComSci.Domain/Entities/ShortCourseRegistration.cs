@@ -7,7 +7,6 @@ public class ShortCourseRegistration : AuditableEntity
 {
     public Guid ShortCourseId { get; set; }
     public ShortCourse ShortCourse { get; set; } = null!;
-    public string Code { get; set; } = string.Empty;
     public string? Prefix { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
