@@ -88,6 +88,10 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("GithubUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<Guid?>("ImageFileId")
                         .HasColumnType("uniqueidentifier");
 
@@ -96,6 +100,10 @@ namespace ComSci.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
+
+                    b.Property<string>("LinkedInUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -126,8 +134,15 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.Property<bool>("ShowEmail")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("ShowPhone")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("ShowProfile")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Skills")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");

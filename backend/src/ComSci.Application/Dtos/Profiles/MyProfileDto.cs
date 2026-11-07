@@ -12,6 +12,11 @@ public class MyProfileDto
     public UserType UserType { get; set; }
     public bool ShowEmail { get; set; }
     public bool ShowProfile { get; set; }
+    public string? Phone { get; set; }
+    public bool ShowPhone { get; set; }
+    public string? LinkedInUrl { get; set; }
+    public string? GithubUrl { get; set; }
+    public string? Skills { get; set; }
     public DateTime? ConsentAt { get; set; }
     public StudentProfileDto? Student { get; set; }
 }

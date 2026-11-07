@@ -14,6 +14,15 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.Property(appUser => appUser.Bio)
             .HasMaxLength(1000);
 
+        builder.Property(appUser => appUser.LinkedInUrl)
+            .HasMaxLength(500);
+
+        builder.Property(appUser => appUser.GithubUrl)
+            .HasMaxLength(500);
+
+        builder.Property(appUser => appUser.Skills)
+            .HasMaxLength(500);
+
         builder.Property(appUser => appUser.UserType)
             .HasConversion<byte>();
 
