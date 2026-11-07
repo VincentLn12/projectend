@@ -121,6 +121,18 @@ builder.Services.AddRateLimiter(options =>
         });
     });
 
+    // สมัครอบรมโดยไม่ต้อง login: จำกัดต่อ IP กันยิงสแปมและเดารหัสการสมัคร (เผื่อหลายคนใช้ wifi เดียวกันตอนเปิดรับสมัคร)
+    options.AddPolicy("public-registration", httpContext =>
+    {
+        string clientAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(clientAddress, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 30,
+            Window = TimeSpan.FromMinutes(1)
+        });
+    });
+
     // ใครก็สมัครบัญชีได้ และไฟล์เปิดดูสาธารณะ จึงจำกัดการอัปโหลดต่อคน ไม่ให้ใช้เป็นที่ฝากไฟล์ฟรี
     options.AddPolicy("upload", httpContext =>
     {
