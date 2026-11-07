@@ -1,0 +1,38 @@
+<section class="space-y-4">
+  <div class="flex flex-wrap items-baseline justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-semibold text-slate-900">ผู้สมัครหลักสูตร</h1>
+      @if (courseTitle()) {
+        <p class="text-sm text-slate-600">{{ courseTitle() }}</p>
+      }
+    </div>
+    <a routerLink="/admin/short-courses" class="text-sm text-slate-600 underline hover:text-slate-900">← กลับไปรายการหลักสูตร</a>
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    <button type="button" app-button variant="secondary" [loading]="downloading() === 'sign-in'" (click)="downloadSignInSheet()">ดาวน์โหลดใบลงชื่อ (PDF)</button>
+    <button type="button" app-button variant="secondary" [loading]="downloading() === 'certificates'" (click)="downloadAllCertificates()">ดาวน์โหลดเกียรติบัตรทั้งหมด (PDF)</button>
+  </div>
+
+  <app-data-table
+    [columns]="columns"
+    [rows]="rows()"
+    [trackBy]="rowKey"
+    [loading]="loading()"
+    [error]="error()"
+    emptyMessage="ยังไม่มีผู้สมัคร"
+    (retry)="load()"
+  >
+    <ng-template appCell="index" let-row>{{ rowNumber(row) }}</ng-template>
+    <ng-template appCell="name" let-row>{{ fullName(row) }}</ng-template>
+    <ng-template appCell="registeredAt" let-row>{{ row.registeredAt | thaiDate: 'short' }}</ng-template>
+    <ng-template appCell="actions" let-row>
+      @if (isActive(row)) {
+        <div class="flex flex-wrap justify-end gap-1.5">
+          <button type="button" app-button size="sm" variant="secondary" [loading]="downloading() === row.id" (click)="downloadCertificate(row)">เกียรติบัตร</button>
+          <button type="button" app-button size="sm" variant="danger" (click)="cancel(row)">ยกเลิกการสมัคร</button>
+        </div>
+      }
+    </ng-template>
+  </app-data-table>
+</section>

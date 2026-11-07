@@ -1,0 +1,45 @@
+<section class="space-y-4">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h1 class="text-xl font-semibold text-slate-900">จัดการหลักสูตรระยะสั้น</h1>
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="w-64"><app-search-box placeholder="ค้นหาชื่อหลักสูตร" (searchChange)="list.setSearch($event)" /></div>
+      <a app-button variant="secondary" routerLink="/admin/certificate-templates">แม่แบบเกียรติบัตร</a>
+      <a app-button routerLink="/admin/short-courses/new">เพิ่มหลักสูตร</a>
+    </div>
+  </div>
+
+  <app-data-table
+    [columns]="columns"
+    [rows]="list.items()"
+    [trackBy]="rowKey"
+    [loading]="list.loading()"
+    [error]="list.error()"
+    emptyMessage="ยังไม่มีหลักสูตรระยะสั้น"
+    (retry)="list.reload()"
+  >
+    <ng-template appCell="title" let-row>
+      <a [routerLink]="['/admin/short-courses', row.id]" class="font-medium text-slate-900 hover:underline">{{ row.title }}</a>
+    </ng-template>
+    <ng-template appCell="startDate" let-row>{{ row.startDate | thaiDate }}</ng-template>
+    <ng-template appCell="seats" let-row>{{ seatsText(row) }}</ng-template>
+    <ng-template appCell="status" let-row>
+      <span
+        class="rounded-full px-2.5 py-0.5 text-sm font-medium"
+        [class]="row.isPublished ? 'bg-green-600 text-white' : 'bg-slate-500 text-white'"
+        >{{ row.isPublished ? 'เผยแพร่' : 'ฉบับร่าง' }}</span
+      >
+    </ng-template>
+    <ng-template appCell="actions" let-row>
+      <div class="flex flex-wrap justify-end gap-1.5">
+        <button type="button" app-button size="sm" variant="ghost" (click)="togglePublished(row)">
+          {{ row.isPublished ? 'ยกเลิกเผยแพร่' : 'เผยแพร่' }}
+        </button>
+        <a app-button size="sm" variant="secondary" [routerLink]="['/admin/short-courses', row.id, 'registrations']">ผู้สมัคร</a>
+        <a app-button size="sm" variant="secondary" [routerLink]="['/admin/short-courses', row.id]">แก้ไข</a>
+        <button type="button" app-button size="sm" variant="danger" (click)="askToDelete(row)">ลบ</button>
+      </div>
+    </ng-template>
+  </app-data-table>
+
+  <app-pagination [page]="list.page()" [pageSize]="list.pageSize" [total]="list.total()" (pageChange)="list.setPage($event)" />
+</section>
