@@ -21,4 +21,8 @@ public class SaveSystemSettingRequest
     public string? VideoUrl { get; set; }
     [StringLength(500)]
     public string? MapLocation { get; set; }
+    [StringLength(200)]
+    public string? UniversityName { get; set; }
+    [StringLength(500)]
+    public string? FooterText { get; set; }
 }

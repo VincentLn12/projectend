@@ -3,7 +3,19 @@
 
   <app-data-state [loading]="loading()" [error]="loadError()" (retry)="load()">
     <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4 rounded-xl bg-white p-6 shadow-sm">
-      <app-text-input label="ชื่อเว็บไซต์" formControlName="webName" [maxLength]="200" />
+      <app-text-input label="ชื่อเว็บไซต์ (ชื่อสาขา)" formControlName="webName" [maxLength]="200" />
+      <app-text-input
+        label="ชื่อมหาวิทยาลัย / หน่วยงาน"
+        hint="แสดงใต้ชื่อสาขาในหน้าแรก และเป็นข้อความท้ายเว็บถ้าไม่ได้กรอกข้อความท้ายเว็บ"
+        formControlName="universityName"
+        [maxLength]="200"
+      />
+      <app-text-input
+        label="ข้อความท้ายเว็บ"
+        hint="เช่น ที่อยู่ เบอร์โทร ลิขสิทธิ์ เว้นว่างเพื่อใช้ชื่อมหาวิทยาลัย"
+        formControlName="footerText"
+        [maxLength]="500"
+      />
       <app-file-upload label="โลโก้" formControlName="logoFileId" accept="image" />
       <app-text-input label="ลิงก์สมัครเรียน" type="url" formControlName="registerUrl" />
       <app-text-input label="ลิงก์เว็บมหาวิทยาลัย" type="url" formControlName="kruUrl" />

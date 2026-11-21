@@ -11,4 +11,6 @@ public class SystemSetting
     public FileRecord? LogoFile { get; set; }
     public string? VideoUrl { get; set; }
     public string? MapLocation { get; set; }
+    public string? UniversityName { get; set; }
+    public string? FooterText { get; set; }
 }

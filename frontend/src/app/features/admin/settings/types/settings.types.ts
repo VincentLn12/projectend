@@ -6,4 +6,6 @@ export interface SiteSettings {
   logoFileId: string | null;
   videoUrl: string | null;
   mapLocation: string | null;
+  universityName: string | null;
+  footerText: string | null;
 }

@@ -137,6 +137,6 @@
   </main>
 
   <footer class="border-t border-slate-200 bg-white py-4 text-center text-sm text-slate-500">
-    มหาวิทยาลัยราชภัฏกาญจนบุรี
+    {{ siteSettings.settings()?.footerText || siteSettings.settings()?.universityName }}
   </footer>
 </div>

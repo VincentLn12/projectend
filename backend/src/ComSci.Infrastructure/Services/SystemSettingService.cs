@@ -54,6 +54,8 @@ public class SystemSettingService : ISystemSettingService
         setting.LogoFileId = request.LogoFileId;
         setting.VideoUrl = request.VideoUrl?.Trim();
         setting.MapLocation = request.MapLocation?.Trim();
+        setting.UniversityName = request.UniversityName?.Trim();
+        setting.FooterText = request.FooterText?.Trim();
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return ToDto(setting);
@@ -69,6 +71,8 @@ public class SystemSettingService : ISystemSettingService
         dto.LogoFileId = setting.LogoFileId;
         dto.VideoUrl = setting.VideoUrl;
         dto.MapLocation = setting.MapLocation;
+        dto.UniversityName = setting.UniversityName;
+        dto.FooterText = setting.FooterText;
         return dto;
     }
 }

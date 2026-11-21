@@ -21,6 +21,8 @@ export class SettingsPage implements OnInit {
 
   protected readonly form = inject(FormBuilder).group({
     webName: ['', [Validators.required, Validators.maxLength(200)]],
+    universityName: ['', Validators.maxLength(200)],
+    footerText: ['', Validators.maxLength(500)],
     registerUrl: ['', [urlValidator, Validators.maxLength(500)]],
     kruUrl: ['', [urlValidator, Validators.maxLength(500)]],
     pageFacebook: ['', [urlValidator, Validators.maxLength(500)]],
@@ -81,6 +83,8 @@ export class SettingsPage implements OnInit {
   private fillForm(settings: SiteSettings): void {
     this.form.reset({
       webName: settings.webName,
+      universityName: settings.universityName ?? '',
+      footerText: settings.footerText ?? '',
       registerUrl: settings.registerUrl ?? '',
       kruUrl: settings.kruUrl ?? '',
       pageFacebook: settings.pageFacebook ?? '',
@@ -94,6 +98,8 @@ export class SettingsPage implements OnInit {
     const value = this.form.getRawValue();
     return {
       webName: (value.webName ?? '').trim(),
+      universityName: this.emptyToNull(value.universityName),
+      footerText: this.emptyToNull(value.footerText),
       registerUrl: this.emptyToNull(value.registerUrl),
       kruUrl: this.emptyToNull(value.kruUrl),
       pageFacebook: this.emptyToNull(value.pageFacebook),

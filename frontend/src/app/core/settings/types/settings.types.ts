@@ -6,4 +6,6 @@ export interface SystemSetting {
   logoFileId: string | null;
   videoUrl: string | null;
   mapLocation: string | null;
+  universityName: string | null;
+  footerText: string | null;
 }

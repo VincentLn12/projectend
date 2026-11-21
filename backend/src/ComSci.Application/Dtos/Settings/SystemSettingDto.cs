@@ -9,4 +9,6 @@ public class SystemSettingDto
     public Guid? LogoFileId { get; set; }
     public string? VideoUrl { get; set; }
     public string? MapLocation { get; set; }
+    public string? UniversityName { get; set; }
+    public string? FooterText { get; set; }
 }

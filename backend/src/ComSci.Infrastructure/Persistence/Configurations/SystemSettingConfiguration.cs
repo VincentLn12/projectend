@@ -23,6 +23,12 @@ public class SystemSettingConfiguration : IEntityTypeConfiguration<SystemSetting
         builder.Property(systemSetting => systemSetting.VideoUrl)
             .HasMaxLength(500);
 
+        builder.Property(systemSetting => systemSetting.UniversityName)
+            .HasMaxLength(200);
+
+        builder.Property(systemSetting => systemSetting.FooterText)
+            .HasMaxLength(500);
+
         builder.Property(systemSetting => systemSetting.MapLocation)
             .HasMaxLength(500);
 

@@ -37,7 +37,7 @@
           <span class="block truncate text-base font-semibold text-white">
             {{ siteSettings.settings()?.webName ?? 'สาขาวิทยาการคอมพิวเตอร์' }}
           </span>
-          <span class="mt-0.5 block truncate text-sm text-slate-400">ม.ราชภัฏกาญจนบุรี · ระบบจัดการ</span>
+          <span class="mt-0.5 block truncate text-sm text-slate-400">{{ siteSettings.settings()?.universityName ? siteSettings.settings()?.universityName + ' · ระบบจัดการ' : 'ระบบจัดการเว็บไซต์' }}</span>
         </span>
       </a>
 

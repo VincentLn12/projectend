@@ -2,7 +2,9 @@
   <section class="rounded-xl bg-white p-6 shadow-sm sm:p-8">
     @if (siteSettings.settings(); as settings) {
       <h1 class="text-2xl font-semibold text-slate-900">{{ settings.webName }}</h1>
-      <p class="mt-1 text-slate-600">มหาวิทยาลัยราชภัฏกาญจนบุรี</p>
+      @if (settings.universityName) {
+        <p class="mt-1 text-slate-600">{{ settings.universityName }}</p>
+      }
 
       <div class="mt-5 flex flex-wrap gap-3">
         @if (settings.registerUrl) {
