@@ -15,7 +15,7 @@ import { TextInput } from '../../../../shared/ui/text-input/text-input';
 import { ToastService } from '../../../../shared/ui/toast/toast.service';
 import { Toggle } from '../../../../shared/ui/toggle/toggle';
 import { AdminSyllabusesApi } from '../api/syllabuses.api';
-import { AdminSyllabus, SUBJECT_CATEGORY_OPTIONS, SaveSyllabusRequest } from '../types/syllabus.types';
+import { CategoryFile, AdminSyllabus, SUBJECT_CATEGORY_OPTIONS, SaveSyllabusRequest } from '../types/syllabus.types';
 
 const BUDDHIST_ERA_OFFSET = 543;
 
@@ -48,6 +48,9 @@ export class SyllabusEdit implements OnInit, HasUnsavedChanges {
     degreeEN: ['', Validators.maxLength(200)],
     totalCredits: [null as number | null, [Validators.min(0), Validators.max(400)]],
     pdfFileId: [null as string | null],
+    categoryPdf0: [null as string | null],
+    categoryPdf1: [null as string | null],
+    categoryPdf2: [null as string | null],
     isCurrent: [false],
     isPublished: [false],
     objectives: this.objectives,
@@ -136,6 +139,9 @@ export class SyllabusEdit implements OnInit, HasUnsavedChanges {
         degreeEN: '',
         totalCredits: null,
         pdfFileId: null,
+        categoryPdf0: null,
+        categoryPdf1: null,
+        categoryPdf2: null,
         isCurrent: false,
         isPublished: false,
         objectives: [],
@@ -249,6 +255,9 @@ export class SyllabusEdit implements OnInit, HasUnsavedChanges {
       degreeEN: syllabus.degreeEN ?? '',
       totalCredits: syllabus.totalCredits,
       pdfFileId: syllabus.pdfFileId,
+      categoryPdf0: this.categoryFileId(syllabus, 0),
+      categoryPdf1: this.categoryFileId(syllabus, 1),
+      categoryPdf2: this.categoryFileId(syllabus, 2),
       isCurrent: syllabus.isCurrent,
       isPublished: syllabus.isPublished,
     });
@@ -265,6 +274,7 @@ export class SyllabusEdit implements OnInit, HasUnsavedChanges {
       degreeEN: this.emptyToNull(value.degreeEN),
       totalCredits: value.totalCredits,
       pdfFileId: value.pdfFileId,
+      categoryFiles: this.buildCategoryFiles(value),
       isCurrent: value.isCurrent ?? false,
       isPublished: value.isPublished ?? false,
       objectives: this.objectives.getRawValue().map((text) => (text ?? '').trim()),
@@ -276,6 +286,20 @@ export class SyllabusEdit implements OnInit, HasUnsavedChanges {
         subjectCategory: Number(subject['subjectCategory'] ?? 0),
       })),
     };
+  }
+
+  private categoryFileId(syllabus: AdminSyllabus, category: number): string | null {
+    return syllabus.categoryFiles?.find((file) => file.subjectCategory === category)?.fileId ?? null;
+  }
+
+  // One PDF slot per category in the form (categoryPdf0..2); only the filled ones are sent.
+  private buildCategoryFiles(value: { categoryPdf0: string | null; categoryPdf1: string | null; categoryPdf2: string | null }): CategoryFile[] {
+    const slots: [number, string | null][] = [
+      [0, value.categoryPdf0],
+      [1, value.categoryPdf1],
+      [2, value.categoryPdf2],
+    ];
+    return slots.filter((slot): slot is [number, string] => slot[1] !== null).map(([subjectCategory, fileId]) => ({ subjectCategory, fileId }));
   }
 
   private emptyToNull(text: string | null | undefined): string | null {

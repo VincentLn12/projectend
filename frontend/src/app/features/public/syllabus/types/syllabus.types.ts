@@ -27,10 +27,16 @@ export interface Subject {
   subjectCategory: number;
 }
 
+export interface CategoryFile {
+  subjectCategory: number;
+  fileId: string;
+}
+
 export interface SyllabusDetail extends SyllabusListItem {
   objectives: string[];
   occupations: string[];
   subjects: Subject[];
+  categoryFiles: CategoryFile[];
 }
 
 export interface SubjectGroup {
@@ -38,4 +44,5 @@ export interface SubjectGroup {
   label: string;
   subjects: Subject[];
   totalCredits: number;
+  pdfUrl: string | null;
 }

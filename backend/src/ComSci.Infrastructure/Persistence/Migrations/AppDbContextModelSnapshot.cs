@@ -1287,6 +1287,31 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.ToTable("Syllabuses");
                 });
 
+            modelBuilder.Entity("ComSci.Domain.Entities.SyllabusCategoryFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte>("SubjectCategory")
+                        .HasColumnType("tinyint");
+
+                    b.Property<Guid>("SyllabusId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileId");
+
+                    b.HasIndex("SyllabusId", "SubjectCategory")
+                        .IsUnique();
+
+                    b.ToTable("SyllabusCategoryFiles");
+                });
+
             modelBuilder.Entity("ComSci.Domain.Entities.SyllabusObjective", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1341,9 +1366,6 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("FooterText")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
                     b.Property<string>("AboutDescription")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
@@ -1351,6 +1373,10 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.Property<string>("AboutTitle")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("FooterText")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("KruUrl")
                         .HasMaxLength(500)
@@ -1925,6 +1951,25 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.Navigation("PdfFile");
                 });
 
+            modelBuilder.Entity("ComSci.Domain.Entities.SyllabusCategoryFile", b =>
+                {
+                    b.HasOne("ComSci.Domain.Entities.FileRecord", "File")
+                        .WithMany()
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ComSci.Domain.Entities.Syllabus", "Syllabus")
+                        .WithMany("CategoryFiles")
+                        .HasForeignKey("SyllabusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("File");
+
+                    b.Navigation("Syllabus");
+                });
+
             modelBuilder.Entity("ComSci.Domain.Entities.SyllabusObjective", b =>
                 {
                     b.HasOne("ComSci.Domain.Entities.Syllabus", "Syllabus")
@@ -2074,6 +2119,8 @@ namespace ComSci.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ComSci.Domain.Entities.Syllabus", b =>
                 {
+                    b.Navigation("CategoryFiles");
+
                     b.Navigation("Objectives");
 
                     b.Navigation("Occupations");

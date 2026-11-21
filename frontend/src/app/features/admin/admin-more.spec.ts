@@ -164,3 +164,43 @@ describe('SyllabusEdit', () => {
     http.expectNone('/api/admin/syllabuses');
   });
 });
+
+describe('SyllabusEdit category PDFs', () => {
+  const FILE_SPECIFIC = '11111111-1111-1111-1111-111111111111';
+  const FILE_FREE = '22222222-2222-2222-2222-222222222222';
+
+  it('sends one PDF per category that has a file, and none for empty slots', () => {
+    const { http, page } = open(SyllabusEdit);
+    page.form.patchValue({ nameTH: 'หลักสูตร', year: 2569, categoryPdf1: FILE_SPECIFIC, categoryPdf2: FILE_FREE });
+    page.save();
+
+    const request = http.expectOne('/api/admin/syllabuses');
+    expect(request.request.body.categoryFiles).toEqual([
+      { subjectCategory: 1, fileId: FILE_SPECIFIC },
+      { subjectCategory: 2, fileId: FILE_FREE },
+    ]);
+    request.flush({});
+  });
+
+  it('sends an empty list when no category has a PDF', () => {
+    const { http, page } = open(SyllabusEdit);
+    page.form.patchValue({ nameTH: 'หลักสูตร', year: 2569 });
+    page.save();
+
+    const request = http.expectOne('/api/admin/syllabuses');
+    expect(request.request.body.categoryFiles).toEqual([]);
+    request.flush({});
+  });
+
+  it('fills each slot from the saved category files when editing', () => {
+    const { http, page } = open(SyllabusEdit, { id: 's1' });
+    http.expectOne('/api/admin/syllabuses/s1').flush({
+      id: 's1', nameTH: 'หลักสูตร', nameEN: null, year: 2569, degreeTH: null, degreeEN: null, totalCredits: null,
+      pdfFileId: null, isCurrent: false, isPublished: false, objectives: [], occupations: [], subjects: [],
+      categoryFiles: [{ subjectCategory: 1, fileId: FILE_SPECIFIC }],
+    });
+
+    expect(page.form.get('categoryPdf1')?.value).toBe(FILE_SPECIFIC);
+    expect(page.form.get('categoryPdf0')?.value).toBeNull();
+  });
+});

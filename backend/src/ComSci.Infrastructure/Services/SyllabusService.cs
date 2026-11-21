@@ -155,6 +155,14 @@ public class SyllabusService : ISyllabusService
                         Credit = subject.Credit,
                         SubjectCategory = subject.SubjectCategory
                     })
+                    .ToList(),
+                CategoryFiles = syllabus.CategoryFiles
+                    .OrderBy(categoryFile => categoryFile.SubjectCategory)
+                    .Select(categoryFile => new CategoryFileDto
+                    {
+                        SubjectCategory = categoryFile.SubjectCategory,
+                        FileId = categoryFile.FileId
+                    })
                     .ToList()
             })
             .FirstOrDefaultAsync(cancellationToken);
@@ -188,6 +196,7 @@ public class SyllabusService : ISyllabusService
             .Include(item => item.Objectives)
             .Include(item => item.Occupations)
             .Include(item => item.Subjects)
+            .Include(item => item.CategoryFiles)
             .FirstOrDefaultAsync(item => item.Id == syllabusId, cancellationToken);
         if (syllabus == null)
         {
@@ -202,6 +211,7 @@ public class SyllabusService : ISyllabusService
         _dbContext.SyllabusObjectives.RemoveRange(syllabus.Objectives.ToList());
         _dbContext.SyllabusOccupations.RemoveRange(syllabus.Occupations.ToList());
         _dbContext.Subjects.RemoveRange(syllabus.Subjects.ToList());
+        _dbContext.SyllabusCategoryFiles.RemoveRange(syllabus.CategoryFiles.ToList());
         AddChildren(syllabus, request);
 
         await ClearCurrentOnOthersAsync(syllabus, cancellationToken);
@@ -263,6 +273,14 @@ public class SyllabusService : ISyllabusService
                         Credit = subject.Credit,
                         SubjectCategory = subject.SubjectCategory
                     })
+                    .ToList(),
+                CategoryFiles = syllabus.CategoryFiles
+                    .OrderBy(categoryFile => categoryFile.SubjectCategory)
+                    .Select(categoryFile => new CategoryFileDto
+                    {
+                        SubjectCategory = categoryFile.SubjectCategory,
+                        FileId = categoryFile.FileId
+                    })
                     .ToList()
             })
             .FirstOrDefaultAsync(cancellationToken);
@@ -298,8 +316,30 @@ public class SyllabusService : ISyllabusService
             }
         }
 
+        await ValidateCategoryFilesAsync(request.CategoryFiles, cancellationToken);
         ValidateSentences(request.Objectives, "Objective");
         ValidateSentences(request.Occupations, "Occupation");
+    }
+
+    private async Task ValidateCategoryFilesAsync(List<CategoryFileDto>? categoryFiles, CancellationToken cancellationToken)
+    {
+        if (categoryFiles == null || categoryFiles.Count == 0)
+        {
+            return;
+        }
+
+        bool hasDuplicateCategory = categoryFiles.Select(item => item.SubjectCategory).Distinct().Count() != categoryFiles.Count;
+        if (hasDuplicateCategory)
+        {
+            throw new BadRequestException("Each category can have only one PDF.");
+        }
+
+        List<Guid> fileIds = categoryFiles.Select(item => item.FileId).Distinct().ToList();
+        int existingCount = await _dbContext.Files.CountAsync(file => fileIds.Contains(file.Id), cancellationToken);
+        if (existingCount != fileIds.Count)
+        {
+            throw new BadRequestException("Category PDF file does not exist.");
+        }
     }
 
     private static void ValidateSentences(List<string>? sentences, string label)
@@ -359,6 +399,18 @@ public class SyllabusService : ISyllabusService
                 occupation.Sentence = request.Occupations[index].Trim();
                 occupation.SortOrder = index;
                 _dbContext.SyllabusOccupations.Add(occupation);
+            }
+        }
+
+        if (request.CategoryFiles != null)
+        {
+            foreach (CategoryFileDto input in request.CategoryFiles)
+            {
+                SyllabusCategoryFile categoryFile = new SyllabusCategoryFile();
+                categoryFile.SyllabusId = syllabus.Id;
+                categoryFile.SubjectCategory = input.SubjectCategory;
+                categoryFile.FileId = input.FileId;
+                _dbContext.SyllabusCategoryFiles.Add(categoryFile);
             }
         }
 

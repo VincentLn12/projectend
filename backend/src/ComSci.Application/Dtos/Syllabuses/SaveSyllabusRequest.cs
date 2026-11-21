@@ -23,4 +23,5 @@ public class SaveSyllabusRequest
     public List<string>? Objectives { get; set; }
     public List<string>? Occupations { get; set; }
     public List<SubjectInput>? Subjects { get; set; }
+    public List<CategoryFileDto>? CategoryFiles { get; set; }
 }

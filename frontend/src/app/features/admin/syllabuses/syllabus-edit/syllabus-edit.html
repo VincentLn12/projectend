@@ -385,6 +385,16 @@
           </div>
 
           <app-file-upload label="เอกสารหลักสูตร (PDF)" formControlName="pdfFileId" accept="pdf" />
+
+          <div class="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div>
+              <h3 class="font-semibold text-slate-900">เอกสาร PDF ของแต่ละหมวด</h3>
+              <p class="text-sm text-slate-600">ไม่บังคับ ถ้าอัปโหลด หัวหมวดในหน้าหลักสูตรจะมีปุ่ม “เปิด PDF”</p>
+            </div>
+            @for (option of categoryOptions; track option.value) {
+              <app-file-upload [label]="option.label" [formControlName]="'categoryPdf' + option.value" accept="pdf" />
+            }
+          </div>
         </div>
       </div>
 

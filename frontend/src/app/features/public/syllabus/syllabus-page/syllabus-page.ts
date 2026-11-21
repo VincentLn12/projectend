@@ -44,9 +44,15 @@ export class PublicSyllabus {
         label: SUBJECT_CATEGORY_LABELS[category] ?? `หมวดที่ ${category}`,
         subjects: inCategory,
         totalCredits: inCategory.reduce((sum, subject) => sum + subject.credit, 0),
+        pdfUrl: this.categoryPdfUrl(category),
       };
     });
   });
+
+  private categoryPdfUrl(category: number): string | null {
+    const file = this.syllabus()?.categoryFiles?.find((item) => item.subjectCategory === category);
+    return file ? this.filesApi.url(file.fileId) : null;
+  }
 
   protected readonly creditsInGroups = computed(() => this.groups().reduce((sum, group) => sum + group.totalCredits, 0));
 

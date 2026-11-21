@@ -21,6 +21,11 @@ export interface AdminSubject {
   subjectCategory: number;
 }
 
+export interface CategoryFile {
+  subjectCategory: number;
+  fileId: string;
+}
+
 export interface AdminSyllabus {
   id: string;
   nameTH: string;
@@ -35,6 +40,7 @@ export interface AdminSyllabus {
   objectives: string[];
   occupations: string[];
   subjects: AdminSubject[];
+  categoryFiles: CategoryFile[];
 }
 
 export interface SubjectInput {
@@ -57,4 +63,5 @@ export interface SaveSyllabusRequest {
   objectives: string[];
   occupations: string[];
   subjects: SubjectInput[];
+  categoryFiles: CategoryFile[];
 }

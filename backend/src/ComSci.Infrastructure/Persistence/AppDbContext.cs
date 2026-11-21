@@ -47,6 +47,7 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     public DbSet<Subject> Subjects { get; set; } = null!;
     public DbSet<SyllabusObjective> SyllabusObjectives { get; set; } = null!;
     public DbSet<SyllabusOccupation> SyllabusOccupations { get; set; } = null!;
+    public DbSet<SyllabusCategoryFile> SyllabusCategoryFiles { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

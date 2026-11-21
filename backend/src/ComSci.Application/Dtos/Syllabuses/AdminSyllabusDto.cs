@@ -17,4 +17,5 @@ public class AdminSyllabusDto
     public List<string> Objectives { get; set; } = new List<string>();
     public List<string> Occupations { get; set; } = new List<string>();
     public List<SubjectDto> Subjects { get; set; } = new List<SubjectDto>();
+    public List<CategoryFileDto> CategoryFiles { get; set; } = new List<CategoryFileDto>();
 }

@@ -17,4 +17,5 @@ public class Syllabus : AuditableEntity
     public ICollection<Subject> Subjects { get; set; } = new List<Subject>();
     public ICollection<SyllabusObjective> Objectives { get; set; } = new List<SyllabusObjective>();
     public ICollection<SyllabusOccupation> Occupations { get; set; } = new List<SyllabusOccupation>();
+    public ICollection<SyllabusCategoryFile> CategoryFiles { get; set; } = new List<SyllabusCategoryFile>();
 }

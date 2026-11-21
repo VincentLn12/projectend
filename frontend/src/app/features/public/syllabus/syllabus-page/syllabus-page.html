@@ -175,6 +175,15 @@
                         {{ group.label }}
                       </span>
                       <span class="flex shrink-0 items-center gap-2">
+                        @if (group.pdfUrl) {
+                          <a
+                            [href]="group.pdfUrl"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="whitespace-nowrap rounded-full bg-[#f7be33] px-3 py-0.5 text-base font-bold text-[#261a00] hover:bg-[#ffdf9f]"
+                            >เปิด PDF</a
+                          >
+                        }
                         <span class="whitespace-nowrap rounded-full bg-white px-3 py-0.5 text-base font-bold text-[#0f2854] ring-1 ring-[#0f2854]/20">{{ group.totalCredits }} หน่วยกิต</span>
                         <span class="text-lg transition-transform group-open:rotate-90" aria-hidden="true">›</span>
                       </span>
