@@ -9,6 +9,7 @@ import { DataState } from '../../../../shared/ui/data-state/data-state';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { TextArea } from '../../../../shared/ui/text-area/text-area';
 import { TextInput } from '../../../../shared/ui/text-input/text-input';
+import { Tabs, TabItem } from '../../../../shared/ui/tabs/tabs';
 import { Toggle } from '../../../../shared/ui/toggle/toggle';
 import { ToastService } from '../../../../shared/ui/toast/toast.service';
 import { AdminSettingsApi } from '../api/settings.api';
@@ -32,7 +33,7 @@ type QuickMenuItemGroup = FormGroup<{
 
 @Component({
   selector: 'app-settings-page',
-  imports: [ReactiveFormsModule, Button, DataState, FileUpload, TextArea, TextInput, Toggle],
+  imports: [ReactiveFormsModule, Button, DataState, FileUpload, TextArea, TextInput, Toggle, Tabs],
   templateUrl: './settings-page.html',
 })
 export class SettingsPage implements OnInit {
@@ -59,6 +60,13 @@ export class SettingsPage implements OnInit {
   protected get quickMenuItems(): FormArray<QuickMenuItemGroup> {
     return this.form.controls.quickMenuItems;
   }
+
+  protected readonly tabs: TabItem[] = [
+    { key: 'general', label: 'ข้อมูลทั่วไป' },
+    { key: 'home', label: 'หน้าแรก' },
+    { key: 'links', label: 'ลิงก์และสื่อ' },
+  ];
+  protected readonly activeTab = signal('general');
 
   private readonly loadedSettings = signal<SiteSettings | null>(null);
   private readonly formValue = toSignal(this.form.valueChanges.pipe(startWith(this.form.getRawValue())), {

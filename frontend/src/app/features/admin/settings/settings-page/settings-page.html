@@ -18,6 +18,9 @@
   <app-data-state [loading]="loading()" [error]="loadError()" (retry)="load()">
     <form [formGroup]="form" (ngSubmit)="save()" class="grid w-full items-start gap-6 lg:grid-cols-12">
       <div class="space-y-6 lg:col-span-8 xl:col-span-9">
+        <app-tabs [tabs]="tabs" [(value)]="activeTab" />
+
+        @if (activeTab() === 'general') {
         <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
           <h2 class="mb-4 border-b border-slate-100 pb-3 text-lg font-semibold text-slate-900">ข้อมูลทั่วไป</h2>
           <app-text-input label="ชื่อเว็บไซต์ (ชื่อสาขา)" hint="แสดงที่ navbar หน้าแรก และ footer" formControlName="webName" [maxLength]="200" />
@@ -34,7 +37,9 @@
             [maxLength]="500"
           />
         </div>
+        }
 
+        @if (activeTab() === 'home') {
         <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
           <h2 class="mb-4 border-b border-slate-100 pb-3 text-lg font-semibold text-slate-900">เกี่ยวกับสาขา</h2>
           <div class="grid gap-4">
@@ -88,7 +93,9 @@
             </ul>
           </div>
         </div>
+        }
 
+        @if (activeTab() === 'links') {
         <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
           <h2 class="mb-4 border-b border-slate-100 pb-3 text-lg font-semibold text-slate-900">ลิงก์ภายนอก</h2>
           <div class="grid gap-4">
@@ -125,6 +132,7 @@
             }
           </div>
         </div>
+        }
       </div>
 
       <aside class="space-y-4 lg:sticky lg:top-24 lg:col-span-4 xl:col-span-3">
