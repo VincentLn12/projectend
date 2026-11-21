@@ -2,10 +2,63 @@
 
 Kanchanaburi Rajabhat University Computer Science site: .NET 9 Web API (`backend/`) + Angular 21 (`frontend/`) + SQL Server.
 
+## Layout and commands
+
+```
+backend/src/ComSci.Domain          entities, enums (no dependencies)
+backend/src/ComSci.Application     DTOs, service abstractions, options, exceptions, constants
+backend/src/ComSci.Infrastructure  EF Core (SQL Server), identity, file storage, service implementations, DependencyInjection.cs
+backend/src/ComSci.Api             controllers, middleware, Program.cs
+backend/migration/                 one-off import from the old webcomcs site (see its README)
+frontend/                          Angular app; /api is proxied to http://localhost:5036 (proxy.conf.json)
+```
+
+Dependencies point inward: Api -> Infrastructure -> Application -> Domain.
+
+| Task | Command (folder) |
+|---|---|
+| Run API, Swagger at `http://localhost:5036/swagger` | `dotnet run` (`backend/src/ComSci.Api`) |
+| Apply migrations | `dotnet ef database update --project src/ComSci.Infrastructure --startup-project src/ComSci.Api` (`backend`) |
+| Run frontend | `npm start` (`frontend`) |
+| Frontend tests / build | `npm test`, `npm run build` (`frontend`) |
+
+Secrets (`Jwt:Key`, `Seed:AdminEmail`, `Seed:AdminPassword`) go in `dotnet user-secrets`, never in git.
+Uploads live in `Storage:RootPath` outside the app folder; the database references files by id.
+Server settings, rate limits and backup notes are in `backend/README.md`; UI component usage in `frontend/README.md`.
+Project docs are written in Thai; keep user-facing text Thai.
+
 ## Working agreements
 - Controllers stay thin; logic lives in services. Test the API through Swagger.
 - Write verbose, non-abbreviated code. Comments only where needed; none in entities.
 - Commit with git after finishing each step.
+
+## Backend: structure and conventions
+
+Adding a feature touches these places, in this order:
+1. Entity in `Domain/Entities` (inherit `AuditableEntity` for soft delete and audit fields) and its
+   `IEntityTypeConfiguration` in `Infrastructure/Persistence/Configurations` (mapping lives there, not in the entity).
+2. DTOs in `Application/Dtos/<Feature>` and the service interface in `Application/Abstractions`.
+3. Service implementation in `Infrastructure/Services` (registered in `DependencyInjection.cs`).
+4. Thin controller in `Api/Controllers`: public endpoints in `<Name>Controller`, admin endpoints in
+   `Controllers/Admin/Admin<Name>Controller` with `[Authorize(Roles = Roles.Admin)]`.
+5. Add a migration: `dotnet ef migrations add <Name> --project src/ComSci.Infrastructure --startup-project src/ComSci.Api` (in `backend`).
+
+Rules:
+1. Controllers only bind input, call one service method and return the result; take a `CancellationToken` on every action.
+2. Services signal errors by throwing `NotFoundException`, `BadRequestException` or `ConflictException`
+   (`Application/Exceptions`); `ApiExceptionHandler` turns them into ProblemDetails. Do not return error codes by hand.
+3. Never expose entities from the API; always map to DTOs. Lists return `PagedResult<T>` and take `PageQuery`.
+4. Deletes are soft (`IsDeleted`, handled by the global query filter and `AuditSaveChangesInterceptor`); do not hard-delete.
+5. Files go through `IFileService` / `IFileStorage` and `FileRules`; never write to disk or accept uploads directly in a controller.
+6. Roles come from `Constants/Roles.cs`; do not hard-code role strings.
+7. Validate input with DataAnnotations on the request DTO (`[Required]`, `[MaxLength]`, ...); business rules are checked in the
+   service and thrown as `BadRequestException`/`ConflictException`. Messages shown to users are Thai.
+8. Endpoints for students or other non-admin users must act only on the caller's own data: take the user from `ICurrentUser`,
+   never from an id in the request.
+9. Read queries use `AsNoTracking()` and project to DTOs with `Select`; load related data in the same query (no N+1 loops).
+10. Never edit a migration that is already committed; add a new one. The app never runs migrations itself.
+11. Secrets never go into `appsettings*.json` that is tracked by git (use user-secrets or environment variables).
+12. When a DTO changes, update the matching `*.types.ts` and `*.api.ts` in the frontend in the same commit.
 
 ## Frontend: always use the shared components
 
@@ -46,6 +99,16 @@ Rules:
 
 Run `npm test` (`ng test --watch=false`) in `frontend/` before each commit.
 
+## Frontend: Angular style
+
+1. Standalone components only; use `inject()`, signals, and the `@if` / `@for` control flow. New components use
+   `ChangeDetectionStrategy.OnPush`.
+2. Every page route in `app.routes.ts` is lazy (`loadComponent`); admin routes sit behind `adminGuard`, signed-in routes behind `authGuard`.
+3. All text visitors see is Thai. Colors and spacing come from the Tailwind theme tokens, not hex values in templates.
+4. Pages must work at phone width (375px) as well as desktop.
+5. Never bind API text with `[innerHTML]` unless it goes through Angular's sanitizer; old migrated data may contain HTML.
+
+
 ## Frontend: api and types live inside each feature's own folder
 
 Every feature owns its HTTP calls and its types, so each can be found and changed without touching others:
@@ -66,3 +129,8 @@ Rules:
    nearest shared folder (`core/<name>/types/` or `shared/data/types/`).
 3. A feature does not import another feature's `api/` or `types/`; share through `core/` or `shared/`.
 4. File names: `<name>.api.ts`, `<name>.types.ts`.
+
+## Git
+
+- Never commit `bin/`, `obj/`, `dist/`, `node_modules/` or `backend/src/ComSci.Api/uploads/` (already in `.gitignore`).
+- One commit per finished step; the message says what changed in plain English (for example "Add job history admin page").

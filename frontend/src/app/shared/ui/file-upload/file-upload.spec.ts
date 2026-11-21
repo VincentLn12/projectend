@@ -94,7 +94,7 @@ describe('FileUpload', () => {
     await choose(1, makeFile('a.jpg', 'image/jpeg'), makeFile('b.pdf', 'application/pdf'));
 
     expect(fixture.componentInstance.gallery.value).toEqual(['id-1', 'id-2']);
-    expect(fixture.nativeElement.textContent).toContain('รูปหลัก');
+    expect(fixture.nativeElement.textContent).toContain('รูปปก');
     // the PDF shows its name as a link, not as a picture
     expect(fixture.nativeElement.textContent).toContain('b.pdf');
 
@@ -106,7 +106,7 @@ describe('FileUpload', () => {
     await choose(1, makeFile('a.jpg', 'image/jpeg'), makeFile('b.jpg', 'image/jpeg'), makeFile('c.jpg', 'image/jpeg'));
     const buttons = () => Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
 
-    buttons().filter((b) => b.textContent?.includes('ทำเป็นรูปหลัก'))[1].click(); // the third picture
+    buttons().filter((b) => b.textContent?.includes('ตั้งเป็นรูปปก'))[1].click(); // the third picture
     fixture.detectChanges();
     expect(fixture.componentInstance.gallery.value).toEqual(['id-3', 'id-1', 'id-2']);
 

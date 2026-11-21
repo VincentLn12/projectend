@@ -142,5 +142,23 @@ describe('admin news', () => {
       expect(page.form.get('title')?.errors).toEqual({ server: 'หัวข้อซ้ำ' });
       expect(page.formError()).toBeNull();
     });
+
+    it('computes live body stats and resets unsaved edits', () => {
+      const fixture = TestBed.createComponent(NewsEdit);
+      fixture.detectChanges();
+      const page = fixture.componentInstance as unknown as {
+        form: import('@angular/forms').FormGroup;
+        bodyStats(): { characters: number; paragraphs: number; readingMinutes: number };
+        resetForm(): void;
+      };
+
+      page.form.patchValue({ title: 'แก้ไข', body: 'ย่อหน้าแรก\n\nย่อหน้าที่สอง' });
+      expect(page.bodyStats().paragraphs).toBe(2);
+      expect(page.bodyStats().characters).toBeGreaterThan(0);
+
+      page.resetForm();
+      expect(page.form.getRawValue().title).toBe('');
+      expect(page.bodyStats().characters).toBe(0);
+    });
   });
 });

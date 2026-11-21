@@ -29,6 +29,7 @@ export class FileUpload extends FormControlBase<string | string[]> {
 
   protected readonly uploadingCount = signal(0);
   protected readonly uploadError = signal<string | null>(null);
+  protected readonly isDragging = signal(false);
 
   // What we learned about files uploaded in this session. Files that were already saved earlier are known only by id.
   private readonly uploaded = signal<Record<string, FileDto>>({});
@@ -72,10 +73,71 @@ export class FileUpload extends FormControlBase<string | string[]> {
     this.brokenPreviews.update((set) => new Set(set).add(id));
   }
 
+  protected onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!this.isDisabled() && this.uploadingCount() === 0) {
+      this.isDragging.set(true);
+    }
+  }
+
+  protected onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging.set(false);
+  }
+
+  protected async onDrop(event: DragEvent): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging.set(false);
+    if (this.isDisabled() || this.uploadingCount() > 0) {
+      return;
+    }
+    const files = Array.from(event.dataTransfer?.files ?? []);
+    await this.processFiles(files);
+  }
+
   protected async onFilesChosen(event: Event): Promise<void> {
     const picker = event.target as HTMLInputElement;
     const files = Array.from(picker.files ?? []);
     picker.value = ''; // so choosing the same file again still fires an event
+    await this.processFiles(files);
+  }
+
+  protected remove(id: string): void {
+    this.emit(this.ids().filter((existing) => existing !== id));
+    this.markTouched();
+  }
+
+  protected clearAll(): void {
+    this.emit([]);
+    this.markTouched();
+  }
+
+  protected makeMain(id: string): void {
+    this.emit([id, ...this.ids().filter((existing) => existing !== id)]);
+  }
+
+  protected moveLeft(index: number): void {
+    const current = [...this.ids()];
+    if (index <= 0 || index >= current.length) {
+      return;
+    }
+    [current[index - 1], current[index]] = [current[index], current[index - 1]];
+    this.emit(current);
+  }
+
+  protected moveRight(index: number): void {
+    const current = [...this.ids()];
+    if (index < 0 || index >= current.length - 1) {
+      return;
+    }
+    [current[index], current[index + 1]] = [current[index + 1], current[index]];
+    this.emit(current);
+  }
+
+  private async processFiles(files: File[]): Promise<void> {
     this.markTouched();
 
     if (files.length === 0) {
@@ -122,15 +184,6 @@ export class FileUpload extends FormControlBase<string | string[]> {
       return next;
     });
     this.emit(this.multiple() ? [...this.ids(), ...saved.map((file) => file.id)] : [saved[0].id]);
-  }
-
-  protected remove(id: string): void {
-    this.emit(this.ids().filter((existing) => existing !== id));
-    this.markTouched();
-  }
-
-  protected makeMain(id: string): void {
-    this.emit([id, ...this.ids().filter((existing) => existing !== id)]);
   }
 
   private emit(ids: string[]): void {
