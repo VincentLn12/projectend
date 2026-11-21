@@ -141,11 +141,6 @@
           <app-file-upload formControlName="logoFileId" accept="image" />
         </div>
 
-        <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90">
-          <h2 class="mb-4 border-b border-slate-100 pb-3 text-lg font-semibold text-slate-900">พื้นหลังเมนูลัด</h2>
-          <app-file-upload formControlName="quickMenuBackgroundFileId" accept="image" />
-        </div>
-
         <div class="space-y-3 rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90">
           @if (formError(); as message) {
             <p role="alert" class="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700 ring-1 ring-red-200">{{ message }}</p>
