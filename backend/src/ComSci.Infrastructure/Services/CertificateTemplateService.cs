@@ -1,6 +1,7 @@
 using ComSci.Application.Abstractions;
 using ComSci.Application.Dtos.CertificateTemplates;
 using ComSci.Application.Exceptions;
+using ComSci.Application.Helpers;
 using ComSci.Domain.Entities;
 using ComSci.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -10,10 +11,12 @@ namespace ComSci.Infrastructure.Services;
 public class CertificateTemplateService : ICertificateTemplateService
 {
     private readonly AppDbContext _dbContext;
+    private readonly CertificateTemplateRenderer _renderer;
 
-    public CertificateTemplateService(AppDbContext dbContext)
+    public CertificateTemplateService(AppDbContext dbContext, CertificateTemplateRenderer renderer)
     {
         _dbContext = dbContext;
+        _renderer = renderer;
     }
 
     public async Task<List<CertificateTemplateDto>> GetAllAsync(CancellationToken cancellationToken)
@@ -70,6 +73,21 @@ public class CertificateTemplateService : ICertificateTemplateService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<byte[]> CreatePreviewAsync(SaveCertificateTemplateRequest request, CancellationToken cancellationToken)
+    {
+        await ValidateAsync(request, cancellationToken);
+
+        CertificateLayoutDto layout = new CertificateLayoutDto();
+        layout.PageSize = request.PageSize;
+        layout.Landscape = request.Landscape;
+        layout.BackgroundFileId = request.BackgroundFileId;
+        layout.Elements = request.Elements;
+
+        List<IReadOnlyDictionary<string, string>> variableSets = new List<IReadOnlyDictionary<string, string>>();
+        variableSets.Add(CertificateVariables.Sample());
+        return await _renderer.RenderAsync(layout, variableSets, cancellationToken);
+    }
+
     private async Task<CertificateTemplate> LoadAsync(Guid templateId, CancellationToken cancellationToken)
     {
         CertificateTemplate? template = await _dbContext.CertificateTemplates
@@ -85,8 +103,19 @@ public class CertificateTemplateService : ICertificateTemplateService
     private async Task ValidateAsync(SaveCertificateTemplateRequest request, CancellationToken cancellationToken)
     {
         await EnsureImageFileAsync(request.BackgroundFileId, "ภาพพื้นหลัง", cancellationToken);
-        await EnsureImageFileAsync(request.SignatureFileId, "ภาพลายเซ็นคนที่ 1", cancellationToken);
-        await EnsureImageFileAsync(request.SecondSignatureFileId, "ภาพลายเซ็นคนที่ 2", cancellationToken);
+
+        foreach (CertificateElementDto element in request.Elements)
+        {
+            if (element.Type == "image")
+            {
+                if (!element.ImageFileId.HasValue)
+                {
+                    throw new BadRequestException("องค์ประกอบรูปภาพต้องเลือกไฟล์รูป");
+                }
+
+                await EnsureImageFileAsync(element.ImageFileId, "รูปภาพในแม่แบบ", cancellationToken);
+            }
+        }
     }
 
     private async Task EnsureImageFileAsync(Guid? fileId, string label, CancellationToken cancellationToken)
@@ -113,13 +142,10 @@ public class CertificateTemplateService : ICertificateTemplateService
     private static void CopyRequestToTemplate(SaveCertificateTemplateRequest request, CertificateTemplate template)
     {
         template.Name = request.Name.Trim();
-        template.SignerName = request.SignerName.Trim();
-        template.SignerPosition = request.SignerPosition.Trim();
-        template.SecondSignerName = string.IsNullOrWhiteSpace(request.SecondSignerName) ? null : request.SecondSignerName.Trim();
-        template.SecondSignerPosition = string.IsNullOrWhiteSpace(request.SecondSignerPosition) ? null : request.SecondSignerPosition.Trim();
+        template.PageSize = request.PageSize;
+        template.Landscape = request.Landscape;
         template.BackgroundFileId = request.BackgroundFileId;
-        template.SignatureFileId = request.SignatureFileId;
-        template.SecondSignatureFileId = request.SecondSignatureFileId;
+        template.ElementsJson = CertificateLayoutDefaults.SerializeElements(request.Elements);
     }
 
     private static CertificateTemplateDto MapToDto(CertificateTemplate template)
@@ -127,13 +153,10 @@ public class CertificateTemplateService : ICertificateTemplateService
         CertificateTemplateDto dto = new CertificateTemplateDto();
         dto.Id = template.Id;
         dto.Name = template.Name;
-        dto.SignerName = template.SignerName;
-        dto.SignerPosition = template.SignerPosition;
-        dto.SecondSignerName = template.SecondSignerName;
-        dto.SecondSignerPosition = template.SecondSignerPosition;
+        dto.PageSize = template.PageSize;
+        dto.Landscape = template.Landscape;
         dto.BackgroundFileId = template.BackgroundFileId;
-        dto.SignatureFileId = template.SignatureFileId;
-        dto.SecondSignatureFileId = template.SecondSignatureFileId;
+        dto.Elements = CertificateLayoutDefaults.ElementsOf(template);
         return dto;
     }
 }

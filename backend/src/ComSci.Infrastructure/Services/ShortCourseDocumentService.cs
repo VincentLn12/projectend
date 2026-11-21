@@ -1,5 +1,6 @@
 using System.Reflection;
 using ComSci.Application.Abstractions;
+using ComSci.Application.Dtos.CertificateTemplates;
 using ComSci.Application.Dtos.ShortCourses;
 using ComSci.Application.Exceptions;
 using ComSci.Application.Helpers;
@@ -18,19 +19,14 @@ public class ShortCourseDocumentService : IShortCourseDocumentService
 {
     private const string FontFamily = "TH Sarabun New";
     private const string RegistrationNotFoundMessage = "ไม่พบข้อมูลการสมัคร กรุณาตรวจสอบเบอร์โทรอีกครั้ง";
-    private const float SignatureHeight = 56;
-    private const string IssuerLine = "สาขาวิชาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยราชภัฏกาญจนบุรี";
-
-    private static readonly object FontLock = new object();
-    private static bool _fontsRegistered;
 
     private readonly AppDbContext _dbContext;
-    private readonly IFileStorage _fileStorage;
+    private readonly CertificateTemplateRenderer _certificateRenderer;
 
-    public ShortCourseDocumentService(AppDbContext dbContext, IFileStorage fileStorage)
+    public ShortCourseDocumentService(AppDbContext dbContext, CertificateTemplateRenderer certificateRenderer)
     {
         _dbContext = dbContext;
-        _fileStorage = fileStorage;
+        _certificateRenderer = certificateRenderer;
     }
 
     public async Task<byte[]> CreateSignInSheetAsync(Guid shortCourseId, CancellationToken cancellationToken)
@@ -194,73 +190,19 @@ public class ShortCourseDocumentService : IShortCourseDocumentService
     private async Task<byte[]> BuildCertificatesAsync(ShortCourse shortCourse, List<string> names, CancellationToken cancellationToken)
     {
         CertificateTemplate? template = await FindTemplateAsync(shortCourse, cancellationToken);
+        CertificateLayoutDto layout = CertificateLayoutDefaults.ResolveLayout(template);
 
-        byte[]? background = template == null ? null : await LoadFileBytesAsync(template.BackgroundFile, cancellationToken);
-        byte[]? signature = template == null ? null : await LoadFileBytesAsync(template.SignatureFile, cancellationToken);
-        byte[]? secondSignature = template == null ? null : await LoadFileBytesAsync(template.SecondSignatureFile, cancellationToken);
+        List<IReadOnlyDictionary<string, string>> variableSets = names
+            .Select(name => CertificateVariables.ForCourse(shortCourse, name))
+            .ToList();
 
-        string dateText = ThaiDateFormatter.FormatRange(shortCourse.StartDate, shortCourse.EndDate);
-        string hoursText = shortCourse.Hours.HasValue ? " จำนวน " + shortCourse.Hours.Value + " ชั่วโมง" : string.Empty;
-
-        PrepareQuestPdf();
-
-        Document document = Document.Create(container =>
-        {
-            foreach (string name in names)
-            {
-                container.Page(page =>
-                {
-                    page.Size(PageSizes.A4.Landscape());
-                    page.Margin(0);
-                    page.DefaultTextStyle(style => style.FontFamily(FontFamily).FontSize(24));
-
-                    if (background != null)
-                    {
-                        page.Background().Image(background).FitArea();
-                    }
-                    else
-                    {
-                        page.Background().Padding(24).Border(3).BorderColor("#0f2854");
-                    }
-
-                    page.Content().PaddingHorizontal(70).PaddingVertical(50).Column(column =>
-                    {
-                        column.Spacing(6);
-                        column.Item().AlignCenter().Text(IssuerLine).FontSize(24).SemiBold();
-                        column.Item().AlignCenter().Text("เกียรติบัตร").FontSize(50).Bold().FontColor("#0f2854");
-                        column.Item().AlignCenter().Text("ขอมอบเกียรติบัตรฉบับนี้ให้ไว้เพื่อแสดงว่า").FontSize(26);
-                        column.Item().AlignCenter().Text(name).FontSize(38).Bold().FontColor("#1c5bb8");
-                        column.Item().AlignCenter().Text("ได้เข้าร่วมการอบรมหลักสูตร").FontSize(26);
-                        column.Item().AlignCenter().Text(shortCourse.Title).FontSize(30).Bold();
-                        column.Item().AlignCenter().Text("เมื่อวันที่ " + dateText + hoursText).FontSize(24);
-                        column.Item().Height(8);
-                        if (template != null)
-                        {
-                            column.Item().Row(row =>
-                            {
-                                AddSigner(row, signature, template.SignerName, template.SignerPosition);
-                                if (!string.IsNullOrWhiteSpace(template.SecondSignerName))
-                                {
-                                    AddSigner(row, secondSignature, template.SecondSignerName, template.SecondSignerPosition);
-                                }
-                            });
-                        }
-                    });
-                });
-            }
-        });
-
-        return document.GeneratePdf();
+        return await _certificateRenderer.RenderAsync(layout, variableSets, cancellationToken);
     }
 
     // ใช้แม่แบบของหลักสูตร ถ้ายังไม่ได้เลือกใช้แม่แบบล่าสุดที่สร้างไว้ ถ้ายังไม่มีเลยจะออกเกียรติบัตรแบบกรอบเรียบไม่มีผู้ลงนาม
     private async Task<CertificateTemplate?> FindTemplateAsync(ShortCourse shortCourse, CancellationToken cancellationToken)
     {
-        IQueryable<CertificateTemplate> templates = _dbContext.CertificateTemplates
-            .AsNoTracking()
-            .Include(item => item.BackgroundFile)
-            .Include(item => item.SignatureFile)
-            .Include(item => item.SecondSignatureFile);
+        IQueryable<CertificateTemplate> templates = _dbContext.CertificateTemplates.AsNoTracking();
 
         if (shortCourse.CertificateTemplateId.HasValue)
         {
@@ -275,44 +217,6 @@ public class ShortCourseDocumentService : IShortCourseDocumentService
         return await templates
             .OrderByDescending(item => item.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
-    }
-
-    private static void AddSigner(RowDescriptor row, byte[]? signature, string? signerName, string? signerPosition)
-    {
-        row.RelativeItem().Column(column =>
-        {
-            column.Item().Height(SignatureHeight).AlignCenter().AlignBottom().Element(container =>
-            {
-                if (signature != null)
-                {
-                    container.Image(signature).FitArea();
-                }
-            });
-            column.Item().AlignCenter().Text("(" + signerName + ")").FontSize(20).Bold();
-            column.Item().AlignCenter().Text(signerPosition ?? string.Empty).FontSize(18);
-        });
-    }
-
-    private async Task<byte[]?> LoadFileBytesAsync(FileRecord? file, CancellationToken cancellationToken)
-    {
-        if (file == null)
-        {
-            return null;
-        }
-
-        using (Stream? stream = _fileStorage.OpenRead(file.StoragePath))
-        {
-            if (stream == null)
-            {
-                return null;
-            }
-
-            using (MemoryStream buffer = new MemoryStream())
-            {
-                await stream.CopyToAsync(buffer, cancellationToken);
-                return buffer.ToArray();
-            }
-        }
     }
 
     private static string BuildFullName(ShortCourseRegistration registration)
@@ -333,31 +237,6 @@ public class ShortCourseDocumentService : IShortCourseDocumentService
 
     private static void PrepareQuestPdf()
     {
-        lock (FontLock)
-        {
-            if (_fontsRegistered)
-            {
-                return;
-            }
-
-            QuestPDF.Settings.License = LicenseType.Community;
-
-            Assembly assembly = typeof(ShortCourseDocumentService).Assembly;
-            string[] fontResourceNames = assembly.GetManifestResourceNames()
-                .Where(resourceName => resourceName.EndsWith(".ttf", StringComparison.OrdinalIgnoreCase))
-                .ToArray();
-            foreach (string resourceName in fontResourceNames)
-            {
-                using (Stream? fontStream = assembly.GetManifestResourceStream(resourceName))
-                {
-                    if (fontStream != null)
-                    {
-                        FontManager.RegisterFont(fontStream);
-                    }
-                }
-            }
-
-            _fontsRegistered = true;
-        }
+        CertificateTemplateRenderer.PrepareQuestPdf();
     }
 }

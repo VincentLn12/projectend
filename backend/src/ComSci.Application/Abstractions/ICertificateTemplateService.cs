@@ -13,4 +13,6 @@ public interface ICertificateTemplateService
     Task<CertificateTemplateDto> UpdateAsync(Guid templateId, SaveCertificateTemplateRequest request, CancellationToken cancellationToken);
 
     Task DeleteAsync(Guid templateId, CancellationToken cancellationToken);
+
+    Task<byte[]> CreatePreviewAsync(SaveCertificateTemplateRequest request, CancellationToken cancellationToken);
 }

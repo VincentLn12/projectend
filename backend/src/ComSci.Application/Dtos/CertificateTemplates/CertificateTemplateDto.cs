@@ -4,11 +4,8 @@ public class CertificateTemplateDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public string SignerName { get; set; } = string.Empty;
-    public string SignerPosition { get; set; } = string.Empty;
-    public string? SecondSignerName { get; set; }
-    public string? SecondSignerPosition { get; set; }
+    public string PageSize { get; set; } = "A4";
+    public bool Landscape { get; set; } = true;
     public Guid? BackgroundFileId { get; set; }
-    public Guid? SignatureFileId { get; set; }
-    public Guid? SecondSignatureFileId { get; set; }
+    public List<CertificateElementDto> Elements { get; set; } = new List<CertificateElementDto>();
 }

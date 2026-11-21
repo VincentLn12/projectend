@@ -11,6 +11,9 @@ public class CertificateTemplateConfiguration : IEntityTypeConfiguration<Certifi
         builder.Property(template => template.Name)
             .HasMaxLength(200);
 
+        builder.Property(template => template.PageSize)
+            .HasMaxLength(10);
+
         builder.Property(template => template.SignerName)
             .HasMaxLength(200);
 

@@ -25,6 +25,13 @@ public class AdminCertificateTemplatesController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("preview")]
+    public async Task<IActionResult> Preview(SaveCertificateTemplateRequest request, CancellationToken cancellationToken)
+    {
+        byte[] pdf = await _templateService.CreatePreviewAsync(request, cancellationToken);
+        return File(pdf, "application/pdf", "certificate-preview.pdf");
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<CertificateTemplateDto>> GetById(Guid id, CancellationToken cancellationToken)
     {

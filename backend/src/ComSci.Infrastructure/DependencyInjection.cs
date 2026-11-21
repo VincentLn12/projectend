@@ -69,6 +69,7 @@ public static class DependencyInjection
         services.AddScoped<IShortCourseService, ShortCourseService>();
         services.AddScoped<IShortCourseRegistrationService, ShortCourseRegistrationService>();
         services.AddScoped<IShortCourseDocumentService, ShortCourseDocumentService>();
+        services.AddScoped<CertificateTemplateRenderer>();
         services.AddScoped<ICertificateTemplateService, CertificateTemplateService>();
         services.AddScoped<IHomeBannerService, HomeBannerService>();
         services.AddScoped<IMenuService, MenuService>();

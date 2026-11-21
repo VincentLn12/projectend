@@ -5,6 +5,9 @@ namespace ComSci.Domain.Entities;
 public class CertificateTemplate : AuditableEntity
 {
     public string Name { get; set; } = string.Empty;
+    public string PageSize { get; set; } = "A4";
+    public bool Landscape { get; set; } = true;
+    public string? ElementsJson { get; set; }
     public string SignerName { get; set; } = string.Empty;
     public string SignerPosition { get; set; } = string.Empty;
     public string? SecondSignerName { get; set; }
