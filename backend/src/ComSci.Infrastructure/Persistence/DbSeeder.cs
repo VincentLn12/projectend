@@ -26,6 +26,7 @@ public static class DbSeeder
             await SeedRolesAsync(roleManager);
             await SeedAdminAsync(userManager, configuration, logger);
             await SeedSystemSettingAsync(dbContext);
+            await MenuDefaults.SeedIfEmptyAsync(dbContext);
         }
     }
 

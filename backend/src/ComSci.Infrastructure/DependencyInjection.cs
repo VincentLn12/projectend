@@ -66,6 +66,7 @@ public static class DependencyInjection
         services.AddScoped<ICourseService, CourseService>();
         services.AddScoped<IRegistrationService, RegistrationService>();
         services.AddScoped<IHomeBannerService, HomeBannerService>();
+        services.AddScoped<IMenuService, MenuService>();
         services.AddScoped<ITechSubjectService, TechSubjectService>();
         services.AddScoped<ISystemSettingService, SystemSettingService>();
         services.AddScoped<IJobHistoryService, JobHistoryService>();

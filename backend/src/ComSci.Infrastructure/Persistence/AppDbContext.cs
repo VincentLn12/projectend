@@ -23,6 +23,7 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     public DbSet<News> News { get; set; } = null!;
     public DbSet<NewsFile> NewsFiles { get; set; } = null!;
     public DbSet<HomeBanner> HomeBanners { get; set; } = null!;
+    public DbSet<MenuItem> MenuItems { get; set; } = null!;
     public DbSet<TechSubject> TechSubjects { get; set; } = null!;
     public DbSet<TechSubjectFile> TechSubjectFiles { get; set; } = null!;
     public DbSet<SystemSetting> SystemSettings { get; set; } = null!;

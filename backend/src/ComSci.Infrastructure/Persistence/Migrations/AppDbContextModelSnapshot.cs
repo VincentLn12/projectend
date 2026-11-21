@@ -596,6 +596,58 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.ToTable("Lecturers");
                 });
 
+            modelBuilder.Entity("ComSci.Domain.Entities.MenuItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("OpenInNewTab")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Target")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId", "SortOrder");
+
+                    b.ToTable("MenuItems");
+                });
+
             modelBuilder.Entity("ComSci.Domain.Entities.News", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1326,6 +1378,16 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.Navigation("ImageFile");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ComSci.Domain.Entities.MenuItem", b =>
+                {
+                    b.HasOne("ComSci.Domain.Entities.MenuItem", "Parent")
+                        .WithMany()
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Parent");
                 });
 
             modelBuilder.Entity("ComSci.Domain.Entities.News", b =>
