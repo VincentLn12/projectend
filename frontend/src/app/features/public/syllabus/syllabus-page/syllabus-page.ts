@@ -6,10 +6,16 @@ import { describeHttpError } from '../../../../shared/forms/server-errors';
 import { Button } from '../../../../shared/ui/button/button';
 import { DataState } from '../../../../shared/ui/data-state/data-state';
 import { SyllabusApi } from '../api/syllabus.api';
-import { SUBJECT_CATEGORY_LABELS, SubjectGroup, SyllabusDetail, SyllabusListItem } from '../types/syllabus.types';
+import { SUBJECT_CATEGORY_LABELS, SUBJECT_CATEGORY_ORDER, SubjectGroup, SyllabusDetail, SyllabusListItem } from '../types/syllabus.types';
 
 const GROUP_COLORS = ['bg-[#1c5bb8]', 'bg-[#f7be33]', 'bg-[#0f2854]'];
 const GROUP_STROKES = ['stroke-[#1c5bb8]', 'stroke-[#f7be33]', 'stroke-[#0f2854]'];
+
+// Categories not in the list go last, in number order.
+function displayPosition(category: number): number {
+  const position = SUBJECT_CATEGORY_ORDER.indexOf(category);
+  return position === -1 ? SUBJECT_CATEGORY_ORDER.length + category : position;
+}
 
 @Component({
   selector: 'app-public-syllabus',
@@ -30,7 +36,7 @@ export class PublicSyllabus {
 
   protected readonly groups = computed<SubjectGroup[]>(() => {
     const subjects = this.syllabus()?.subjects ?? [];
-    const categories = [...new Set(subjects.map((subject) => subject.subjectCategory))].sort((a, b) => a - b);
+    const categories = [...new Set(subjects.map((subject) => subject.subjectCategory))].sort((a, b) => displayPosition(a) - displayPosition(b));
     return categories.map((category) => {
       const inCategory = subjects.filter((subject) => subject.subjectCategory === category);
       return {

@@ -1,3 +1,6 @@
+// Order on the page: specialised subjects first, then general education, then free electives.
+export const SUBJECT_CATEGORY_ORDER = [1, 0, 2];
+
 export const SUBJECT_CATEGORY_LABELS: Record<number, string> = {
   0: 'หมวดวิชาศึกษาทั่วไป',
   1: 'หมวดวิชาเฉพาะ',
