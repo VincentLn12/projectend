@@ -25,7 +25,8 @@ export class CertificateTemplateList implements OnInit {
 
   protected readonly columns: TableColumn<CertificateTemplate>[] = [
     { key: 'name', header: 'ชื่อแม่แบบ' },
-    { key: 'signers', header: 'ผู้ลงนาม' },
+    { key: 'paper', header: 'กระดาษ' },
+    { key: 'elementCount', header: 'องค์ประกอบ', value: (row) => row.elements.length },
     { key: 'actions', header: '', align: 'right' },
   ];
 
@@ -50,8 +51,8 @@ export class CertificateTemplateList implements OnInit {
     });
   }
 
-  protected signersText(row: CertificateTemplate): string {
-    return row.secondSignerName ? `${row.signerName}, ${row.secondSignerName}` : row.signerName;
+  protected paperText(row: CertificateTemplate): string {
+    return `${row.pageSize} ${row.landscape ? 'แนวนอน' : 'แนวตั้ง'}`;
   }
 
   protected async askToDelete(row: CertificateTemplate): Promise<void> {

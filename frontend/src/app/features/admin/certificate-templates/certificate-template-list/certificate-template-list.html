@@ -19,7 +19,7 @@
     <ng-template appCell="name" let-row>
       <a [routerLink]="['/admin/certificate-templates', row.id]" class="font-medium text-slate-900 hover:underline">{{ row.name }}</a>
     </ng-template>
-    <ng-template appCell="signers" let-row>{{ signersText(row) }}</ng-template>
+    <ng-template appCell="paper" let-row>{{ paperText(row) }}</ng-template>
     <ng-template appCell="actions" let-row>
       <div class="flex flex-wrap justify-end gap-1.5">
         <a app-button size="sm" variant="secondary" [routerLink]="['/admin/certificate-templates', row.id]">แก้ไข</a>

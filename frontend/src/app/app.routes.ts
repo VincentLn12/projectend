@@ -97,8 +97,8 @@ export const routes: Routes = [
       { path: 'short-courses/:id', loadComponent: () => import('./features/admin/short-courses/short-course-edit/short-course-edit').then((m) => m.ShortCourseEdit) },
       { path: 'short-courses/:id/registrations', loadComponent: () => import('./features/admin/short-courses/short-course-registrations/short-course-registrations').then((m) => m.ShortCourseRegistrations) },
       { path: 'certificate-templates', loadComponent: () => import('./features/admin/certificate-templates/certificate-template-list/certificate-template-list').then((m) => m.CertificateTemplateList) },
-      { path: 'certificate-templates/new', loadComponent: () => import('./features/admin/certificate-templates/certificate-template-edit/certificate-template-edit').then((m) => m.CertificateTemplateEdit) },
-      { path: 'certificate-templates/:id', loadComponent: () => import('./features/admin/certificate-templates/certificate-template-edit/certificate-template-edit').then((m) => m.CertificateTemplateEdit) },
+      { path: 'certificate-templates/new', loadComponent: () => import('./features/admin/certificate-templates/certificate-template-edit/certificate-template-edit').then((m) => m.CertificateTemplateEdit), canDeactivate: [unsavedChangesGuard] },
+      { path: 'certificate-templates/:id', loadComponent: () => import('./features/admin/certificate-templates/certificate-template-edit/certificate-template-edit').then((m) => m.CertificateTemplateEdit), canDeactivate: [unsavedChangesGuard] },
     ],
   },
   {

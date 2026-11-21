@@ -1,37 +1,148 @@
-<section class="space-y-4">
-  <div class="flex items-baseline justify-between gap-3">
-    <h1 class="text-xl font-semibold text-slate-900">{{ isNew ? 'เพิ่มแม่แบบเกียรติบัตร' : 'แก้ไขแม่แบบเกียรติบัตร' }}</h1>
-    <a appBack="/admin/certificate-templates" href="/admin/certificate-templates" class="text-sm text-slate-600 underline hover:text-slate-900">← กลับไปรายการแม่แบบ</a>
-  </div>
+<section class="w-full space-y-6 pb-10">
+  <header class="relative overflow-hidden rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200/90 sm:p-6">
+    <div class="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-brand-900 via-brand-700 to-gold-400" aria-hidden="true"></div>
+    <div class="flex flex-wrap items-center justify-between gap-4 pt-1">
+      <div class="space-y-1">
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900">{{ isNew ? 'เพิ่มแม่แบบเกียรติบัตร' : 'แก้ไขแม่แบบเกียรติบัตร' }}</h1>
+        <p class="text-sm text-slate-600">ตำแหน่งและขนาดเป็นเปอร์เซ็นต์ของกระดาษ ภาพด้านขวาคือตัวอย่างสด</p>
+      </div>
+      <a appBack="/admin/certificate-templates" href="/admin/certificate-templates" app-button variant="secondary">กลับไปรายการแม่แบบ</a>
+    </div>
+  </header>
 
   <app-data-state [loading]="loading()" [error]="loadError()" (retry)="load()">
-    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4 rounded-xl bg-white p-6 shadow-sm">
-      <app-text-input label="ชื่อแม่แบบ" hint="ใช้เลือกในหน้าหลักสูตร เช่น เกียรติบัตรอบรมปี 2569" formControlName="name" [maxLength]="200" />
+    <form [formGroup]="form" (ngSubmit)="save()" class="grid w-full items-start gap-6 xl:grid-cols-12">
+      <div class="space-y-6 xl:col-span-7">
+        <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
+          <h2 class="mb-4 border-b border-slate-100 pb-3 text-lg font-semibold text-slate-900">ข้อมูลแม่แบบ</h2>
+          <div class="grid gap-4">
+            <app-text-input label="ชื่อแม่แบบ" hint="ใช้เลือกในหน้าหลักสูตร เช่น เกียรติบัตรอบรมปี 2570" formControlName="name" [maxLength]="200" />
+            <div class="grid gap-4 sm:grid-cols-2">
+              <app-select-input label="ขนาดกระดาษ" [options]="pageSizeOptions" formControlName="pageSize" />
+              <app-toggle label="แนวนอน" tone="success" [boxed]="true" onHint="แนวนอน" offHint="แนวตั้ง" formControlName="landscape" />
+            </div>
+            <app-file-upload label="ภาพพื้นหลัง" hint="ใช้ภาพสัดส่วนเดียวกับกระดาษ ภาพจะถูกยืดให้เต็มหน้า ถ้าไม่ใส่จะใช้กรอบสีกรมท่าตามแบบเดิม (เฉพาะแม่แบบที่ยังไม่เคยแก้ไข)" formControlName="backgroundFileId" accept="image" />
+          </div>
+        </div>
 
-      <div class="grid gap-4 sm:grid-cols-2">
-        <app-text-input label="ผู้ลงนามคนที่ 1" formControlName="signerName" [maxLength]="200" />
-        <app-text-input label="ตำแหน่งผู้ลงนามคนที่ 1" formControlName="signerPosition" [maxLength]="300" />
-        <app-file-upload label="ลายเซ็นผู้ลงนามคนที่ 1" hint="ไฟล์ PNG พื้นหลังโปร่งใสจะสวยที่สุด" formControlName="signatureFileId" accept="image" />
-        <app-text-input label="ผู้ลงนามคนที่ 2 (ถ้ามี)" formControlName="secondSignerName" [maxLength]="200" />
-        <app-text-input label="ตำแหน่งผู้ลงนามคนที่ 2" formControlName="secondSignerPosition" [maxLength]="300" />
-        <app-file-upload label="ลายเซ็นผู้ลงนามคนที่ 2" formControlName="secondSignatureFileId" accept="image" />
+        <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <h2 class="text-lg font-semibold text-slate-900">ข้อความและรูปภาพบนเกียรติบัตร</h2>
+            <div class="flex gap-2">
+              <button type="button" app-button size="sm" variant="accent" (click)="addElement('text')">เพิ่มข้อความ</button>
+              <button type="button" app-button size="sm" variant="secondary" (click)="addElement('image')">เพิ่มรูป</button>
+            </div>
+          </div>
+
+          <div class="mb-4 rounded-xl bg-slate-50 p-4 text-sm text-slate-700 ring-1 ring-slate-200">
+            <p class="mb-2 font-semibold text-slate-900">ตัวแปรที่ใส่ในข้อความได้ (ระบบแทนด้วยข้อมูลจริงตอนออกเกียรติบัตร)</p>
+            <ul class="grid gap-1 sm:grid-cols-2">
+              @for (variable of variables; track variable.token) {
+                <li><code class="rounded bg-white px-1.5 py-0.5 font-semibold text-brand-900 ring-1 ring-slate-200">{{ variable.token }}</code> {{ variable.label }}</li>
+              }
+            </ul>
+          </div>
+
+          <div formArrayName="elements" class="space-y-4">
+            @for (group of elements.controls; track group; let index = $index; let first = $first; let last = $last) {
+              <div
+                [formGroupName]="index"
+                class="space-y-4 rounded-xl border p-4"
+                [class]="selectedIndex() === index ? 'border-gold-400 bg-gold-300/10' : 'border-slate-200'"
+                (focusin)="select(index)"
+                (click)="select(index)"
+              >
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="font-semibold text-slate-900">{{ elementLabel(group, index) }}</span>
+                  <div class="flex flex-wrap gap-1.5">
+                    <button type="button" app-button size="sm" variant="ghost" [disabled]="first" aria-label="เลื่อนลงไปด้านล่างสุดของลำดับซ้อน" (click)="moveElement(index, -1)">↑ ลำดับ</button>
+                    <button type="button" app-button size="sm" variant="ghost" [disabled]="last" (click)="moveElement(index, 1)">↓ ลำดับ</button>
+                    <button type="button" app-button size="sm" variant="secondary" (click)="duplicateElement(index)">ทำซ้ำ</button>
+                    <button type="button" app-button size="sm" variant="danger" (click)="removeElement(index)">ลบ</button>
+                  </div>
+                </div>
+
+                @if (group.controls.type.value === 'text') {
+                  <app-text-area label="ข้อความ" hint="ขึ้นบรรทัดใหม่ได้ ใส่ตัวแปรเช่น {ชื่อ-นามสกุล}" formControlName="text" [rows]="2" [maxLength]="1000" />
+                  <div class="grid gap-4 sm:grid-cols-3">
+                    <app-text-input label="ขนาดตัวอักษร (pt)" type="number" formControlName="fontSize" />
+                    <app-text-input label="สี" placeholder="#000000" hint="รหัสสีแบบ #RRGGBB" formControlName="color" [maxLength]="7" />
+                    <app-select-input label="การจัดวาง" [options]="alignOptions" formControlName="align" />
+                  </div>
+                  <div class="flex flex-wrap gap-5">
+                    <app-checkbox label="ตัวหนา" formControlName="bold" />
+                    <app-checkbox label="ตัวเอียง" formControlName="italic" />
+                    <app-checkbox label="ขีดเส้นใต้" formControlName="underline" />
+                  </div>
+                } @else {
+                  <app-file-upload label="ไฟล์รูป" hint="เช่น โลโก้ หรือลายเซ็น (PNG พื้นหลังโปร่งใสสวยที่สุด)" formControlName="imageFileId" accept="image" />
+                }
+
+                <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  <app-text-input label="ซ้าย (%)" type="number" formControlName="x" />
+                  <app-text-input label="บน (%)" type="number" formControlName="y" />
+                  <app-text-input label="กว้าง (%)" type="number" formControlName="width" />
+                  <app-text-input label="สูง (%)" type="number" formControlName="height" />
+                </div>
+              </div>
+            } @empty {
+              <p class="rounded-xl bg-slate-50 px-4 py-6 text-center text-slate-600 ring-1 ring-slate-200">ยังไม่มีข้อความหรือรูป กด “เพิ่มข้อความ” เพื่อเริ่มต้น</p>
+            }
+          </div>
+        </div>
       </div>
 
-      <app-file-upload
-        label="ภาพพื้นหลังเกียรติบัตร"
-        hint="ภาพแนวนอนสัดส่วน A4 (297 x 210 มม.) ถ้าไม่ใส่จะใช้กรอบสีกรมท่า"
-        formControlName="backgroundFileId"
-        accept="image"
-      />
+      <aside class="space-y-4 xl:sticky xl:top-24 xl:col-span-5">
+        <div class="rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200/90">
+          <h2 class="mb-3 text-lg font-semibold text-slate-900">ตัวอย่างสด</h2>
+          <div
+            class="relative w-full overflow-hidden bg-white shadow-md ring-1 ring-slate-300"
+            [style.aspect-ratio]="aspectRatio()"
+            [style.container-type]="'inline-size'"
+          >
+            @if (form.controls.backgroundFileId.value) {
+              <app-file-image [fileId]="form.controls.backgroundFileId.value" fit="fill" alt="พื้นหลัง" class="absolute inset-0 size-full" />
+            }
+            @for (group of elements.controls; track group; let index = $index) {
+              <div
+                class="absolute overflow-hidden leading-tight"
+                [class.ring-2]="selectedIndex() === index"
+                [class.ring-gold-400]="selectedIndex() === index"
+                [style.left.%]="group.controls.x.value"
+                [style.top.%]="group.controls.y.value"
+                [style.width.%]="group.controls.width.value"
+                [style.height.%]="group.controls.height.value"
+              >
+                @if (group.controls.type.value === 'text') {
+                  <div
+                    class="whitespace-pre-wrap"
+                    [class.font-bold]="group.controls.bold.value"
+                    [class.italic]="group.controls.italic.value"
+                    [class.underline]="group.controls.underline.value"
+                    [style.font-size.cqw]="fontSizeInContainerWidth(group.controls.fontSize.value)"
+                    [style.color]="group.controls.color.value"
+                    [style.text-align]="group.controls.align.value"
+                  >
+                    {{ sampleText(group.controls.text.value) }}
+                  </div>
+                } @else {
+                  <app-file-image [fileId]="group.controls.imageFileId.value" fit="contain" alt="รูปภาพ" class="size-full bg-transparent!" />
+                }
+              </div>
+            }
+          </div>
+          <p class="mt-3 text-sm text-slate-600">ตัวอย่างนี้ใช้ข้อมูลสมมติ ตัวอักษรอาจต่างจาก PDF เล็กน้อย กด “ดู PDF ตัวอย่าง” เพื่อดูของจริง</p>
+        </div>
 
-      @if (formError(); as message) {
-        <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ message }}</p>
-      }
-
-      <div class="flex justify-end gap-2">
-        <a app-button variant="secondary" appBack="/admin/certificate-templates" href="/admin/certificate-templates">ยกเลิก</a>
-        <button type="submit" app-button [loading]="saving()">บันทึก</button>
-      </div>
+        <div class="space-y-3 rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90">
+          @if (formError(); as message) {
+            <p role="alert" class="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700 ring-1 ring-red-200">{{ message }}</p>
+          }
+          <button type="button" app-button variant="secondary" class="w-full" [loading]="previewing()" (click)="openPdfPreview()">ดู PDF ตัวอย่าง</button>
+          <button type="submit" app-button class="w-full py-2.5!" [loading]="saving()">บันทึกแม่แบบ</button>
+          <a app-button variant="ghost" class="w-full" appBack="/admin/certificate-templates" href="/admin/certificate-templates">ยกเลิก</a>
+        </div>
+      </aside>
     </form>
   </app-data-state>
 </section>

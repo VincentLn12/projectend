@@ -1,5 +1,5 @@
 @if (source(); as url) {
-  <img [src]="url" [alt]="alt()" loading="lazy" (error)="markFailed()" class="h-full w-full" [class.object-cover]="fit() === 'cover'" [class.object-contain]="fit() === 'contain'" />
+  <img [src]="url" [alt]="alt()" loading="lazy" (error)="markFailed()" class="h-full w-full" [class.object-cover]="fit() === 'cover'" [class.object-contain]="fit() === 'contain'" [class.object-fill]="fit() === 'fill'" />
 } @else {
   <div class="flex h-full w-full items-center justify-center text-xs text-slate-400" role="img" [attr.aria-label]="alt() || 'ไม่มีรูปภาพ'">
     ไม่มีรูปภาพ

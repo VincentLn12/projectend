@@ -29,4 +29,8 @@ export class AdminCertificateTemplatesApi {
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${TEMPLATES_URL}/${id}`);
   }
+
+  preview(request: SaveCertificateTemplateRequest): Observable<Blob> {
+    return this.http.post(`${TEMPLATES_URL}/preview`, request, { responseType: 'blob' });
+  }
 }
