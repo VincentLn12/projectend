@@ -1,0 +1,73 @@
+<section class="space-y-4">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-semibold text-slate-900">เมนูเว็บไซต์</h1>
+      <p class="text-slate-600">จัดเมนูที่แสดงบนหัวเว็บไซต์ เลื่อนลำดับ ซ่อน หรือเพิ่มกลุ่มเมนูย่อยได้</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <button type="button" app-button variant="secondary" (click)="askToReset()">คืนค่าเมนูเริ่มต้น</button>
+      <a app-button routerLink="/admin/menu/new">เพิ่มเมนู</a>
+    </div>
+  </div>
+
+  <app-data-table
+    [columns]="columns"
+    [rows]="rows()"
+    [trackBy]="rowKey"
+    [loading]="loading()"
+    [error]="error()"
+    emptyMessage="ยังไม่มีเมนู กด “เพิ่มเมนู” หรือ “คืนค่าเมนูเริ่มต้น”"
+    (retry)="load()"
+  >
+    <ng-template appCell="label" let-row>
+      <span class="flex items-center gap-2" [class.pl-6]="row.depth === 1">
+        @if (row.depth === 1) {
+          <span class="text-slate-400" aria-hidden="true">└</span>
+        }
+        <a [routerLink]="['/admin/menu', row.item.id]" class="font-medium text-slate-900 hover:underline">{{ row.item.label }}</a>
+        @if (row.item.kind === kindGroup) {
+          <span class="rounded-full bg-brand-900 px-2 py-0.5 text-sm font-medium text-white">กลุ่ม</span>
+        }
+      </span>
+    </ng-template>
+    <ng-template appCell="target" let-row>{{ targetText(row) }}</ng-template>
+    <ng-template appCell="status" let-row>
+      <span
+        class="rounded-full px-2.5 py-0.5 text-sm font-medium"
+        [class]="row.item.isVisible ? 'bg-green-600 text-white' : 'bg-slate-500 text-white'"
+        >{{ row.item.isVisible ? 'แสดง' : 'ซ่อน' }}</span
+      >
+    </ng-template>
+    <ng-template appCell="actions" let-row>
+      <div class="flex flex-wrap justify-end gap-1.5">
+        <button
+          type="button"
+          app-button
+          size="sm"
+          variant="secondary"
+          aria-label="เลื่อนขึ้น"
+          [disabled]="!row.canMoveUp || busy()"
+          (click)="move(row, -1)"
+        >
+          ↑
+        </button>
+        <button
+          type="button"
+          app-button
+          size="sm"
+          variant="secondary"
+          aria-label="เลื่อนลง"
+          [disabled]="!row.canMoveDown || busy()"
+          (click)="move(row, 1)"
+        >
+          ↓
+        </button>
+        <button type="button" app-button size="sm" variant="ghost" [disabled]="busy()" (click)="toggleVisible(row)">
+          {{ row.item.isVisible ? 'ซ่อน' : 'แสดง' }}
+        </button>
+        <a app-button size="sm" variant="secondary" [routerLink]="['/admin/menu', row.item.id]">แก้ไข</a>
+        <button type="button" app-button size="sm" variant="danger" [disabled]="busy()" (click)="askToDelete(row)">ลบ</button>
+      </div>
+    </ng-template>
+  </app-data-table>
+</section>

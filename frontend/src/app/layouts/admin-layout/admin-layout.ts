@@ -64,6 +64,7 @@ export class AdminLayout {
       groupName: 'ผู้ใช้งานและการตั้งค่า',
       items: [
         { label: 'จัดการผู้ใช้งาน', path: '/admin/users', exact: false, icon: 'users' },
+        { label: 'เมนูเว็บไซต์', path: '/admin/menu', exact: false, icon: 'navigation' },
         { label: 'ตั้งค่าเว็บไซต์', path: '/admin/settings', exact: false, icon: 'settings' },
       ],
     },

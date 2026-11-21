@@ -75,6 +75,9 @@ export const routes: Routes = [
       { path: 'courses/:courseId/generations/new', loadComponent: () => import('./features/admin/courses/generation-edit/generation-edit').then((m) => m.GenerationEdit) },
       { path: 'courses/:courseId/generations/:id', loadComponent: () => import('./features/admin/courses/generation-edit/generation-edit').then((m) => m.GenerationEdit) },
       { path: 'courses/:courseId/generations/:id/registrations', loadComponent: () => import('./features/admin/courses/generation-registrations/generation-registrations').then((m) => m.GenerationRegistrations) },
+      { path: 'menu', loadComponent: () => import('./features/admin/menu/menu-list/menu-list').then((m) => m.MenuList) },
+      { path: 'menu/new', loadComponent: () => import('./features/admin/menu/menu-edit/menu-edit').then((m) => m.MenuEdit) },
+      { path: 'menu/:id', loadComponent: () => import('./features/admin/menu/menu-edit/menu-edit').then((m) => m.MenuEdit) },
     ],
   },
   {
