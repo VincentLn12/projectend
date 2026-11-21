@@ -10,6 +10,9 @@ namespace ComSci.Infrastructure.Services;
 
 public class NewsService : INewsService
 {
+    // Dates typed in the admin page are Thai calendar days, while PublishedAt is stored in UTC. Thailand has no daylight saving time.
+    private static readonly TimeSpan ThailandUtcOffset = TimeSpan.FromHours(7);
+
     private readonly AppDbContext _dbContext;
     private readonly ICurrentUser _currentUser;
 
@@ -92,11 +95,12 @@ public class NewsService : INewsService
             newsQuery = newsQuery.Where(news => news.IsPublished == wantedState);
         }
 
+        newsQuery = ApplyPublishedDateRange(newsQuery, query.PublishedFrom, query.PublishedTo);
+
         int total = await newsQuery.CountAsync(cancellationToken);
 
         int itemsToSkip = (query.Page - 1) * query.PageSize;
-        List<AdminNewsListItemDto> items = await newsQuery
-            .OrderByDescending(news => news.CreatedAt)
+        List<AdminNewsListItemDto> items = await ApplyAdminOrdering(newsQuery, query.SortBy, query.SortDescending)
             .Skip(itemsToSkip)
             .Take(query.PageSize)
             .Select(news => new AdminNewsListItemDto
@@ -229,6 +233,41 @@ public class NewsService : INewsService
 
         string keyword = search.Trim();
         return query.Where(news => news.Title.Contains(keyword));
+    }
+
+    private static IQueryable<News> ApplyPublishedDateRange(IQueryable<News> query, DateOnly? publishedFrom, DateOnly? publishedTo)
+    {
+        if (publishedFrom.HasValue)
+        {
+            DateTime startUtc = publishedFrom.Value.ToDateTime(TimeOnly.MinValue) - ThailandUtcOffset;
+            query = query.Where(news => news.PublishedAt >= startUtc);
+        }
+
+        if (publishedTo.HasValue)
+        {
+            DateTime endUtcExclusive = publishedTo.Value.AddDays(1).ToDateTime(TimeOnly.MinValue) - ThailandUtcOffset;
+            query = query.Where(news => news.PublishedAt < endUtcExclusive);
+        }
+
+        return query;
+    }
+
+    private static IQueryable<News> ApplyAdminOrdering(IQueryable<News> query, string? sortBy, bool descending)
+    {
+        IOrderedQueryable<News> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("title", false) => query.OrderBy(news => news.Title),
+            ("title", true) => query.OrderByDescending(news => news.Title),
+            ("status", false) => query.OrderBy(news => news.IsPublished),
+            ("status", true) => query.OrderByDescending(news => news.IsPublished),
+            ("publishedat", false) => query.OrderBy(news => news.PublishedAt),
+            ("publishedat", true) => query.OrderByDescending(news => news.PublishedAt),
+            ("authorname", false) => query.OrderBy(news => news.Author.FullName),
+            ("authorname", true) => query.OrderByDescending(news => news.Author.FullName),
+            _ => query.OrderByDescending(news => news.CreatedAt)
+        };
+
+        return ordered.ThenByDescending(news => news.CreatedAt).ThenBy(news => news.Id);
     }
 
     private async Task<News> LoadNewsAsync(Guid newsId, CancellationToken cancellationToken)

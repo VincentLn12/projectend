@@ -1,35 +1,151 @@
-<section class="space-y-4">
-  <h1 class="text-xl font-semibold text-slate-900">ตั้งค่าเว็บไซต์</h1>
+<section class="w-full space-y-6 pb-10">
+  <header class="relative overflow-hidden rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200/90 sm:p-6">
+    <div class="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-brand-900 via-brand-700 to-gold-400" aria-hidden="true"></div>
+    <div class="flex flex-wrap items-center justify-between gap-4 pt-1">
+      <div class="space-y-1">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900">ตั้งค่าเว็บไซต์</h1>
+          @if (form.dirty) {
+            <span class="inline-flex items-center rounded-full bg-brand-900/5 px-2.5 py-0.5 text-xs font-medium text-brand-800">มีการแก้ไขที่ยังไม่ได้บันทึก</span>
+          }
+        </div>
+        <p class="text-sm text-slate-500">ข้อมูลที่แสดงบนหน้าแรก navbar และ footer ของเว็บไซต์</p>
+      </div>
+      <a app-button variant="secondary" href="/home" target="_blank" rel="noopener noreferrer">ดูหน้าเว็บไซต์ ↗</a>
+    </div>
+  </header>
 
   <app-data-state [loading]="loading()" [error]="loadError()" (retry)="load()">
-    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4 rounded-xl bg-white p-6 shadow-sm">
-      <app-text-input label="ชื่อเว็บไซต์ (ชื่อสาขา)" formControlName="webName" [maxLength]="200" />
-      <app-text-input
-        label="ชื่อมหาวิทยาลัย / หน่วยงาน"
-        hint="แสดงใต้ชื่อสาขาในหน้าแรก และเป็นข้อความท้ายเว็บถ้าไม่ได้กรอกข้อความท้ายเว็บ"
-        formControlName="universityName"
-        [maxLength]="200"
-      />
-      <app-text-input
-        label="ข้อความท้ายเว็บ"
-        hint="เช่น ที่อยู่ เบอร์โทร ลิขสิทธิ์ เว้นว่างเพื่อใช้ชื่อมหาวิทยาลัย"
-        formControlName="footerText"
-        [maxLength]="500"
-      />
-      <app-file-upload label="โลโก้" formControlName="logoFileId" accept="image" />
-      <app-text-input label="ลิงก์สมัครเรียน" type="url" formControlName="registerUrl" />
-      <app-text-input label="ลิงก์เว็บมหาวิทยาลัย" type="url" formControlName="kruUrl" />
-      <app-text-input label="ลิงก์เพจ Facebook" type="url" formControlName="pageFacebook" />
-      <app-text-input label="วิดีโอแนะนำ" hint="ลิงก์วิดีโอ หรือหลายลิงก์คั่นด้วยเครื่องหมายจุลภาค" formControlName="videoUrl" [maxLength]="500" />
-      <app-text-input label="แผนที่ที่ตั้ง" formControlName="mapLocation" [maxLength]="500" />
+    <form [formGroup]="form" (ngSubmit)="save()" class="grid w-full items-start gap-6 lg:grid-cols-12">
+      <div class="space-y-6 lg:col-span-8 xl:col-span-9">
+        <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
+          <h2 class="mb-4 border-b border-slate-100 pb-3 text-lg font-semibold text-slate-900">ข้อมูลทั่วไป</h2>
+          <app-text-input label="ชื่อเว็บไซต์ (ชื่อสาขา)" hint="แสดงที่ navbar หน้าแรก และ footer" formControlName="webName" [maxLength]="200" />
+          <app-text-input
+            label="ชื่อมหาวิทยาลัย / หน่วยงาน"
+            hint="แสดงใต้ชื่อสาขาและในหน้าแรก เว้นว่างได้"
+            formControlName="universityName"
+            [maxLength]="200"
+          />
+          <app-text-input
+            label="ข้อความท้ายเว็บ"
+            hint="เช่น ที่อยู่ เบอร์โทร ลิขสิทธิ์ เว้นว่างเพื่อใช้ชื่อมหาวิทยาลัย"
+            formControlName="footerText"
+            [maxLength]="500"
+          />
+        </div>
 
-      @if (formError(); as message) {
-        <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ message }}</p>
-      }
+        <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
+          <h2 class="mb-4 border-b border-slate-100 pb-3 text-lg font-semibold text-slate-900">เกี่ยวกับสาขา</h2>
+          <div class="grid gap-4">
+            <app-text-input
+              label="หัวข้อ"
+              placeholder="เช่น รากฐานวิทยาการคอมพิวเตอร์และวิศวกรรมซอฟต์แวร์ เพื่ออนาคตดิจิทัล"
+              formControlName="aboutTitle"
+              [maxLength]="300"
+            />
+            <app-text-area
+              label="คำอธิบาย"
+              hint="แสดงในส่วน “เกี่ยวกับสาขา” ของหน้าแรก ถ้าเว้นว่างทั้งสองช่อง ส่วนนี้จะไม่แสดง"
+              formControlName="aboutDescription"
+              [rows]="6"
+              [maxLength]="2000"
+            />
+          </div>
+        </div>
 
-      <div class="flex justify-end">
-        <button type="submit" app-button [loading]="saving()">บันทึก</button>
+        <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
+          <h2 class="mb-4 border-b border-slate-100 pb-3 text-lg font-semibold text-slate-900">เมนูลัดสู่ข้อมูลสาขา</h2>
+          <div class="grid gap-4">
+            <app-toggle
+              label="แสดงเมนูลัดบนหน้าแรก"
+              tone="success"
+              [boxed]="true"
+              onHint="แสดงส่วนเมนูลัดบนหน้าแรก"
+              offHint="ซ่อนส่วนเมนูลัดทั้งหมด"
+              formControlName="quickMenuEnabled"
+            />
+            <ul formArrayName="quickMenuItems" class="divide-y divide-slate-100 rounded-xl border border-slate-200">
+              @for (item of quickMenuItems.controls; track item.controls.key.value; let index = $index; let first = $first; let last = $last) {
+                <li [formGroupName]="index" class="space-y-3 px-4 py-3">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="font-medium text-slate-800">{{ quickMenuLabel(item.controls.key.value) }}</span>
+                    <div class="flex items-center gap-2">
+                      <app-toggle formControlName="enabled" />
+                      <button type="button" app-button variant="ghost" size="sm" [disabled]="first" (click)="moveQuickMenuItem(index, -1)" aria-label="เลื่อนขึ้น">↑</button>
+                      <button type="button" app-button variant="ghost" size="sm" [disabled]="last" (click)="moveQuickMenuItem(index, 1)" aria-label="เลื่อนลง">↓</button>
+                    </div>
+                  </div>
+                  <app-text-input
+                    label="ชื่อที่แสดง"
+                    [hint]="'เว้นว่างเพื่อใช้ชื่อเดิม: ' + quickMenuLabel(item.controls.key.value)"
+                    formControlName="title"
+                    [maxLength]="100"
+                  />
+                  <app-file-upload label="รูปของการ์ดนี้" accept="image" formControlName="imageFileId" />
+                </li>
+              }
+            </ul>
+          </div>
+        </div>
+
+        <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
+          <h2 class="mb-4 border-b border-slate-100 pb-3 text-lg font-semibold text-slate-900">ลิงก์ภายนอก</h2>
+          <div class="grid gap-4">
+            <app-text-input label="ลิงก์สมัครเรียน" hint="ใช้กับปุ่มสีทอง “สมัครเรียน”" type="url" placeholder="https://" formControlName="registerUrl" />
+            <app-text-input label="ลิงก์เว็บมหาวิทยาลัย" type="url" placeholder="https://" formControlName="kruUrl" />
+            <app-text-input label="ลิงก์เพจ Facebook" type="url" placeholder="https://www.facebook.com/..." formControlName="pageFacebook" />
+          </div>
+        </div>
+
+        <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
+          <h2 class="mb-4 border-b border-slate-100 pb-3 text-lg font-semibold text-slate-900">วิดีโอและแผนที่</h2>
+          <div class="grid gap-4">
+            <app-text-area
+              label="วิดีโอแนะนำ (YouTube)"
+              hint="หลายลิงก์คั่นด้วยเครื่องหมายจุลภาค (,)"
+              placeholder="https://youtu.be/..., https://youtu.be/..."
+              formControlName="videoUrl"
+              [rows]="4"
+              [maxLength]="500"
+            />
+            @if (videoCount() > 0) {
+              <p class="-mt-2 text-sm text-slate-500">หน้าแรกจะแสดง {{ videoCount() }} วิดีโอ</p>
+            }
+
+            <app-text-input
+              label="แผนที่ที่ตั้ง"
+              hint="พิกัด ละติจูด,ลองจิจูด หรือชื่อสถานที่"
+              placeholder="14.0604,99.4272"
+              formControlName="mapLocation"
+              [maxLength]="500"
+            />
+            @if (mapLinkUrl(); as mapLink) {
+              <a [href]="mapLink" target="_blank" rel="noopener noreferrer" class="-mt-2 justify-self-start text-sm font-medium text-brand-800 hover:underline">ตรวจสอบตำแหน่งบน Google Maps ↗</a>
+            }
+          </div>
+        </div>
       </div>
+
+      <aside class="space-y-4 lg:sticky lg:top-24 lg:col-span-4 xl:col-span-3">
+        <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90">
+          <h2 class="mb-4 border-b border-slate-100 pb-3 text-lg font-semibold text-slate-900">โลโก้</h2>
+          <app-file-upload formControlName="logoFileId" accept="image" />
+        </div>
+
+        <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90">
+          <h2 class="mb-4 border-b border-slate-100 pb-3 text-lg font-semibold text-slate-900">พื้นหลังเมนูลัด</h2>
+          <app-file-upload formControlName="quickMenuBackgroundFileId" accept="image" />
+        </div>
+
+        <div class="space-y-3 rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90">
+          @if (formError(); as message) {
+            <p role="alert" class="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700 ring-1 ring-red-200">{{ message }}</p>
+          }
+          <button type="submit" app-button class="w-full py-2.5!" [loading]="saving()">บันทึกการตั้งค่า</button>
+          <button type="button" app-button variant="ghost" class="w-full" [disabled]="!form.dirty || saving()" (click)="resetForm()">คืนค่าเดิม</button>
+        </div>
+      </aside>
     </form>
   </app-data-state>
 </section>

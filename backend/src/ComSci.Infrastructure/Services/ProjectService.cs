@@ -23,7 +23,7 @@ public class ProjectService : IProjectService
         IQueryable<Project> projectQuery = _dbContext.Projects
             .AsNoTracking()
             .Where(project => project.IsPublished);
-        projectQuery = ApplyFilters(projectQuery, query, true);
+        projectQuery = ApplyFilters(projectQuery, query);
 
         int total = await projectQuery.CountAsync(cancellationToken);
 
@@ -41,7 +41,7 @@ public class ProjectService : IProjectService
                 AcademicYear = project.AcademicYear,
                 KeyWords = project.KeyWords,
                 ImageFileId = project.ImageFileId,
-                StudentName = project.Student.ShowProfile ? project.Student.FullName : PrivacyText.AnonymousName
+                StudentName = project.Student.FullName
             })
             .ToListAsync(cancellationToken);
 
@@ -71,13 +71,14 @@ public class ProjectService : IProjectService
                 GithubUrl = project.GithubUrl,
                 ImageFileId = project.ImageFileId,
                 PdfFileId = project.PdfFileId,
-                StudentName = project.Student.ShowProfile ? project.Student.FullName : PrivacyText.AnonymousName,
+                StudentName = project.Student.FullName,
                 Advisors = project.Advisors
                     .OrderBy(advisor => advisor.Role)
                     .Select(advisor => new ProjectAdvisorDto
                     {
                         LecturerId = advisor.LecturerId,
                         LecturerName = advisor.Lecturer.FullName,
+                        LecturerPrefix = advisor.Lecturer.Prefix,
                         Role = advisor.Role
                     })
                     .ToList()
@@ -89,18 +90,41 @@ public class ProjectService : IProjectService
             throw new NotFoundException("Project not found.");
         }
 
+        foreach (ProjectAdvisorDto advisor in detail.Advisors)
+        {
+            advisor.LecturerName = FormatLecturerName(advisor.LecturerPrefix, advisor.LecturerName);
+        }
+
         return detail;
+    }
+
+    private static string FormatLecturerName(string? prefix, string fullName)
+    {
+        string trimmedPrefix = prefix?.Trim() ?? string.Empty;
+        if (trimmedPrefix.Length == 0 || fullName.StartsWith(trimmedPrefix, StringComparison.Ordinal))
+        {
+            return fullName;
+        }
+
+        string separator = trimmedPrefix.EndsWith("ศาสตราจารย์", StringComparison.Ordinal) ? " " : string.Empty;
+        return trimmedPrefix + separator + fullName;
     }
 
     public async Task<PagedResult<AdminProjectListItemDto>> GetAllAsync(AdminProjectQuery query, CancellationToken cancellationToken)
     {
         IQueryable<Project> projectQuery = _dbContext.Projects.AsNoTracking();
-        projectQuery = ApplyFilters(projectQuery, query, false);
+        projectQuery = ApplyFilters(projectQuery, query);
 
         if (query.IsPublished.HasValue)
         {
             bool wantedState = query.IsPublished.Value;
             projectQuery = projectQuery.Where(project => project.IsPublished == wantedState);
+        }
+
+        if (query.StudentId.HasValue)
+        {
+            Guid wantedStudentId = query.StudentId.Value;
+            projectQuery = projectQuery.Where(project => project.StudentId == wantedStudentId);
         }
 
         int total = await projectQuery.CountAsync(cancellationToken);
@@ -115,6 +139,11 @@ public class ProjectService : IProjectService
                 Id = project.Id,
                 NameTH = project.NameTH,
                 AcademicYear = project.AcademicYear,
+                ImageFileId = project.ImageFileId,
+                KeyWords = project.KeyWords,
+                VideoUrl = project.VideoUrl,
+                WebUrl = project.WebUrl,
+                GithubUrl = project.GithubUrl,
                 StudentName = project.Student.FullName,
                 IsPublished = project.IsPublished,
                 CreatedAt = project.CreatedAt
@@ -225,17 +254,28 @@ public class ProjectService : IProjectService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    private static IQueryable<Project> ApplyFilters(IQueryable<Project> projectQuery, ProjectQuery query, bool isPublicView)
+    public async Task<IReadOnlyList<short>> GetAcademicYearsAsync(CancellationToken cancellationToken)
+    {
+        List<short> years = await _dbContext.Projects
+            .AsNoTracking()
+            .Select(project => project.AcademicYear)
+            .Distinct()
+            .OrderByDescending(year => year)
+            .ToListAsync(cancellationToken);
+
+        return years;
+    }
+
+    private static IQueryable<Project> ApplyFilters(IQueryable<Project> projectQuery, ProjectQuery query)
     {
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             string keyword = query.Search.Trim();
 
-            // หน้าสาธารณะค้นหาจากชื่อนักศึกษาได้เฉพาะคนที่ยินยอมให้แสดงชื่อ ไม่งั้นจะเดาชื่อคนที่ซ่อนอยู่ได้
             projectQuery = projectQuery.Where(project =>
                 project.NameTH.Contains(keyword)
                 || (project.NameEN != null && project.NameEN.Contains(keyword))
-                || ((!isPublicView || project.Student.ShowProfile) && project.Student.FullName.Contains(keyword)));
+                || project.Student.FullName.Contains(keyword));
         }
 
         if (query.AcademicYear.HasValue)

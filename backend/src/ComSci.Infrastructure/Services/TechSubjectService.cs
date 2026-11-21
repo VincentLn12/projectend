@@ -22,6 +22,8 @@ public class TechSubjectService : ITechSubjectService
             .AsNoTracking()
             .Where(subject => subject.IsPublished)
             .OrderBy(subject => subject.SortOrder)
+            .ThenBy(subject => subject.SubjectName)
+            .ThenBy(subject => subject.Id)
             .Select(subject => new TechSubjectListItemDto
             {
                 Id = subject.Id,
@@ -135,6 +137,34 @@ public class TechSubjectService : ITechSubjectService
         return await GetByIdAsync(subjectId, cancellationToken);
     }
 
+    public async Task MoveAsync(Guid subjectId, bool moveUp, CancellationToken cancellationToken)
+    {
+        List<TechSubject> orderedSubjects = await _dbContext.TechSubjects
+            .OrderBy(subject => subject.SortOrder)
+            .ThenBy(subject => subject.SubjectName)
+            .ThenBy(subject => subject.Id)
+            .ToListAsync(cancellationToken);
+
+        int currentIndex = orderedSubjects.FindIndex(subject => subject.Id == subjectId);
+        if (currentIndex < 0)
+        {
+            throw new NotFoundException("Subject not found.");
+        }
+
+        int targetIndex = moveUp ? currentIndex - 1 : currentIndex + 1;
+        if (targetIndex >= 0 && targetIndex < orderedSubjects.Count)
+        {
+            (orderedSubjects[currentIndex], orderedSubjects[targetIndex]) = (orderedSubjects[targetIndex], orderedSubjects[currentIndex]);
+        }
+
+        for (int position = 0; position < orderedSubjects.Count; position++)
+        {
+            orderedSubjects[position].SortOrder = position;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task DeleteAsync(Guid subjectId, CancellationToken cancellationToken)
     {
         // โหลดเฉพาะการ์ด ไม่รวมรูป ไม่งั้น soft delete จะชนกับแถวที่ EF ติดตามอยู่
@@ -149,6 +179,7 @@ public class TechSubjectService : ITechSubjectService
         return query
             .OrderBy(subject => subject.SortOrder)
             .ThenBy(subject => subject.SubjectName)
+            .ThenBy(subject => subject.Id)
             .Select(subject => new AdminTechSubjectDto
             {
                 Id = subject.Id,

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, booleanAttribute, computed, input } from '@angular/core';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
+export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'accent' | 'red';
 export type ButtonSize = 'sm' | 'md';
 
 const BASE =
@@ -11,6 +11,8 @@ const VARIANTS: Record<ButtonVariant, string> = {
   secondary: 'border border-slate-400 bg-white text-slate-900 hover:bg-slate-100 focus-visible:ring-slate-400',
   danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-300',
   ghost: 'text-brand-800 hover:bg-brand-900/10 focus-visible:ring-brand-700',
+  red: 'bg-red-600 font-semibold text-white shadow-sm hover:bg-red-700 focus-visible:ring-red-300',
+  accent: 'bg-gold-400 font-semibold text-brand-950 shadow-sm hover:bg-gold-300 focus-visible:ring-gold-300',
 };
 
 const SIZES: Record<ButtonSize, string> = {

@@ -4,8 +4,6 @@ export interface AdminLecturer {
   fullName: string;
   position: string | null;
   expertise: string | null;
-  educationLevel: string | null;
-  program: string | null;
   contact: string | null;
   imageFileId: string | null;
   sortOrder: number;
@@ -18,8 +16,6 @@ export interface SaveLecturerRequest {
   fullName: string;
   position: string | null;
   expertise: string | null;
-  educationLevel: string | null;
-  program: string | null;
   contact: string | null;
   imageFileId: string | null;
   sortOrder: number;

@@ -52,6 +52,48 @@ describe('PagedList', () => {
     expect(requests.length).toBe(before);
   });
 
+  it('clicking a column sorts ascending, then descending, and a different column starts ascending again', () => {
+    list.toggleSort('title');
+    expect(latest().query.sort).toEqual({ key: 'title', direction: 'asc' });
+
+    list.toggleSort('title');
+    expect(latest().query.sort).toEqual({ key: 'title', direction: 'desc' });
+
+    list.toggleSort('publishedAt');
+    expect(latest().query.sort).toEqual({ key: 'publishedAt', direction: 'asc' });
+  });
+
+  it('a new sort order goes back to page 1', () => {
+    list.setPage(3);
+    list.toggleSort('title');
+
+    expect(latest().query.page).toBe(1);
+  });
+
+  it('a filter is sent with the query, goes back to page 1, and an empty value removes it', () => {
+    list.setPage(3);
+    list.setFilter('isPublished', 'true');
+    expect(latest().query.filters).toEqual({ isPublished: 'true' });
+    expect(latest().query.page).toBe(1);
+
+    list.setFilter('publishedFrom', '2026-10-01');
+    expect(latest().query.filters).toEqual({ isPublished: 'true', publishedFrom: '2026-10-01' });
+
+    list.setFilter('isPublished', null);
+    list.setFilter('publishedFrom', '');
+    expect(latest().query.filters).toBeUndefined();
+  });
+
+  it('asking for the filter it already has does nothing', () => {
+    list.setFilter('isPublished', 'false');
+    const before = requests.length;
+
+    list.setFilter('isPublished', 'false');
+    list.setFilter('publishedTo', null);
+
+    expect(requests.length).toBe(before);
+  });
+
   it('only the newest request counts: a slow old answer cannot overwrite a newer one', () => {
     list.setSearch('a');
     const slow = latest();

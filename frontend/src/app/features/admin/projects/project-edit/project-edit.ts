@@ -1,9 +1,11 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { forkJoin, Observable } from 'rxjs';
+import { forkJoin, Observable, startWith } from 'rxjs';
 import { applyServerErrors, describeHttpError } from '../../../../shared/forms/server-errors';
 import { urlValidator } from '../../../../shared/forms/validators';
+import { BackLink } from '../../../../shared/navigation/back-link';
 import { Button } from '../../../../shared/ui/button/button';
 import { DataState } from '../../../../shared/ui/data-state/data-state';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
@@ -25,7 +27,7 @@ const BUDDHIST_ERA_OFFSET = 543;
 
 @Component({
   selector: 'app-project-edit',
-  imports: [ReactiveFormsModule, RouterLink, Button, DataState, FileUpload, SelectInput, TextArea, TextInput, Toggle],
+  imports: [ReactiveFormsModule, RouterLink, BackLink, Button, DataState, FileUpload, SelectInput, TextArea, TextInput, Toggle],
   templateUrl: './project-edit.html',
 })
 export class ProjectEdit implements OnInit {
@@ -36,12 +38,14 @@ export class ProjectEdit implements OnInit {
 
   protected readonly projectId = this.route.snapshot.paramMap.get('id');
   protected readonly isNew = this.projectId === null;
+  private readonly presetStudentId = this.route.snapshot.queryParamMap.get('studentId');
+  protected readonly defaultAcademicYear = new Date().getFullYear() + BUDDHIST_ERA_OFFSET;
 
   protected readonly form = inject(FormBuilder).group({
     nameTH: ['', [Validators.required, Validators.maxLength(300)]],
     nameEN: ['', Validators.maxLength(300)],
     description: [''],
-    academicYear: [new Date().getFullYear() + BUDDHIST_ERA_OFFSET as number | null, [Validators.required, Validators.min(1900), Validators.max(2700)]],
+    academicYear: [this.defaultAcademicYear as number | null, [Validators.required, Validators.min(1900), Validators.max(2700)]],
     keyWords: ['', Validators.maxLength(500)],
     videoUrl: ['', [urlValidator, Validators.maxLength(500)]],
     webUrl: ['', [urlValidator, Validators.maxLength(500)]],
@@ -56,12 +60,61 @@ export class ProjectEdit implements OnInit {
 
   protected readonly students = signal<PickerOption[]>([]);
   protected readonly lecturers = signal<PickerOption[]>([]);
+  protected readonly loadedProject = signal<AdminProject | null>(null);
+
   protected readonly studentOptions = computed<SelectOption<string>[]>(() =>
     this.students().map((student) => ({ value: student.id, label: student.label })),
   );
   protected readonly lecturerOptions = computed<SelectOption<string>[]>(() =>
     this.lecturers().map((lecturer) => ({ value: lecturer.id, label: lecturer.label })),
   );
+
+  protected readonly formValue = toSignal(
+    this.form.valueChanges.pipe(startWith(this.form.getRawValue())),
+    { initialValue: this.form.getRawValue() },
+  );
+
+  protected readonly keywordTags = computed<string[]>(() => {
+    const raw = (this.formValue().keyWords ?? '').trim();
+    if (!raw) {
+      return [];
+    }
+    return raw
+      .split(',')
+      .map((word) => word.trim())
+      .filter((word) => word.length > 0);
+  });
+
+  protected readonly descriptionLength = computed(() => (this.formValue().description ?? '').trim().length);
+
+  protected readonly activeLinksCount = computed(() => {
+    const val = this.formValue();
+    return [val.videoUrl, val.webUrl, val.githubUrl].filter((url) => (url ?? '').trim().length > 0).length;
+  });
+
+  protected readonly selectedStudentLabel = computed(() => {
+    const id = this.formValue().studentId;
+    if (!id) {
+      return null;
+    }
+    return this.students().find((student) => student.id === id)?.label ?? this.loadedProject()?.studentName ?? null;
+  });
+
+  protected readonly selectedMainAdvisorLabel = computed(() => {
+    const id = this.formValue().mainAdvisorId;
+    if (!id) {
+      return null;
+    }
+    return this.lecturers().find((lecturer) => lecturer.id === id)?.label ?? null;
+  });
+
+  protected readonly selectedCoAdvisorLabel = computed(() => {
+    const id = this.formValue().coAdvisorId;
+    if (!id) {
+      return null;
+    }
+    return this.lecturers().find((lecturer) => lecturer.id === id)?.label ?? null;
+  });
 
   protected readonly loading = signal(false);
   protected readonly loadError = signal<string | null>(null);
@@ -89,7 +142,11 @@ export class ProjectEdit implements OnInit {
         this.students.set(result['students'] as PickerOption[]);
         this.lecturers.set(result['lecturers'] as PickerOption[]);
         if (result['project']) {
-          this.fillForm(result['project'] as AdminProject);
+          const project = result['project'] as AdminProject;
+          this.loadedProject.set(project);
+          this.fillForm(project);
+        } else if (this.presetStudentId) {
+          this.form.patchValue({ studentId: this.presetStudentId });
         }
         this.loading.set(false);
       },
@@ -98,6 +155,31 @@ export class ProjectEdit implements OnInit {
         this.loadError.set(describeHttpError(error));
       },
     });
+  }
+
+  protected resetForm(): void {
+    this.formError.set(null);
+    const existing = this.loadedProject();
+    if (existing) {
+      this.fillForm(existing);
+    } else {
+      this.form.reset({
+        nameTH: '',
+        nameEN: '',
+        description: '',
+        academicYear: this.defaultAcademicYear,
+        keyWords: '',
+        videoUrl: '',
+        webUrl: '',
+        githubUrl: '',
+        imageFileId: null,
+        pdfFileId: null,
+        studentId: null,
+        mainAdvisorId: null,
+        coAdvisorId: null,
+        isPublished: false,
+      });
+    }
   }
 
   protected save(): void {
@@ -123,7 +205,7 @@ export class ProjectEdit implements OnInit {
     call.subscribe({
       next: () => {
         this.toast.success('บันทึกโครงงานแล้ว');
-        this.router.navigateByUrl('/admin/projects');
+        this.router.navigateByUrl(this.presetStudentId ? `/admin/students/${this.presetStudentId}?tab=projects` : '/admin/projects');
       },
       error: (error: unknown) => {
         this.saving.set(false);

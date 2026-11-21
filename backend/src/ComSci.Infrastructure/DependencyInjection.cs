@@ -63,8 +63,13 @@ public static class DependencyInjection
         services.AddScoped<IFileService, FileService>();
         services.AddScoped<ILecturerService, LecturerService>();
         services.AddScoped<IProjectService, ProjectService>();
-        services.AddScoped<ICourseService, CourseService>();
-        services.AddScoped<IRegistrationService, RegistrationService>();
+        services.AddScoped<IStudentProjectService, StudentProjectService>();
+        services.AddScoped<IMyProjectService, MyProjectService>();
+        services.AddScoped<IMyJobHistoryService, MyJobHistoryService>();
+        services.AddScoped<IShortCourseService, ShortCourseService>();
+        services.AddScoped<IShortCourseRegistrationService, ShortCourseRegistrationService>();
+        services.AddScoped<IShortCourseDocumentService, ShortCourseDocumentService>();
+        services.AddScoped<ICertificateTemplateService, CertificateTemplateService>();
         services.AddScoped<IHomeBannerService, HomeBannerService>();
         services.AddScoped<IMenuService, MenuService>();
         services.AddScoped<ITechSubjectService, TechSubjectService>();

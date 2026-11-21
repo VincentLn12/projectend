@@ -72,7 +72,7 @@
 
     <ul
       class="mt-3 grid gap-4"
-      [class]="multiple() ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:max-w-sm'"
+      [class]="multiple() ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'"
     >
       @for (id of ids(); track id; let index = $index) {
         <li
@@ -89,7 +89,8 @@
               <img
                 [src]="url(id)"
                 alt=""
-                class="h-44 w-full object-cover"
+                class="w-full"
+                [class]="multiple() ? 'h-44 object-cover' : 'max-h-96 min-h-48 object-contain'"
                 (error)="previewFailed(id)"
               />
             } @else {

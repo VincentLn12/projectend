@@ -8,6 +8,9 @@ import { DataState } from '../../../../shared/ui/data-state/data-state';
 import { SyllabusApi } from '../api/syllabus.api';
 import { SUBJECT_CATEGORY_LABELS, SubjectGroup, SyllabusDetail, SyllabusListItem } from '../types/syllabus.types';
 
+const GROUP_COLORS = ['bg-[#1c5bb8]', 'bg-[#f7be33]', 'bg-[#0f2854]'];
+const GROUP_STROKES = ['stroke-[#1c5bb8]', 'stroke-[#f7be33]', 'stroke-[#0f2854]'];
+
 @Component({
   selector: 'app-public-syllabus',
   imports: [RouterLink, Button, DataState],
@@ -39,6 +42,57 @@ export class PublicSyllabus {
     });
   });
 
+  protected readonly creditsInGroups = computed(() => this.groups().reduce((sum, group) => sum + group.totalCredits, 0));
+
+  protected readonly chartSegments = computed(() => {
+    const total = this.creditsInGroups();
+    let accumulated = 0;
+    return this.groups().map((group) => {
+      const percent = total > 0 ? (group.totalCredits / total) * 100 : 0;
+      const segment = {
+        category: group.category,
+        label: group.label,
+        credits: group.totalCredits,
+        roundedPercent: Math.round(percent),
+        dashArray: `${percent} ${100 - percent}`,
+        dashOffset: 25 - accumulated,
+      };
+      accumulated += percent;
+      return segment;
+    });
+  });
+
+  protected readonly selectedCategory = signal<number | null>(null);
+
+  protected readonly visibleGroups = computed(() => {
+    const selected = this.selectedCategory();
+    return selected === null ? this.groups() : this.groups().filter((group) => group.category === selected);
+  });
+
+  protected readonly chartCenter = computed(() => {
+    const selected = this.groups().find((group) => group.category === this.selectedCategory());
+    return selected
+      ? { credits: selected.totalCredits, caption: selected.label }
+      : { credits: this.creditsInGroups(), caption: 'หน่วยกิต' };
+  });
+
+  protected toggleCategory(category: number): void {
+    this.selectedCategory.update((current) => (current === category ? null : category));
+  }
+
+  protected groupStroke(category: number): string {
+    return GROUP_STROKES[category % GROUP_STROKES.length];
+  }
+
+  protected groupColor(category: number): string {
+    return GROUP_COLORS[category % GROUP_COLORS.length];
+  }
+
+  protected groupPercent(credits: number): number {
+    const total = this.creditsInGroups();
+    return total > 0 ? Math.round((credits / total) * 100) : 0;
+  }
+
   protected readonly pdfUrl = computed(() => {
     const id = this.syllabus()?.pdfFileId;
     return id ? this.filesApi.url(id) : null;
@@ -53,6 +107,11 @@ export class PublicSyllabus {
       this.requestedId = params.get('id');
       this.load();
     });
+  }
+
+  protected scrollToSection(sectionId: string, event: Event): void {
+    event.preventDefault();
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   protected load(): void {

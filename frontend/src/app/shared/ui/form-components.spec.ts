@@ -245,6 +245,34 @@ class SelectHost {
   control = new FormControl<number | null>(null, Validators.required);
 }
 
+@Component({
+  imports: [ReactiveFormsModule, SelectInput],
+  template: `<app-select-input
+    label="อาจารย์"
+    placeholder="เลือกอาจารย์"
+    [options]="options"
+    [searchable]="true"
+    [formControl]="control"
+  />`,
+})
+class SearchableSelectHost {
+  options: SelectOption<string>[] = [
+    { value: 'a', label: 'สมชาย ใจดี' },
+    { value: 'b', label: 'Somying Rakngan' },
+    { value: 'c', label: 'สมศักดิ์ มั่นคง' },
+  ];
+  control = new FormControl<string | null>(null);
+}
+
+@Component({
+  imports: [ReactiveFormsModule, SelectInput],
+  template: `<app-select-input label="ปี" [options]="options" [formControl]="control" />`,
+})
+class LongSelectHost {
+  options: SelectOption<number>[] = Array.from({ length: 8 }, (_, index) => ({ value: index, label: `ตัวเลือก ${index}` }));
+  control = new FormControl<number | null>(null);
+}
+
 describe('SelectInput', () => {
   const choose = (fixture: ComponentFixture<unknown>, index: number) => {
     const select = query<HTMLSelectElement>(fixture, 'select');
@@ -300,7 +328,7 @@ describe('SelectInput', () => {
   imports: [ReactiveFormsModule, Checkbox, Toggle],
   template: `
     <app-checkbox label="ยอมรับ" [formControl]="accepted" />
-    <app-toggle label="เผยแพร่" [formControl]="published" />
+    <app-toggle label="เผยแพร่" tone="success" [formControl]="published" />
   `,
 })
 class SwitchesHost {
@@ -336,6 +364,16 @@ describe('Checkbox and Toggle', () => {
     expect(toggle.getAttribute('aria-checked')).toBe('false');
   });
 
+  it('toggle with tone success is green while on and grey when off', async () => {
+    const fixture = await render(SwitchesHost);
+    const toggle = query<HTMLButtonElement>(fixture, '[role="switch"]');
+    expect(toggle.className).toContain('bg-emerald-600');
+
+    toggle.click();
+    fixture.detectChanges();
+    expect(toggle.className).toContain('bg-slate-300');
+  });
+
   it('toggle cannot be used when the control is disabled', async () => {
     const fixture = await render(SwitchesHost);
 
@@ -356,25 +394,198 @@ class DateHost {
   control = new FormControl<string | null>(null);
 }
 
+@Component({
+  imports: [ReactiveFormsModule, DateInput],
+  template: `<app-date-input label="วันที่" min="2030-01-10" max="2030-01-20" [formControl]="control" />`,
+})
+class DateLimitHost {
+  control = new FormControl<string | null>('2030-01-15');
+}
+
+@Component({
+  imports: [ReactiveFormsModule, DateInput],
+  template: `<app-date-input label="วันและเวลา" type="datetime-local" [formControl]="control" />`,
+})
+class DateTimeHost {
+  control = new FormControl<string | null>(null);
+}
+
 describe('DateInput', () => {
-  it('passes the date text to the form and null when emptied', async () => {
+  const openCalendar = (fixture: ComponentFixture<unknown>) => {
+    query<HTMLButtonElement>(fixture, 'button[aria-haspopup="dialog"]').click();
+    fixture.detectChanges();
+  };
+
+  it('shows a placeholder, then the chosen date in Thai with a Buddhist year', async () => {
     const fixture = await render(DateHost);
-    const input = query<HTMLInputElement>(fixture, 'input');
-    expect(input.type).toBe('date');
-
-    typeInto(input, '2030-01-31');
-    expect(fixture.componentInstance.control.value).toBe('2030-01-31');
-
-    typeInto(input, '');
-    expect(fixture.componentInstance.control.value).toBeNull();
-  });
-
-  it('shows the form value', async () => {
-    const fixture = await render(DateHost);
+    const trigger = query<HTMLButtonElement>(fixture, 'button[aria-haspopup="dialog"]');
+    expect(trigger.textContent?.trim()).toBe('เลือกวันที่');
 
     fixture.componentInstance.control.setValue('2031-02-03');
     fixture.detectChanges();
 
-    expect(query<HTMLInputElement>(fixture, 'input').value).toBe('2031-02-03');
+    expect(trigger.textContent?.trim()).toBe('3 กุมภาพันธ์ 2574');
+  });
+
+  it('opens a Thai calendar on the month of the current value', async () => {
+    const fixture = await render(DateHost);
+    fixture.componentInstance.control.setValue('2030-01-31');
+    fixture.detectChanges();
+
+    openCalendar(fixture);
+
+    expect(query(fixture, '[role="dialog"]').textContent).toContain('มกราคม 2573');
+    expect(query(fixture, '[role="dialog"]').textContent).toContain('พฤ');
+  });
+
+  it('picks a day, passes the ISO date to the form and closes', async () => {
+    const fixture = await render(DateHost);
+    fixture.componentInstance.control.setValue('2030-01-15');
+    fixture.detectChanges();
+    openCalendar(fixture);
+
+    query<HTMLButtonElement>(fixture, '[aria-label="20 มกราคม 2573"]').click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.control.value).toBe('2030-01-20');
+    expect(query(fixture, '[role="dialog"]')).toBeNull();
+  });
+
+  it('moves between months and clears the date', async () => {
+    const fixture = await render(DateHost);
+    fixture.componentInstance.control.setValue('2030-01-15');
+    fixture.detectChanges();
+    openCalendar(fixture);
+
+    query<HTMLButtonElement>(fixture, '[aria-label="เดือนถัดไป"]').click();
+    fixture.detectChanges();
+    expect(query(fixture, '[role="dialog"]').textContent).toContain('กุมภาพันธ์ 2573');
+
+    const clear = Array.from(fixture.nativeElement.querySelectorAll('[role="dialog"] button')).find(
+      (button) => (button as HTMLElement).textContent?.trim() === 'ล้างวันที่',
+    ) as HTMLButtonElement;
+    clear.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.control.value).toBeNull();
+  });
+
+  it('does not let a day outside min and max be picked', async () => {
+    const fixture = await render(DateLimitHost);
+    openCalendar(fixture);
+
+    const tooEarly = query<HTMLButtonElement>(fixture, '[aria-label="5 มกราคม 2573"]');
+    expect(tooEarly.disabled).toBe(true);
+    expect(query<HTMLButtonElement>(fixture, '[aria-label="15 มกราคม 2573"]').disabled).toBe(false);
+  });
+
+  it('closes on Escape', async () => {
+    const fixture = await render(DateHost);
+    openCalendar(fixture);
+
+    query(fixture, 'app-date-input').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+
+    expect(query(fixture, '[role="dialog"]')).toBeNull();
+  });
+
+  it('a date with time still uses the browser control', async () => {
+    const fixture = await render(DateTimeHost);
+    const input = query<HTMLInputElement>(fixture, 'input');
+    expect(input.type).toBe('datetime-local');
+
+    typeInto(input, '2030-01-31T09:30');
+    expect(fixture.componentInstance.control.value).toBe('2030-01-31T09:30');
+
+    typeInto(input, '');
+    expect(fixture.componentInstance.control.value).toBeNull();
+  });
+});
+
+describe('SelectInput with search', () => {
+  const open = async (fixture: ComponentFixture<unknown>) => {
+    query<HTMLButtonElement>(fixture, 'button[role="combobox"]').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+  };
+  const type = (fixture: ComponentFixture<unknown>, text: string) => {
+    const box = query<HTMLInputElement>(fixture, '[role="listbox"]').parentElement!.querySelector('input') as HTMLInputElement;
+    box.value = text;
+    box.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  };
+  const optionLabels = (fixture: ComponentFixture<unknown>) =>
+    Array.from(fixture.nativeElement.querySelectorAll('[role="option"]')).map((o) => (o as HTMLElement).textContent?.replace('✓', '').trim());
+
+  it('shows a button instead of the browser select, listing the placeholder and every option', async () => {
+    const fixture = await render(SearchableSelectHost);
+    expect(query(fixture, 'select')).toBeNull();
+
+    await open(fixture);
+
+    expect(optionLabels(fixture)).toEqual(['เลือกอาจารย์', 'สมชาย ใจดี', 'Somying Rakngan', 'สมศักดิ์ มั่นคง']);
+  });
+
+  it('narrows the list while typing, ignoring upper and lower case', async () => {
+    const fixture = await render(SearchableSelectHost);
+    await open(fixture);
+
+    type(fixture, 'สมศ');
+    expect(optionLabels(fixture)).toEqual(['สมศักดิ์ มั่นคง']);
+
+    type(fixture, 'SOMYING');
+    expect(optionLabels(fixture)).toEqual(['Somying Rakngan']);
+
+    type(fixture, 'ไม่มีชื่อนี้');
+    expect(optionLabels(fixture)).toEqual([]);
+    expect(fixture.nativeElement.textContent).toContain('ไม่พบตัวเลือกที่ตรงกัน');
+  });
+
+  it('picks the clicked option, shows its label and closes', async () => {
+    const fixture = await render(SearchableSelectHost);
+    await open(fixture);
+
+    (fixture.nativeElement.querySelectorAll('[role="option"]')[2] as HTMLElement).click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.control.value).toBe('b');
+    expect(query(fixture, 'button[role="combobox"]').textContent?.trim()).toBe('Somying Rakngan');
+    expect(query(fixture, '[role="listbox"]')).toBeNull();
+  });
+
+  it('picks with the arrow keys and Enter, and the placeholder row clears the value', async () => {
+    const fixture = await render(SearchableSelectHost);
+    fixture.componentInstance.control.setValue('c');
+    fixture.detectChanges();
+    await open(fixture);
+
+    const box = query<HTMLInputElement>(fixture, 'input');
+    box.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+    box.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    fixture.detectChanges();
+    expect(fixture.componentInstance.control.value).toBe('b');
+
+    await open(fixture);
+    (fixture.nativeElement.querySelectorAll('[role="option"]')[0] as HTMLElement).click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.control.value).toBeNull();
+  });
+
+  it('closes on Escape', async () => {
+    const fixture = await render(SearchableSelectHost);
+    await open(fixture);
+
+    query(fixture, 'app-select-input').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+
+    expect(query(fixture, '[role="listbox"]')).toBeNull();
+  });
+
+  it('a list of 8 or more options is searchable without asking, a short one is not', async () => {
+    const longList = await render(LongSelectHost);
+    expect(query(longList, 'button[role="combobox"]')).not.toBeNull();
+
+    const shortList = await render(SelectHost);
+    expect(query(shortList, 'select')).not.toBeNull();
   });
 });

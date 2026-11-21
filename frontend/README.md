@@ -51,9 +51,9 @@ API ส่ง token ใน body (ไม่ใช้ cookie) แอปเก็�
 |---|---|
 | `app-text-input` (`type`: text, email, password, search, tel, url, number) | `string` (`number` เมื่อ `type="number"`, ว่าง = `null`) |
 | `app-text-area` | `string` |
-| `app-select-input` (`[options]` = `{ value, label }[]`) | ค่าจริงของตัวเลือก (ตัวเลข, enum, id ได้) หรือ `null` |
-| `app-checkbox`, `app-toggle` | `boolean` |
-| `app-date-input` (`type`: date, datetime-local) | ข้อความจาก browser (`2030-01-31` / `2030-01-31T09:30`) หรือ `null` |
+| `app-select-input` (`[options]` = `{ value, label }[]`, `[searchable]`, `shape`) | ค่าจริงของตัวเลือก (ตัวเลข, enum, id ได้) หรือ `null` รายการตั้งแต่ 8 ตัวเลือกขึ้นไปมีช่องค้นหาอัตโนมัติ (ไม่สนตัวพิมพ์เล็ก/ใหญ่ ใช้ลูกศรขึ้นลง + Enter ได้ Esc ปิด) บังคับเปิด/ปิดด้วย `[searchable]="true"` / `"false"` รายการสั้นใช้ `<select>` ของ browser ตามเดิม |
+| `app-checkbox`, `app-toggle` (`tone="success"` = สวิตช์สีเขียวเมื่อเปิด ใช้กับ "เผยแพร่", `tone="info"` = สีฟ้า, `boxed` = วางในกล่องที่เปลี่ยนสีตามสถานะ + `onHint` / `offHint` = ข้อความอธิบายตามสถานะ) | `boolean` |
+| `app-date-input` (`type`: date, datetime-local) | แบบ `date` เป็นปฏิทินไทย (ปี พ.ศ. ชื่อเดือนไทย รองรับ `min` / `max` ปุ่มล้างวันที่ ปิดด้วย Esc หรือคลิกข้างนอก) แบบ `datetime-local` ใช้ช่องของ browser ค่าเป็นข้อความ (`2030-01-31` / `2030-01-31T09:30`) หรือ `null` |
 | `app-file-upload` (`accept`: image, pdf, any; `[multiple]`) | รหัสไฟล์ (`string \| null`) หรือรายการรหัส (`string[]`) เมื่อ multiple โดยรหัสแรกคือรูปหลัก |
 
 ตัวช่วยใน `src/app/shared/forms`:
@@ -72,6 +72,17 @@ API ส่ง token ใน body (ไม่ใช้ cookie) แอปเก็�
 <button type="submit" app-button [loading]="saving()">บันทึก</button>
 <button type="button" app-button variant="danger" size="sm" (click)="remove(row)">ลบ</button>
 
+<!-- แท็บสลับส่วนในหน้าเดียว: [(value)] คือ key ของแท็บที่เลือก ใช้ลูกศรซ้าย/ขวาเลื่อนได้ -->
+<app-tabs [tabs]="[{ key: 'projects', label: 'โครงงาน', count: 3 }, { key: 'jobs', label: 'ประวัติการทำงาน' }]" [(value)]="activeTab" />
+
+<!-- หัวหน้ารายการ: ชื่อ + จำนวน (+ คำอธิบาย) และปุ่มหลักใส่ไว้ข้างใน -->
+<app-page-header title="จัดการข่าว" [count]="list.total()" unit="รายการ">
+  <a app-button routerLink="/admin/news/new">เพิ่มข่าว</a>
+</app-page-header>
+
+<!-- ปุ่มกลับ/ยกเลิกในหน้าแก้ไข: กลับไปหน้าที่ผู้ใช้มา (ประวัติของ browser) ถ้าเปิดหน้านี้ตรง ๆ ไปที่หน้ารายการแทน -->
+<a app-button appBack="/admin/news" href="/admin/news">กลับไปรายการข่าว</a>
+
 <!-- ค้นหา + ตาราง + แบ่งหน้า (สถานะโหลด/ว่าง/ผิดพลาดอยู่ในตารางเอง) -->
 <app-search-box placeholder="ค้นหาข่าว" (searchChange)="list.setSearch($event)" />
 <app-data-table [columns]="columns" [rows]="list.items()" [loading]="list.loading()" [error]="list.error()"
@@ -83,7 +94,7 @@ API ส่ง token ใน body (ไม่ใช้ cookie) แอปเก็�
 
 ```ts
 // ในคลาส component ของหน้า
-protected readonly list = createPagedList((q) => this.api.getNews(q), 10);  // q = { page, pageSize, search }
+protected readonly list = createPagedList((q) => this.api.getNews(q), 10);  // q = { page, pageSize, search, sort?, filters? }
 private readonly confirm = inject(ConfirmService);
 private readonly toast = inject(ToastService);
 
@@ -100,12 +111,12 @@ async remove(row: News) {
 
 | ชิ้นส่วน | หน้าที่ |
 |---|---|
-| `button[app-button]` | `variant`: primary, secondary, danger, ghost / `size`: sm, md / `loading` แสดงวงกลมหมุนและกดซ้ำไม่ได้ / `disabled` |
+| `button[app-button]` | `variant`: primary, secondary, danger, ghost, accent (สีทอง ใช้บนพื้นน้ำเงินเข้ม เช่น ปุ่มใน `app-page-header`), red (สีแดง ใช้กับปุ่มเปิดเอกสาร PDF ไม่ใช่ปุ่มลบ) / `size`: sm, md / `loading` แสดงวงกลมหมุนและกดซ้ำไม่ได้ / `disabled` |
 | `app-data-state` | ห่อเนื้อหาที่รอข้อมูล: กำลังโหลด, ผิดพลาด (มีปุ่มลองใหม่), ว่าง, หรือแสดงเนื้อหา |
-| `app-data-table` | `columns` (`key`, `header`, `value`, `align`) และ `rows` ช่องที่ต้องการวาดเองใช้ `<ng-template appCell="key" let-row>` |
+| `app-data-table` | `columns` (`key`, `header`, `value`, `align`, `sortable`) และ `rows` ช่องที่ต้องการวาดเองใช้ `<ng-template appCell="key" let-row>` คอลัมน์ที่ `sortable` หัวตารางเป็นปุ่ม: ส่ง `[sort]="list.sort()"` เพื่อแสดงลูกศรกับ `aria-sort` และรับ `(sortChange)="list.toggleSort($event)"` (บนมือถือหัวตารางถูกซ่อน จึงยังไม่มีปุ่มเรียง) |
 | `app-pagination` | หน้าเริ่มที่ 1 เหมือน API แสดงช่วงแถวและเลขหน้า พร้อม … เมื่อมีหลายหน้า |
 | `app-search-box` | รอให้หยุดพิมพ์ 0.3 วินาทีก่อนส่งคำค้น (Enter ส่งทันที) มีปุ่มล้าง |
-| `PagedList` / `createPagedList` | สถานะของหน้ารายการ: แถว หน้า คำค้น กำลังโหลด ข้อผิดพลาด คำขอล่าสุดเท่านั้นที่มีผล และถ้าหน้าปัจจุบันว่างหลังลบแถวสุดท้ายจะถอยไปหน้าก่อนหน้าเอง |
+| `PagedList` / `createPagedList` | สถานะของหน้ารายการ: แถว หน้า คำค้น การเรียง (`toggleSort(key)`: คลิกแรกน้อยไปมาก คลิกถัดไปมากไปน้อย) ตัวกรอง (`setFilter(name, value)` ค่าว่างคือเอาตัวกรองออก) ทั้งสองอย่างกลับไปหน้า 1 และถูกส่งใน query เป็น `sort` / `filters` เมื่อมีเท่านั้น กำลังโหลด ข้อผิดพลาด คำขอล่าสุดเท่านั้นที่มีผล และถ้าหน้าปัจจุบันว่างหลังลบแถวสุดท้ายจะถอยไปหน้าก่อนหน้าเอง |
 | `ConfirmService.ask(...)` | กล่องยืนยันแบบ `<dialog>` ของ browser (Esc, คลิกพื้นหลัง = ไม่ยืนยัน) โฟกัสเริ่มที่ปุ่มยกเลิก คืนค่า `Promise<boolean>` |
 | `ToastService.success/info/error(...)` | ข้อความมุมจอ หายเองใน 4 วินาที (ข้อผิดพลาด 7 วินาที) หรือกดปิด แสดงสูงสุด 5 ข้อความ |
 | `describeHttpError(error)` | ข้อความไทยสั้นๆ สำหรับคำขอที่ล้มเหลวนอกฟอร์ม |

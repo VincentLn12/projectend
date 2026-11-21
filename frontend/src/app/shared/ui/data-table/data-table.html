@@ -1,3 +1,25 @@
+@if (sortableColumns().length > 0) {
+  <!-- Phones have no table header to click, so the sortable columns are offered here instead. -->
+  <div class="mb-3 flex flex-wrap items-center gap-2 md:hidden">
+    <span class="text-sm text-slate-500">เรียงตาม</span>
+    @for (column of sortableColumns(); track column.key) {
+      <button
+        type="button"
+        class="rounded-lg border px-3 py-1.5 text-sm transition-colors"
+        [class]="
+          ariaSort(column)
+            ? 'border-brand-800 bg-brand-800 font-semibold text-white'
+            : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+        "
+        [attr.aria-pressed]="ariaSort(column) ? 'true' : 'false'"
+        (click)="sortChange.emit(column.key)"
+      >
+        {{ column.header }} <span aria-hidden="true" class="text-xs">{{ sortArrow(column) }}</span>
+      </button>
+    }
+  </div>
+}
+
 <app-data-state
   [loading]="loading()"
   [error]="error()"
@@ -15,8 +37,22 @@
               scope="col"
               class="whitespace-nowrap px-5 py-3.5 text-sm font-semibold text-white"
               [class]="alignClass(column)"
+              [attr.aria-sort]="ariaSort(column)"
             >
-              {{ column.header }}
+              @if (column.sortable) {
+                <button
+                  type="button"
+                  class="inline-flex cursor-pointer items-center gap-1.5 rounded font-semibold hover:text-gold-300 focus-visible:outline-2 focus-visible:outline-gold-300"
+                  (click)="sortChange.emit(column.key)"
+                >
+                  {{ column.header }}
+                  <span aria-hidden="true" class="text-xs" [class.opacity-40]="!ariaSort(column)">{{
+                    ariaSort(column) === 'ascending' ? '▲' : ariaSort(column) === 'descending' ? '▼' : '↕'
+                  }}</span>
+                </button>
+              } @else {
+                {{ column.header }}
+              }
             </th>
           }
         </tr>

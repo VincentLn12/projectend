@@ -5,4 +5,6 @@ namespace ComSci.Application.Dtos.JobHistories;
 public class AdminJobHistoryQuery : PageQuery
 {
     public bool? IsPublished { get; set; }
+
+    public Guid? UserId { get; set; }
 }

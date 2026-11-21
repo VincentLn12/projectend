@@ -1,10 +1,15 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { startWith } from 'rxjs';
 import { applyServerErrors, describeHttpError } from '../../../../shared/forms/server-errors';
+import { ThaiDatePipe } from '../../../../shared/pipes/thai-date.pipe';
+import { BackLink } from '../../../../shared/navigation/back-link';
 import { Button } from '../../../../shared/ui/button/button';
 import { DataState } from '../../../../shared/ui/data-state/data-state';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
+import { TextArea } from '../../../../shared/ui/text-area/text-area';
 import { TextInput } from '../../../../shared/ui/text-input/text-input';
 import { ToastService } from '../../../../shared/ui/toast/toast.service';
 import { Toggle } from '../../../../shared/ui/toggle/toggle';
@@ -13,7 +18,7 @@ import { AdminLecturer, SaveLecturerRequest } from '../types/lecturer.types';
 
 @Component({
   selector: 'app-lecturer-edit',
-  imports: [ReactiveFormsModule, RouterLink, Button, DataState, FileUpload, TextInput, Toggle],
+  imports: [ReactiveFormsModule, RouterLink, ThaiDatePipe, BackLink, Button, DataState, FileUpload, TextArea, TextInput, Toggle],
   templateUrl: './lecturer-edit.html',
 })
 export class LecturerEdit implements OnInit {
@@ -30,13 +35,18 @@ export class LecturerEdit implements OnInit {
     fullName: ['', [Validators.required, Validators.maxLength(200)]],
     position: ['', Validators.maxLength(200)],
     expertise: ['', Validators.maxLength(500)],
-    educationLevel: ['', Validators.maxLength(100)],
-    program: ['', Validators.maxLength(200)],
     contact: ['', Validators.maxLength(300)],
     imageFileId: [null as string | null],
     sortOrder: [0 as number | null, [Validators.required, Validators.min(0)]],
     isPublished: [false],
   });
+
+  protected readonly loadedLecturer = signal<AdminLecturer | null>(null);
+
+  protected readonly formValue = toSignal(
+    this.form.valueChanges.pipe(startWith(this.form.getRawValue())),
+    { initialValue: this.form.getRawValue() },
+  );
 
   protected readonly loading = signal(false);
   protected readonly loadError = signal<string | null>(null);
@@ -54,6 +64,7 @@ export class LecturerEdit implements OnInit {
     this.loadError.set(null);
     this.api.get(this.lecturerId!).subscribe({
       next: (lecturer) => {
+        this.loadedLecturer.set(lecturer);
         this.fillForm(lecturer);
         this.loading.set(false);
       },
@@ -62,6 +73,25 @@ export class LecturerEdit implements OnInit {
         this.loadError.set(describeHttpError(error));
       },
     });
+  }
+
+  protected resetForm(): void {
+    this.formError.set(null);
+    const existing = this.loadedLecturer();
+    if (existing) {
+      this.fillForm(existing);
+    } else {
+      this.form.reset({
+        prefix: '',
+        fullName: '',
+        position: '',
+        expertise: '',
+        contact: '',
+        imageFileId: null,
+        sortOrder: 0,
+        isPublished: false,
+      });
+    }
   }
 
   protected save(): void {
@@ -96,8 +126,6 @@ export class LecturerEdit implements OnInit {
       fullName: lecturer.fullName,
       position: lecturer.position ?? '',
       expertise: lecturer.expertise ?? '',
-      educationLevel: lecturer.educationLevel ?? '',
-      program: lecturer.program ?? '',
       contact: lecturer.contact ?? '',
       imageFileId: lecturer.imageFileId,
       sortOrder: lecturer.sortOrder,
@@ -112,8 +140,6 @@ export class LecturerEdit implements OnInit {
       fullName: (value.fullName ?? '').trim(),
       position: this.emptyToNull(value.position),
       expertise: this.emptyToNull(value.expertise),
-      educationLevel: this.emptyToNull(value.educationLevel),
-      program: this.emptyToNull(value.program),
       contact: this.emptyToNull(value.contact),
       imageFileId: value.imageFileId,
       sortOrder: value.sortOrder ?? 0,

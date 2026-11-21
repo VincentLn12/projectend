@@ -4,7 +4,6 @@ import { Type } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { FormArray, FormGroup } from '@angular/forms';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
-import { GenerationEdit } from './courses/generation-edit/generation-edit';
 import { HomeBannerEdit } from './home-banners/home-banner-edit/home-banner-edit';
 import { JobHistoryEdit } from './job-histories/job-history-edit/job-history-edit';
 import { SettingsPage } from './settings/settings-page/settings-page';
@@ -24,7 +23,7 @@ function open<T>(component: Type<T>, params: Record<string, string> = {}) {
       provideHttpClient(),
       provideHttpClientTesting(),
       provideRouter([{ path: '**', children: [] }]),
-      { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params) } } },
+      { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(params), queryParamMap: convertToParamMap({}) } } },
     ],
   });
   const http = TestBed.inject(HttpTestingController);
@@ -84,6 +83,9 @@ describe('SettingsPage', () => {
       logoFileId: null,
       videoUrl: null,
       mapLocation: null,
+      quickMenuEnabled: true,
+      quickMenuBackgroundFileId: null,
+      quickMenuItems: [{ key: 'news', enabled: false, title: null, imageFileId: null }],
     });
     expect(page.form.get('webName')?.value).toBe('เดิม');
 
@@ -92,7 +94,8 @@ describe('SettingsPage', () => {
 
     const request = http.expectOne('/api/admin/settings');
     expect(request.request.method).toBe('PUT');
-    expect(request.request.body).toMatchObject({ webName: 'ชื่อใหม่', registerUrl: null, kruUrl: null });
+    expect(request.request.body).toMatchObject({ webName: 'ชื่อใหม่', registerUrl: null, kruUrl: null, quickMenuEnabled: true });
+    expect((request.request.body as { quickMenuItems: { key: string }[] }).quickMenuItems[0].key).toBe('news');
     request.flush(request.request.body);
   });
 });
@@ -159,28 +162,5 @@ describe('SyllabusEdit', () => {
     page.form.patchValue({ nameTH: 'หลักสูตร' });
     page.save();
     http.expectNone('/api/admin/syllabuses');
-  });
-});
-
-describe('GenerationEdit', () => {
-  it('refuses an end date before the start date', () => {
-    const { http, page } = open(GenerationEdit, { courseId: 'c1' });
-    page.form.patchValue({ startDate: '2030-02-01T09:00', endDate: '2030-01-01T09:00', quantity: 10 });
-    page.save();
-
-    http.expectNone('/api/admin/courses/c1/generations');
-    expect(page.form.get('endDate')?.errors?.['server']).toContain('วันสิ้นสุด');
-  });
-
-  it('sends the times as UTC and an empty fee as null', () => {
-    const { http, page } = open(GenerationEdit, { courseId: 'c1' });
-    page.form.patchValue({ startDate: '2030-01-01T09:00', endDate: '2030-01-03T16:00', quantity: 10, fee: null });
-    page.save();
-
-    const request = http.expectOne('/api/admin/courses/c1/generations');
-    expect(request.request.method).toBe('POST');
-    expect(request.request.body.startDate).toBe(new Date('2030-01-01T09:00').toISOString());
-    expect(request.request.body).toMatchObject({ quantity: 10, fee: null, isCancelled: false });
-    request.flush({});
   });
 });

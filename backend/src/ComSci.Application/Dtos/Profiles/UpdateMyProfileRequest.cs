@@ -12,6 +12,17 @@ public class UpdateMyProfileRequest
     public Guid? ImageFileId { get; set; }
     public bool ShowEmail { get; set; }
     public bool ShowProfile { get; set; }
+    [StringLength(20)]
+    public string? Phone { get; set; }
+    public bool ShowPhone { get; set; }
+    [Url]
+    [StringLength(500)]
+    public string? LinkedInUrl { get; set; }
+    [Url]
+    [StringLength(500)]
+    public string? GithubUrl { get; set; }
+    [StringLength(500)]
+    public string? Skills { get; set; }
     [StringLength(200)]
     public string? PreviousSchool { get; set; }
     [StringLength(500)]

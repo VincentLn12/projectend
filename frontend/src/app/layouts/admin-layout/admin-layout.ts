@@ -3,7 +3,6 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { SiteSettingsStore } from '../../core/settings/api/site-settings.store';
-import { ThaiDatePipe } from '../../shared/pipes/thai-date.pipe';
 import { Button } from '../../shared/ui/button/button';
 import { FileImage } from '../../shared/ui/file-image/file-image';
 import { MENU_ICONS } from './menu-icons';
@@ -22,7 +21,7 @@ export interface MenuGroup {
 
 @Component({
   selector: 'app-admin-layout',
-  imports: [NgTemplateOutlet, RouterOutlet, RouterLink, RouterLinkActive, ThaiDatePipe, Button, FileImage],
+  imports: [NgTemplateOutlet, RouterOutlet, RouterLink, RouterLinkActive, Button, FileImage],
   templateUrl: './admin-layout.html',
   host: { '(document:keydown.escape)': 'closeMobileMenu()' },
 })
@@ -30,7 +29,6 @@ export class AdminLayout {
   protected readonly auth = inject(AuthService);
   protected readonly siteSettings = inject(SiteSettingsStore);
   protected readonly isMobileMenuOpen = signal(false);
-  protected readonly today = new Date();
 
   protected readonly userInitial = computed(() => {
     const name = this.auth.user()?.fullName?.trim();
@@ -46,7 +44,8 @@ export class AdminLayout {
       groupName: 'เนื้อหาและผลงาน',
       items: [
         { label: 'ข่าวสารและกิจกรรม', path: '/admin/news', exact: false, icon: 'news' },
-        { label: 'โครงงานนักศึกษา', path: '/admin/projects', exact: false, icon: 'projects' },
+        { label: 'โครงงานวิจัยนักศึกษา', path: '/admin/projects', exact: false, icon: 'projects' },
+        { label: 'โครงงานนักศึกษา', path: '/admin/student-projects', exact: false, icon: 'projects' },
         { label: 'แบนเนอร์ประชาสัมพันธ์', path: '/admin/home-banners', exact: false, icon: 'banners' },
       ],
     },
@@ -54,10 +53,10 @@ export class AdminLayout {
       groupName: 'งานวิชาการและบุคลากร',
       items: [
         { label: 'ข้อมูลอาจารย์', path: '/admin/lecturers', exact: false, icon: 'lecturers' },
+        { label: 'ข้อมูลนักศึกษา', path: '/admin/students', exact: false, icon: 'students' },
         { label: 'หลักสูตรการศึกษา', path: '/admin/syllabuses', exact: false, icon: 'syllabuses' },
-        { label: 'หลักสูตรอบรมระยะสั้น', path: '/admin/courses', exact: false, icon: 'courses' },
+        { label: 'อบรม', path: '/admin/short-courses', exact: false, icon: 'courses' },
         { label: 'รายวิชาเทคโนโลยี', path: '/admin/tech-subjects', exact: false, icon: 'tech-subjects' },
-        { label: 'ประวัติการทำงานศิษย์เก่า', path: '/admin/job-histories', exact: false, icon: 'job-histories' },
       ],
     },
     {

@@ -1,0 +1,30 @@
+<section class="space-y-4">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h1 class="text-xl font-semibold text-slate-900">แม่แบบเกียรติบัตร</h1>
+    <div class="flex items-center gap-3">
+      <a routerLink="/admin/short-courses" class="text-sm text-slate-600 underline hover:text-slate-900">← กลับไปหน้าจัดการอบรม</a>
+      <a app-button routerLink="/admin/certificate-templates/new">เพิ่มแม่แบบ</a>
+    </div>
+  </div>
+
+  <app-data-table
+    [columns]="columns"
+    [rows]="rows()"
+    [trackBy]="rowKey"
+    [loading]="loading()"
+    [error]="error()"
+    emptyMessage="ยังไม่มีแม่แบบเกียรติบัตร"
+    (retry)="load()"
+  >
+    <ng-template appCell="name" let-row>
+      <a [routerLink]="['/admin/certificate-templates', row.id]" class="font-medium text-slate-900 hover:underline">{{ row.name }}</a>
+    </ng-template>
+    <ng-template appCell="signers" let-row>{{ signersText(row) }}</ng-template>
+    <ng-template appCell="actions" let-row>
+      <div class="flex flex-wrap justify-end gap-1.5">
+        <a app-button size="sm" variant="secondary" [routerLink]="['/admin/certificate-templates', row.id]">แก้ไข</a>
+        <button type="button" app-button size="sm" variant="danger" (click)="askToDelete(row)">ลบ</button>
+      </div>
+    </ng-template>
+  </app-data-table>
+</section>

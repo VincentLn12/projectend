@@ -1,12 +1,40 @@
 <section class="space-y-4">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <h1 class="text-xl font-semibold text-slate-900">จัดการข่าว</h1>
-    <div class="flex items-center gap-3">
-      <div class="w-64">
-        <app-search-box placeholder="ค้นหาหัวข้อข่าว" (searchChange)="list.setSearch($event)" />
-      </div>
-      <a app-button routerLink="/admin/news/new">เพิ่มข่าว</a>
+  <app-page-header title="จัดการข่าว" [count]="list.total()" unit="รายการ">
+    <a app-button variant="accent" routerLink="/admin/news/new">เพิ่มข่าว</a>
+  </app-page-header>
+
+  <div class="flex flex-wrap items-end gap-3">
+    <div class="min-w-60 flex-1">
+      <app-search-box placeholder="ค้นหาหัวข้อข่าว" (searchChange)="list.setSearch($event)" />
     </div>
+    <div class="w-full sm:w-44">
+      <app-select-input
+        label="สถานะ"
+        shape="soft"
+        placeholder="ทุกสถานะ"
+        [options]="statusOptions"
+        [formControl]="statusControl"
+      />
+    </div>
+    <div class="w-[calc(50%-0.375rem)] sm:w-44">
+      <app-date-input
+        label="เผยแพร่ตั้งแต่วันที่"
+        shape="soft"
+        [max]="publishedToControl.value"
+        [formControl]="publishedFromControl"
+      />
+    </div>
+    <div class="w-[calc(50%-0.375rem)] sm:w-44">
+      <app-date-input
+        label="ถึงวันที่"
+        shape="soft"
+        [min]="publishedFromControl.value"
+        [formControl]="publishedToControl"
+      />
+    </div>
+    @if (hasFilters()) {
+      <button type="button" app-button variant="ghost" class="rounded-lg" (click)="clearFilters()">ล้างตัวกรอง</button>
+    }
   </div>
 
   <app-data-table
@@ -15,7 +43,9 @@
     [trackBy]="rowKey"
     [loading]="list.loading()"
     [error]="list.error()"
-    emptyMessage="ยังไม่มีข่าว"
+    [sort]="list.sort()"
+    [emptyMessage]="hasFilters() || list.search() ? 'ไม่พบข่าวที่ตรงกับตัวกรอง' : 'ยังไม่มีข่าว'"
+    (sortChange)="list.toggleSort($event)"
     (retry)="list.reload()"
   >
     <ng-template appCell="title" let-row>

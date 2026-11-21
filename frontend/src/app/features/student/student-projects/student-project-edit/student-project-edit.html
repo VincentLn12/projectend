@@ -1,0 +1,124 @@
+<div class="relative left-1/2 -my-8 min-h-[60vh] w-screen -translate-x-1/2 bg-[#f9f9ff] text-[#111c2c]">
+  <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:py-10">
+    <header class="space-y-1 border-b-2 border-[#0f2854] pb-4">
+      <nav aria-label="เส้นทางหน้า" class="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+        <a routerLink="/home" class="hover:text-[#0f2854] hover:underline">หน้าหลัก</a>
+        <span aria-hidden="true">›</span>
+        <a routerLink="/my/student-projects" class="hover:text-[#0f2854] hover:underline">โครงงานนักศึกษาของฉัน</a>
+      </nav>
+      <h1 class="text-2xl font-bold text-[#0f2854] sm:text-3xl">{{ isNew ? 'เพิ่มโปรเจค' : 'แก้ไขโปรเจค' }}</h1>
+      <p class="text-base text-slate-600">กรอกแค่ชื่อโปรเจคกับเทอมก็บันทึกได้ ส่วนที่เหลือเติมภายหลังได้ ยิ่งข้อมูลครบ portfolio ยิ่งน่าสนใจ</p>
+    </header>
+
+    <app-data-state [loading]="loading()" [error]="loadError()" (retry)="load()">
+      <form [formGroup]="form" (ngSubmit)="save()" class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div class="flex flex-col gap-6">
+          <section class="space-y-4 rounded-2xl border-2 border-slate-300 bg-white p-5 sm:p-6">
+            <h2 class="flex items-center gap-3 text-xl font-bold text-[#0f2854]">
+              <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#f7be33] text-base text-[#261a00]">1</span>
+              ข้อมูลโปรเจค
+              <span class="rounded-md bg-[#e7eeff] px-2 py-0.5 text-sm font-semibold text-[#0f2854]">ต้องกรอก</span>
+            </h2>
+            <app-text-input label="ชื่อโปรเจค *" formControlName="title" [maxLength]="300" placeholder="เช่น ระบบจองห้องประชุมออนไลน์" />
+            <div class="grid gap-4 sm:grid-cols-2">
+              <app-select-input label="ปีการศึกษา *" formControlName="academicYear" [options]="yearOptions" [searchable]="false" />
+              <app-select-input label="ภาคเรียน *" formControlName="semester" [options]="semesterOptions" [searchable]="false" />
+            </div>
+            @if (sameTermProject(); as other) {
+              <p class="rounded-md bg-[#fff6dd] px-3 py-2 text-base text-[#261a00]" role="status">
+                เทอมนี้คุณมีโปรเจค "{{ other.title }}" อยู่แล้ว เพิ่มซ้ำได้ แต่ปกติแต่ละเทอมจะมี 1 โปรเจค
+              </p>
+            }
+          </section>
+
+          <section class="space-y-4 rounded-2xl border-2 border-slate-300 bg-white p-5 sm:p-6">
+            <h2 class="flex items-center gap-3 text-xl font-bold text-[#0f2854]">
+              <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#f7be33] text-base text-[#261a00]">2</span>
+              เล่าเกี่ยวกับโปรเจค
+              <span class="rounded-md bg-slate-100 px-2 py-0.5 text-sm font-semibold text-slate-600">ไม่บังคับ</span>
+            </h2>
+            <app-text-area
+              label="รายละเอียด"
+              hint="โปรเจคนี้ทำอะไร แก้ปัญหาอะไร และคุณทำส่วนไหนบ้าง"
+              formControlName="description"
+              [rows]="6"
+            />
+            <div class="grid gap-4 sm:grid-cols-2">
+              <app-text-input label="วิชาที่ทำ" formControlName="courseName" [maxLength]="200" placeholder="เช่น การเขียนโปรแกรมเว็บ" />
+              <app-select-input label="อาจารย์ผู้สอน" formControlName="lecturerId" [options]="lecturerOptions()" [searchable]="true" />
+            </div>
+            <div class="space-y-2">
+              <app-text-input label="เทคโนโลยีที่ใช้" hint="คั่นแต่ละอย่างด้วยเครื่องหมายจุลภาค (,)" formControlName="technologies" [maxLength]="500" placeholder="Angular, .NET, SQL Server" />
+              @if (tags().length > 0) {
+                <ul class="flex flex-wrap gap-1.5" aria-label="ตัวอย่างที่ผู้เข้าชมจะเห็น">
+                  @for (tag of tags(); track tag) {
+                    <li class="rounded-md bg-[#f0f3ff] px-2 py-0.5 text-sm font-medium text-[#0f2854]">{{ tag }}</li>
+                  }
+                </ul>
+              }
+            </div>
+          </section>
+
+          <section class="space-y-4 rounded-2xl border-2 border-slate-300 bg-white p-5 sm:p-6">
+            <h2 class="flex items-center gap-3 text-xl font-bold text-[#0f2854]">
+              <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#f7be33] text-base text-[#261a00]">3</span>
+              รูปภาพและไฟล์
+              <span class="rounded-md bg-slate-100 px-2 py-0.5 text-sm font-semibold text-slate-600">ไม่บังคับ</span>
+            </h2>
+            <app-file-upload label="รูปปก" hint="ภาพหน้าจอหรือโลโก้ของโปรเจค (JPG, PNG)" formControlName="imageFileId" accept="image" />
+            <app-file-upload label="ไฟล์ PDF (รายงาน / สไลด์)" formControlName="pdfFileId" accept="pdf" />
+          </section>
+
+          <section class="space-y-4 rounded-2xl border-2 border-slate-300 bg-white p-5 sm:p-6">
+            <h2 class="flex items-center gap-3 text-xl font-bold text-[#0f2854]">
+              <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#f7be33] text-base text-[#261a00]">4</span>
+              ลิงก์
+              <span class="rounded-md bg-slate-100 px-2 py-0.5 text-sm font-semibold text-slate-600">ไม่บังคับ</span>
+            </h2>
+            <app-text-input label="วิดีโอ (YouTube)" hint="วางลิงก์ YouTube แล้วจะแสดงวิดีโอบนหน้าโปรเจค" type="url" formControlName="videoUrl" [maxLength]="500" placeholder="https://www.youtube.com/watch?v=..." />
+            <app-text-input label="เว็บไซต์ของโปรเจค" type="url" formControlName="webUrl" [maxLength]="500" placeholder="https://" />
+            <app-text-input label="GitHub" type="url" formControlName="githubUrl" [maxLength]="500" placeholder="https://github.com/ชื่อผู้ใช้/ชื่อโปรเจค" />
+          </section>
+        </div>
+
+        <aside class="flex flex-col gap-4 lg:sticky lg:top-24">
+          <section class="space-y-3 rounded-2xl border-2 border-slate-300 bg-white p-5">
+            <h2 class="border-b-2 border-[#f7be33] pb-2 text-lg font-bold text-[#0f2854]">ความพร้อมของโปรเจค ({{ doneCount() }}/{{ checklist().length }})</h2>
+            <ul class="space-y-1.5 text-base">
+              @for (item of checklist(); track item.label) {
+                <li class="flex items-center gap-2" [class]="item.done ? 'text-[#0f2854]' : 'text-slate-500'">
+                  <span aria-hidden="true" class="flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-bold" [class]="item.done ? 'bg-[#f7be33] text-[#261a00]' : 'border-2 border-slate-300'">{{ item.done ? '✓' : '' }}</span>
+                  {{ item.label }}
+                  @if (item.required) {
+                    <span class="text-sm text-red-600">*</span>
+                  }
+                </li>
+              }
+            </ul>
+          </section>
+
+          <section class="space-y-3 rounded-2xl border-2 border-slate-300 bg-white p-5">
+            <h2 class="border-b-2 border-[#f7be33] pb-2 text-lg font-bold text-[#0f2854]">การเผยแพร่</h2>
+            <app-toggle
+              label="เผยแพร่บนเว็บไซต์"
+              tone="success"
+              boxed
+              onHint="ผู้เข้าชมเห็นโปรเจคนี้พร้อมชื่อของคุณ"
+              offHint="ฉบับร่าง เห็นเฉพาะคุณ"
+              formControlName="isPublished"
+            />
+          </section>
+
+          @if (formError(); as message) {
+            <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-base text-red-700">{{ message }}</p>
+          }
+
+          <div class="flex gap-2">
+            <a app-button variant="secondary" class="flex-1" routerLink="/my/student-projects">ยกเลิก</a>
+            <button type="submit" app-button variant="accent" class="flex-1" [loading]="saving()">บันทึก</button>
+          </div>
+        </aside>
+      </form>
+    </app-data-state>
+  </div>
+</div>

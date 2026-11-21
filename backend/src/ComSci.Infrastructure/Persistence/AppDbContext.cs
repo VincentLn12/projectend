@@ -31,12 +31,17 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     public DbSet<Project> Projects { get; set; } = null!;
     public DbSet<ProjectAdvisor> ProjectAdvisors { get; set; } = null!;
     public DbSet<JobHistory> JobHistories { get; set; } = null!;
+    public DbSet<StudentProject> StudentProjects { get; set; } = null!;
 
     public DbSet<Course> Courses { get; set; } = null!;
     public DbSet<CoursePhoto> CoursePhotos { get; set; } = null!;
     public DbSet<Generation> Generations { get; set; } = null!;
     public DbSet<CourseRegistration> CourseRegistrations { get; set; } = null!;
     public DbSet<CourseComment> CourseComments { get; set; } = null!;
+
+    public DbSet<ShortCourse> ShortCourses { get; set; } = null!;
+    public DbSet<ShortCourseRegistration> ShortCourseRegistrations { get; set; } = null!;
+    public DbSet<CertificateTemplate> CertificateTemplates { get; set; } = null!;
 
     public DbSet<Syllabus> Syllabuses { get; set; } = null!;
     public DbSet<Subject> Subjects { get; set; } = null!;

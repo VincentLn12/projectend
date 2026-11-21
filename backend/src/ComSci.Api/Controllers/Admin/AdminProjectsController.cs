@@ -28,6 +28,13 @@ public class AdminProjectsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("academic-years")]
+    public async Task<ActionResult<IReadOnlyList<short>>> GetAcademicYears(CancellationToken cancellationToken)
+    {
+        IReadOnlyList<short> years = await _projectService.GetAcademicYearsAsync(cancellationToken);
+        return Ok(years);
+    }
+
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<AdminProjectDto>> GetById(Guid id, CancellationToken cancellationToken)
     {

@@ -77,4 +77,19 @@ describe('ProjectEdit (new)', () => {
     http.expectNone('/api/admin/projects');
     expect(page.form.get('coAdvisorId')?.errors?.['server']).toContain('คนละคน');
   });
+
+  it('parses keyword tags and resets unsaved changes back to defaults', () => {
+    const detailed = page as unknown as {
+      form: FormGroup;
+      keywordTags(): string[];
+      resetForm(): void;
+    };
+
+    detailed.form.patchValue({ nameTH: 'โครงงานใหม่', keyWords: ' AI , Angular, , Web ' });
+    expect(detailed.keywordTags()).toEqual(['AI', 'Angular', 'Web']);
+
+    detailed.resetForm();
+    expect(detailed.form.get('nameTH')?.value).toBe('');
+    expect(detailed.keywordTags()).toEqual([]);
+  });
 });

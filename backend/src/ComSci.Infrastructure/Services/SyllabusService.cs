@@ -58,6 +58,21 @@ public class SyllabusService : ISyllabusService
         return await SelectDetail(query, cancellationToken);
     }
 
+    private static IOrderedQueryable<Syllabus> ApplyAdminOrdering(IQueryable<Syllabus> syllabusQuery, string? sortBy, bool descending)
+    {
+        IOrderedQueryable<Syllabus> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("nameth", false) => syllabusQuery.OrderBy(syllabus => syllabus.NameTH),
+            ("nameth", true) => syllabusQuery.OrderByDescending(syllabus => syllabus.NameTH),
+            ("year", false) => syllabusQuery.OrderBy(syllabus => syllabus.Year),
+            ("status", false) => syllabusQuery.OrderBy(syllabus => syllabus.IsPublished),
+            ("status", true) => syllabusQuery.OrderByDescending(syllabus => syllabus.IsPublished),
+            _ => syllabusQuery.OrderByDescending(syllabus => syllabus.Year)
+        };
+
+        return ordered.ThenBy(syllabus => syllabus.NameTH).ThenBy(syllabus => syllabus.Id);
+    }
+
     public async Task<PagedResult<AdminSyllabusListItemDto>> GetAllAsync(AdminSyllabusQuery query, CancellationToken cancellationToken)
     {
         IQueryable<Syllabus> syllabusQuery = _dbContext.Syllabuses.AsNoTracking();
@@ -79,8 +94,7 @@ public class SyllabusService : ISyllabusService
         int total = await syllabusQuery.CountAsync(cancellationToken);
 
         int itemsToSkip = (query.Page - 1) * query.PageSize;
-        List<AdminSyllabusListItemDto> items = await syllabusQuery
-            .OrderByDescending(syllabus => syllabus.Year)
+        List<AdminSyllabusListItemDto> items = await ApplyAdminOrdering(syllabusQuery, query.SortBy, query.SortDescending)
             .Skip(itemsToSkip)
             .Take(query.PageSize)
             .Select(syllabus => new AdminSyllabusListItemDto

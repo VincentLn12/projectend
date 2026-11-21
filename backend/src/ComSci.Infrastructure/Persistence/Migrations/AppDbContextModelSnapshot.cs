@@ -88,6 +88,10 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("GithubUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<Guid?>("ImageFileId")
                         .HasColumnType("uniqueidentifier");
 
@@ -96,6 +100,10 @@ namespace ComSci.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
+
+                    b.Property<string>("LinkedInUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -126,8 +134,15 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.Property<bool>("ShowEmail")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("ShowPhone")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("ShowProfile")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Skills")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
@@ -199,6 +214,70 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.HasIndex("EntityName", "EntityId");
 
                     b.ToTable("AuditLogs");
+                });
+
+            modelBuilder.Entity("ComSci.Domain.Entities.CertificateTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("BackgroundFileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid?>("SecondSignatureFileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SecondSignerName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("SecondSignerPosition")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<Guid?>("SignatureFileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SignerName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("SignerPosition")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BackgroundFileId");
+
+                    b.HasIndex("SecondSignatureFileId");
+
+                    b.HasIndex("SignatureFileId");
+
+                    b.ToTable("CertificateTemplates");
                 });
 
             modelBuilder.Entity("ComSci.Domain.Entities.Course", b =>
@@ -861,6 +940,147 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("ComSci.Domain.Entities.ShortCourse", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Audience")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid?>("CertificateTemplateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CoverFileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("Hours")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRegistrationEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("MaxParticipants")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RegistrationCloseAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("RegistrationOpenAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TeacherName")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CertificateTemplateId");
+
+                    b.HasIndex("CoverFileId");
+
+                    b.ToTable("ShortCourses");
+                });
+
+            modelBuilder.Entity("ComSci.Domain.Entities.ShortCourseRegistration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Prefix")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("RegisteredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ShortCourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShortCourseId", "Phone")
+                        .IsUnique()
+                        .HasFilter("[Status] <> 3 AND [IsDeleted] = 0");
+
+                    b.ToTable("ShortCourseRegistrations");
+                });
+
             modelBuilder.Entity("ComSci.Domain.Entities.StudentProfile", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -888,6 +1108,91 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("StudentProfiles");
+                });
+
+            modelBuilder.Entity("ComSci.Domain.Entities.StudentProject", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<short>("AcademicYear")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("CourseName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GithubUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid?>("ImageFileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid?>("LecturerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("PdfFileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte>("Semester")
+                        .HasColumnType("tinyint");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Technologies")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("VideoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("WebUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImageFileId");
+
+                    b.HasIndex("LecturerId");
+
+                    b.HasIndex("PdfFileId");
+
+                    b.HasIndex("StudentId", "AcademicYear", "Semester");
+
+                    b.HasIndex("AcademicYear", "Semester", "IsPublished", "IsDeleted");
+
+                    b.ToTable("StudentProjects");
                 });
 
             modelBuilder.Entity("ComSci.Domain.Entities.Subject", b =>
@@ -1039,6 +1344,13 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.Property<string>("FooterText")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+                    b.Property<string>("AboutDescription")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("AboutTitle")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<string>("KruUrl")
                         .HasMaxLength(500)
@@ -1054,6 +1366,18 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.Property<string>("PageFacebook")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid?>("QuickMenuBackgroundFileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("QuickMenuEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("QuickMenuItems")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("RegisterUrl")
                         .HasMaxLength(500)
@@ -1075,6 +1399,8 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("LogoFileId");
+
+                    b.HasIndex("QuickMenuBackgroundFileId");
 
                     b.ToTable("SystemSettings");
                 });
@@ -1262,6 +1588,30 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ImageFile");
+                });
+
+            modelBuilder.Entity("ComSci.Domain.Entities.CertificateTemplate", b =>
+                {
+                    b.HasOne("ComSci.Domain.Entities.FileRecord", "BackgroundFile")
+                        .WithMany()
+                        .HasForeignKey("BackgroundFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ComSci.Domain.Entities.FileRecord", "SecondSignatureFile")
+                        .WithMany()
+                        .HasForeignKey("SecondSignatureFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ComSci.Domain.Entities.FileRecord", "SignatureFile")
+                        .WithMany()
+                        .HasForeignKey("SignatureFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("BackgroundFile");
+
+                    b.Navigation("SecondSignatureFile");
+
+                    b.Navigation("SignatureFile");
                 });
 
             modelBuilder.Entity("ComSci.Domain.Entities.Course", b =>
@@ -1483,6 +1833,34 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ComSci.Domain.Entities.ShortCourse", b =>
+                {
+                    b.HasOne("ComSci.Domain.Entities.CertificateTemplate", "CertificateTemplate")
+                        .WithMany()
+                        .HasForeignKey("CertificateTemplateId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ComSci.Domain.Entities.FileRecord", "CoverFile")
+                        .WithMany()
+                        .HasForeignKey("CoverFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CertificateTemplate");
+
+                    b.Navigation("CoverFile");
+                });
+
+            modelBuilder.Entity("ComSci.Domain.Entities.ShortCourseRegistration", b =>
+                {
+                    b.HasOne("ComSci.Domain.Entities.ShortCourse", "ShortCourse")
+                        .WithMany("Registrations")
+                        .HasForeignKey("ShortCourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ShortCourse");
+                });
+
             modelBuilder.Entity("ComSci.Domain.Entities.StudentProfile", b =>
                 {
                     b.HasOne("ComSci.Domain.Entities.AppUser", "User")
@@ -1492,6 +1870,38 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ComSci.Domain.Entities.StudentProject", b =>
+                {
+                    b.HasOne("ComSci.Domain.Entities.FileRecord", "ImageFile")
+                        .WithMany()
+                        .HasForeignKey("ImageFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ComSci.Domain.Entities.Lecturer", "Lecturer")
+                        .WithMany()
+                        .HasForeignKey("LecturerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ComSci.Domain.Entities.FileRecord", "PdfFile")
+                        .WithMany()
+                        .HasForeignKey("PdfFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ComSci.Domain.Entities.AppUser", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ImageFile");
+
+                    b.Navigation("Lecturer");
+
+                    b.Navigation("PdfFile");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("ComSci.Domain.Entities.Subject", b =>
@@ -1544,7 +1954,14 @@ namespace ComSci.Infrastructure.Persistence.Migrations
                         .HasForeignKey("LogoFileId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("ComSci.Domain.Entities.FileRecord", "QuickMenuBackgroundFile")
+                        .WithMany()
+                        .HasForeignKey("QuickMenuBackgroundFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("LogoFile");
+
+                    b.Navigation("QuickMenuBackgroundFile");
                 });
 
             modelBuilder.Entity("ComSci.Domain.Entities.TechSubjectFile", b =>
@@ -1648,6 +2065,11 @@ namespace ComSci.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("ComSci.Domain.Entities.Project", b =>
                 {
                     b.Navigation("Advisors");
+                });
+
+            modelBuilder.Entity("ComSci.Domain.Entities.ShortCourse", b =>
+                {
+                    b.Navigation("Registrations");
                 });
 
             modelBuilder.Entity("ComSci.Domain.Entities.Syllabus", b =>

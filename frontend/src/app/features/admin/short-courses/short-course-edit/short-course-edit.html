@@ -1,0 +1,109 @@
+<section class="space-y-5">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-semibold text-slate-900">{{ isNew ? 'เพิ่มอบรม' : 'แก้ไขอบรม' }}</h1>
+      <p class="text-sm text-slate-600">กรอกข้อมูลแล้วกด "บันทึก" ช่องที่มี * ต้องกรอก</p>
+    </div>
+    <a appBack="/admin/short-courses" href="/admin/short-courses" class="text-sm text-slate-600 underline hover:text-slate-900">← กลับไปรายการอบรม</a>
+  </div>
+
+  <app-data-state [loading]="loading()" [error]="loadError()" (retry)="load()">
+    <form [formGroup]="form" (ngSubmit)="save()" class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+      <div class="space-y-6">
+        <section class="space-y-4 rounded-xl bg-white p-5 shadow-sm sm:p-6">
+          <h2 class="flex items-center gap-2 font-semibold text-slate-900">
+            <span class="flex size-6 items-center justify-center rounded-full bg-brand-800 text-sm text-white">1</span>
+            ข้อมูลอบรม
+          </h2>
+          <app-text-input label="ชื่ออบรม *" formControlName="title" [maxLength]="300" placeholder="เช่น Python พื้นฐานสำหรับผู้เริ่มต้น" />
+          <app-text-area label="รายละเอียด" hint="เขียนเนื้อหา สิ่งที่จะได้เรียนรู้ และสิ่งที่ผู้เข้าอบรมต้องเตรียม" formControlName="description" [rows]="6" />
+          <div class="grid gap-4 sm:grid-cols-2">
+            <app-text-input label="วิทยากร" formControlName="teacherName" [maxLength]="300" />
+            <app-text-input label="กลุ่มเป้าหมาย" formControlName="audience" [maxLength]="500" placeholder="เช่น นักเรียน ม.ปลาย และบุคคลทั่วไป" />
+          </div>
+          <app-file-upload label="รูปปก" hint="แสดงบนหน้ารายการและหน้ารายละเอียด" formControlName="coverFileId" accept="image" />
+        </section>
+
+        <section class="space-y-4 rounded-xl bg-white p-5 shadow-sm sm:p-6">
+          <h2 class="flex items-center gap-2 font-semibold text-slate-900">
+            <span class="flex size-6 items-center justify-center rounded-full bg-brand-800 text-sm text-white">2</span>
+            วัน เวลา และสถานที่
+          </h2>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <app-date-input label="เริ่มอบรม *" type="datetime-local" formControlName="startDate" />
+            <app-date-input label="สิ้นสุดการอบรม *" type="datetime-local" formControlName="endDate" />
+          </div>
+          <div class="grid gap-4 sm:grid-cols-[1fr_12rem]">
+            <app-text-input label="สถานที่" formControlName="location" [maxLength]="500" placeholder="เช่น ห้อง 301 อาคารคอมพิวเตอร์" />
+            <app-text-input label="จำนวนชั่วโมง" hint="ใช้พิมพ์ในเกียรติบัตร" type="number" formControlName="hours" />
+          </div>
+        </section>
+
+        <section class="space-y-4 rounded-xl bg-white p-5 shadow-sm sm:p-6">
+          <h2 class="flex items-center gap-2 font-semibold text-slate-900">
+            <span class="flex size-6 items-center justify-center rounded-full bg-brand-800 text-sm text-white">3</span>
+            การรับสมัคร
+          </h2>
+          <app-text-input label="จำนวนที่รับ (คน)" hint="ใส่ 0 ถ้าไม่จำกัดจำนวน" type="number" formControlName="maxParticipants" />
+          <div class="grid gap-4 sm:grid-cols-2">
+            <app-date-input label="เริ่มรับสมัคร" hint="เว้นว่าง = เปิดรับทันที" type="datetime-local" formControlName="registrationOpenAt" />
+            <app-date-input label="ปิดรับสมัคร" hint="เว้นว่าง = ปิดเมื่อถึงวันเริ่มอบรม" type="datetime-local" formControlName="registrationCloseAt" />
+          </div>
+        </section>
+      </div>
+
+      <aside class="space-y-4 lg:sticky lg:top-6">
+        <section class="space-y-4 rounded-xl bg-white p-5 shadow-sm">
+          <h2 class="font-semibold text-slate-900">สถานะ</h2>
+          <app-toggle
+            label="เผยแพร่บนเว็บไซต์"
+            tone="success"
+            boxed
+            onHint="เผยแพร่แล้ว ผู้เข้าชมมองเห็น"
+            offHint="ฉบับร่าง ผู้เข้าชมยังไม่เห็น"
+            formControlName="isPublished"
+          />
+          <app-toggle
+            label="เปิดรับสมัคร"
+            tone="success"
+            boxed
+            onHint="ผู้เข้าชมสมัครได้ (ตามช่วงวันที่ที่ตั้งไว้)"
+            offHint="ปิดรับสมัครอยู่"
+            formControlName="isRegistrationEnabled"
+          />
+        </section>
+
+        <section class="space-y-3 rounded-xl bg-white p-5 shadow-sm">
+          <h2 class="font-semibold text-slate-900">เกียรติบัตร</h2>
+          <app-select-input label="แม่แบบเกียรติบัตร" hint="ถ้าไม่เลือก จะใช้แม่แบบล่าสุด" formControlName="certificateTemplateId" [options]="templateOptions()" />
+          <a routerLink="/admin/certificate-templates" class="inline-block text-sm text-slate-600 underline hover:text-slate-900">จัดการแม่แบบเกียรติบัตร</a>
+        </section>
+
+        @if (!isNew) {
+          <section class="space-y-3 rounded-xl bg-white p-5 shadow-sm">
+            <h2 class="font-semibold text-slate-900">ผู้สมัคร</h2>
+            <p class="text-sm text-slate-600">
+              ตอนนี้ <strong class="text-slate-900">{{ registeredCount() }}</strong> คน
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <a app-button size="sm" variant="secondary" [routerLink]="['/admin/short-courses', courseId, 'registrations']">ดูรายชื่อ / โหลดเอกสาร</a>
+              <a app-button size="sm" variant="ghost" [routerLink]="['/short-courses', courseId]" target="_blank">ดูหน้าเว็บ</a>
+            </div>
+          </section>
+        }
+
+        @if (submitted() && form.invalid) {
+          <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">ยังกรอกไม่ครบหรือไม่ถูกต้อง กรุณาตรวจช่องที่เป็นสีแดง</p>
+        }
+        @if (formError(); as message) {
+          <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ message }}</p>
+        }
+
+        <div class="flex gap-2">
+          <a app-button variant="secondary" class="flex-1" appBack="/admin/short-courses" href="/admin/short-courses">ยกเลิก</a>
+          <button type="submit" app-button class="flex-1" [loading]="saving()">บันทึก</button>
+        </div>
+      </aside>
+    </form>
+  </app-data-state>
+</section>

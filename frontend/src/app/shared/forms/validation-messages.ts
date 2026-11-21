@@ -1,7 +1,7 @@
 import { ValidationErrors } from '@angular/forms';
 
 // Which error to show first when a control has several.
-const PRIORITY = ['server', 'required', 'email', 'url', 'minlength', 'maxlength', 'min', 'max', 'pattern'];
+const PRIORITY = ['server', 'required', 'email', 'url', 'minlength', 'maxlength', 'min', 'max', 'pattern', 'phone', 'studentCode'];
 
 export function firstValidationMessage(errors: ValidationErrors | null): string | null {
   if (!errors) {
@@ -43,6 +43,10 @@ function describe(key: string, detail: unknown): string | null {
       return `ต้องไม่น้อยกว่า ${info['min']}`;
     case 'max':
       return `ต้องไม่มากกว่า ${info['max']}`;
+    case 'studentCode':
+      return 'รหัสนักศึกษาต้องเป็นตัวเลข 11 หลัก';
+    case 'phone':
+      return 'เบอร์โทรไม่ถูกต้อง ต้องเป็นตัวเลข 9-10 หลักและขึ้นต้นด้วย 0';
     case 'pattern':
       return 'รูปแบบไม่ถูกต้อง';
     default:

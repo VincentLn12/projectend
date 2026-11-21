@@ -1,94 +1,292 @@
-<div class="space-y-10">
-  <section class="rounded-xl bg-white p-6 shadow-sm sm:p-8">
-    @if (siteSettings.settings(); as settings) {
-      <h1 class="text-2xl font-semibold text-slate-900">{{ settings.webName }}</h1>
-      @if (settings.universityName) {
-        <p class="mt-1 text-slate-600">{{ settings.universityName }}</p>
-      }
-
-      <div class="mt-5 flex flex-wrap gap-3">
-        @if (settings.registerUrl) {
-          <a app-button [href]="settings.registerUrl" target="_blank" rel="noopener noreferrer">สมัครเรียน</a>
-        }
-        @if (settings.pageFacebook) {
-          <a app-button variant="secondary" [href]="settings.pageFacebook" target="_blank" rel="noopener noreferrer">Facebook</a>
-        }
-        @if (settings.kruUrl) {
-          <a app-button variant="secondary" [href]="settings.kruUrl" target="_blank" rel="noopener noreferrer">เว็บมหาวิทยาลัย</a>
-        }
+<!-- Full-width page: break out of the layout's centered container -->
+<div class="relative left-1/2 -my-8 w-screen -translate-x-1/2 bg-[#f9f9ff] text-[#111c2c]">
+  <!-- Hero: heading + banner carousel -->
+  <section class="bg-[#f0f3ff] py-6 lg:py-10">
+    <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-4 px-6 lg:px-12">
+      <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-[#1c5bb8]">Computer Science · Kanchanaburi Rajabhat University</p>
+          <h1 class="mt-1 text-2xl font-bold tracking-tight text-[#0f2854] sm:text-3xl">
+            {{ siteSettings.settings()?.webName ?? 'สาขาวิทยาการคอมพิวเตอร์' }} {{ siteSettings.settings()?.universityName }}
+          </h1>
+        </div>
       </div>
-    } @else if (siteSettings.loadFailed()) {
-      <p class="text-red-600">เชื่อมต่อระบบไม่ได้ กรุณาลองใหม่ภายหลัง</p>
-    } @else {
-      <p class="text-slate-500">กำลังโหลด…</p>
-    }
+
+      @if (banners().length > 0) {
+        <div class="relative overflow-hidden rounded-xl bg-[#0f2854] shadow-md">
+          @if (banners()[bannerIndex()]; as banner) {
+            @if (banner.linkUrl) {
+              <a [href]="banner.linkUrl" target="_blank" rel="noopener noreferrer" class="block">
+                <app-file-image [fileId]="banner.fileId" [alt]="banner.title ?? 'ภาพประชาสัมพันธ์'" class="aspect-[16/7] w-full" />
+              </a>
+            } @else {
+              <app-file-image [fileId]="banner.fileId" [alt]="banner.title ?? 'ภาพประชาสัมพันธ์'" class="aspect-[16/7] w-full" />
+            }
+          }
+
+          @if (banners().length > 1) {
+            <div class="absolute right-4 top-4 hidden gap-2 sm:flex">
+              <button type="button" app-button variant="secondary" size="sm" class="size-10! rounded-full! border-0! bg-white/80! text-[#0f2854]! backdrop-blur" aria-label="ภาพก่อนหน้า" (click)="showPreviousBanner()">‹</button>
+              <button type="button" app-button variant="secondary" size="sm" class="size-10! rounded-full! border-0! bg-white/80! text-[#0f2854]! backdrop-blur" aria-label="ภาพถัดไป" (click)="showNextBanner()">›</button>
+            </div>
+            <div class="absolute bottom-3 right-3 flex gap-2 sm:bottom-4 sm:right-4">
+              @for (banner of banners(); track banner.id; let position = $index) {
+                <button
+                  type="button"
+                  app-button
+                  variant="ghost"
+                  size="sm"
+                  class="size-3! min-h-0! rounded-full! p-0!"
+                  [class]="position === bannerIndex() ? 'bg-[#f7be33]!' : 'bg-white/60!'"
+                  [attr.aria-label]="'ไปที่ภาพที่ ' + (position + 1)"
+                  (click)="showBanner(position)"
+                ></button>
+              }
+            </div>
+          }
+        </div>
+      } @else if (siteSettings.loadFailed()) {
+        <p class="rounded-xl bg-white p-6 text-red-700">เชื่อมต่อระบบไม่ได้ กรุณาลองใหม่ภายหลัง</p>
+      } @else {
+        <div class="aspect-[16/7] w-full animate-pulse rounded-xl bg-[#dee9ff]"></div>
+      }
+    </div>
   </section>
 
-  @if (banners().length > 0) {
-    <section class="relative overflow-hidden rounded-xl" aria-label="ภาพประชาสัมพันธ์">
-      @if (banners()[bannerIndex()]; as banner) {
-        @if (banner.linkUrl) {
-          <a [href]="banner.linkUrl" target="_blank" rel="noopener noreferrer" class="block">
-            <app-file-image [fileId]="banner.fileId" [alt]="banner.title ?? 'ภาพประชาสัมพันธ์'" class="h-56 w-full sm:h-80" />
-          </a>
-        } @else {
-          <app-file-image [fileId]="banner.fileId" [alt]="banner.title ?? 'ภาพประชาสัมพันธ์'" class="h-56 w-full sm:h-80" />
-        }
-        @if (banner.title) {
-          <p class="absolute inset-x-0 bottom-0 bg-black/50 px-4 py-2 text-sm text-white">{{ banner.title }}</p>
+  <!-- Intro + admissions card -->
+  <section class="py-10">
+    <div class="mx-auto grid w-full max-w-[1680px] items-center gap-8 px-6 lg:grid-cols-12 lg:px-12">
+      @if (siteSettings.settings(); as settings) {
+        @if (settings.aboutTitle || settings.aboutDescription) {
+          <div class="flex flex-col gap-3 lg:col-span-7">
+            <div class="inline-flex items-center gap-2">
+              <span class="h-2 w-8 rounded-full bg-[#1c5bb8]" aria-hidden="true"></span>
+              <span class="text-xs font-bold uppercase tracking-widest text-[#1c5bb8]">เกี่ยวกับสาขา</span>
+            </div>
+            @if (settings.aboutTitle) {
+              <h2 class="text-2xl font-bold leading-snug text-[#0f2854] sm:text-3xl">{{ settings.aboutTitle }}</h2>
+            }
+            @if (settings.aboutDescription) {
+              <p class="whitespace-pre-line text-justify text-lg leading-relaxed text-[#44474f] [text-justify:inter-character]">{{ settings.aboutDescription }}</p>
+            }
+          </div>
         }
       }
-      @if (banners().length > 1) {
-        <div class="absolute inset-x-2 top-1/2 flex -translate-y-1/2 justify-between">
-          <button type="button" app-button variant="secondary" size="sm" aria-label="ภาพก่อนหน้า" (click)="showPreviousBanner()">‹</button>
-          <button type="button" app-button variant="secondary" size="sm" aria-label="ภาพถัดไป" (click)="showNextBanner()">›</button>
+
+      @if (siteSettings.settings(); as settings) {
+        <div class="lg:col-span-5">
+          <div class="relative flex flex-col gap-4 overflow-hidden rounded-xl bg-[#0f2854] p-6 text-white shadow-lg lg:p-10">
+            <div class="pointer-events-none absolute -bottom-12 -right-12 size-48 rounded-full bg-[#1c5bb8]/30 blur-2xl" aria-hidden="true"></div>
+            <span class="relative self-start rounded bg-[#ffdf9f] px-2 py-0.5 text-xs font-bold text-[#261a00]">ADMISSIONS</span>
+            <div class="relative">
+              <h3 class="text-2xl font-bold">รับสมัครนักศึกษาใหม่</h3>
+              <p class="mt-1 text-sm text-[#ebf1ff]">{{ settings.webName }} {{ settings.universityName }}</p>
+            </div>
+            <div class="relative flex flex-col gap-2">
+              @if (settings.registerUrl) {
+                <a [href]="settings.registerUrl" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 rounded bg-[#f7be33] px-4 py-3 text-center font-bold text-[#261a00] shadow-md transition-colors hover:bg-[#ffdf9f]">
+                  สมัครเรียนออนไลน์ <span aria-hidden="true">→</span>
+                </a>
+              }
+              <div class="grid grid-cols-2 gap-2">
+                @if (settings.kruUrl) {
+                  <a [href]="settings.kruUrl" target="_blank" rel="noopener noreferrer" class="rounded bg-white/15 px-3 py-2 text-center text-sm transition-colors hover:bg-white/25">เว็บมหาวิทยาลัย</a>
+                }
+                @if (settings.pageFacebook) {
+                  <a [href]="settings.pageFacebook" target="_blank" rel="noopener noreferrer" class="rounded bg-[#1c5bb8] px-3 py-2 text-center text-sm transition-colors hover:bg-[#6a9cfd] hover:text-[#003373]">Facebook สาขา</a>
+                }
+              </div>
+            </div>
+          </div>
         </div>
       }
-    </section>
+    </div>
+  </section>
+
+  <!-- Quick directory -->
+  @if (siteSettings.settings()?.quickMenuEnabled !== false && quickLinks().length > 0) {
+  <section class="relative bg-[#f0f3ff] py-10">
+    @if (siteSettings.settings()?.quickMenuBackgroundFileId; as backgroundFileId) {
+      <app-file-image [fileId]="backgroundFileId" class="absolute inset-0 size-full" />
+      <div class="absolute inset-0 bg-[#f0f3ff]/80" aria-hidden="true"></div>
+    }
+    <div class="relative mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-6 lg:px-12">
+      <div class="flex flex-col justify-between gap-1 sm:flex-row sm:items-end">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-[#1c5bb8]">Quick directory</span>
+          <h2 class="text-2xl font-bold text-[#0f2854] sm:text-3xl">เมนูลัดสู่ข้อมูลสาขา</h2>
+        </div>
+        <p class="max-w-md text-sm text-[#44474f]">เข้าถึงหลักสูตร เทคโนโลยีที่เรียน โครงงาน และอาจารย์ได้สะดวกรวดเร็ว</p>
+      </div>
+      <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+        @for (link of quickLinks(); track link.path) {
+          <li>
+            <a [routerLink]="link.path" class="group flex h-full flex-col justify-between overflow-hidden rounded-xl bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+              @if (link.imageFileId) {
+                <app-file-image [fileId]="link.imageFileId" [alt]="link.label" class="h-40 w-full" />
+              }
+              <div class="flex h-full flex-col justify-between p-6">
+              <div class="flex items-start justify-between">
+                <span class="flex size-12 items-center justify-center rounded-lg bg-[#e7eeff] text-[#1c5bb8] transition-colors group-hover:bg-[#1c5bb8] group-hover:text-white">
+                  <svg class="size-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="link.icon" />
+                  </svg>
+                </span>
+                <span class="rounded bg-[#f0f3ff] px-1.5 py-0.5 font-mono text-xs text-[#44474f]">{{ link.tag }}</span>
+              </div>
+              <div class="mt-4">
+                <h3 class="text-xl font-bold text-[#0f2854] transition-colors group-hover:text-[#1c5bb8]">{{ link.label }}</h3>
+                <p class="mt-1 text-sm text-[#44474f]">{{ link.description }}</p>
+              </div>
+              <span class="mt-4 flex items-center gap-1 text-sm font-semibold text-[#1c5bb8] transition-all group-hover:gap-2">
+                {{ link.action }} <span aria-hidden="true">→</span>
+              </span>
+              </div>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+  </section>
   }
 
+  <!-- Latest news -->
   @if (news().length > 0) {
-    <section class="space-y-4">
-      <div class="flex items-baseline justify-between">
-        <h2 class="text-xl font-semibold text-slate-900">ข่าวล่าสุด</h2>
-        <a routerLink="/news" class="text-sm text-slate-600 underline hover:text-slate-900">ดูทั้งหมด</a>
+    <section class="py-10">
+      <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-6 lg:px-12">
+        <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="rounded bg-[#0f2854] px-2 py-1 text-xs font-bold uppercase tracking-wider text-white">ข่าวประชาสัมพันธ์ล่าสุด</span>
+            <h2 class="text-2xl font-bold text-[#0f2854]">อัปเดตความเคลื่อนไหว</h2>
+          </div>
+          <a routerLink="/news" class="flex items-center gap-1 text-sm font-semibold text-[#1c5bb8] transition-colors hover:text-[#0f2854]">ดูข่าวทั้งหมด <span aria-hidden="true">›</span></a>
+        </div>
+        <ul class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+          @for (item of news(); track item.id) {
+            <li>
+              <a [routerLink]="['/news', item.id]" class="group flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-sm transition-all hover:shadow-md">
+                <div class="h-48 overflow-hidden bg-[#e7eeff]">
+                  <app-file-image [fileId]="item.mainImageFileId" [alt]="item.title" class="h-full w-full transition-transform duration-500 group-hover:scale-105" />
+                </div>
+                <div class="flex flex-1 flex-col justify-between gap-3 p-4">
+                  <div class="flex flex-col gap-1">
+                    <p class="font-mono text-xs text-[#44474f]">{{ item.publishedAt | thaiDate }}</p>
+                    <h3 class="line-clamp-2 text-lg font-bold text-[#0f2854] transition-colors group-hover:text-[#1c5bb8]">{{ item.title }}</h3>
+                    @if (item.subTitle) {
+                      <p class="line-clamp-2 text-sm text-[#44474f]">{{ item.subTitle }}</p>
+                    }
+                  </div>
+                  <span class="self-end text-sm font-semibold text-[#1c5bb8] group-hover:underline">อ่านต่อ →</span>
+                </div>
+              </a>
+            </li>
+          }
+        </ul>
       </div>
-      <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        @for (item of news(); track item.id) {
-          <li class="overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md">
-            <a [routerLink]="['/news', item.id]" class="block">
-              <app-file-image [fileId]="item.mainImageFileId" [alt]="item.title" class="h-40 w-full" />
-              <div class="space-y-1 p-4">
-                <p class="text-xs text-slate-500">{{ item.publishedAt | thaiDate }}</p>
-                <h3 class="line-clamp-2 font-semibold text-slate-900">{{ item.title }}</h3>
-              </div>
-            </a>
-          </li>
-        }
-      </ul>
     </section>
   }
 
+  <!-- Student projects -->
   @if (projects().length > 0) {
-    <section class="space-y-4">
-      <div class="flex items-baseline justify-between">
-        <h2 class="text-xl font-semibold text-slate-900">โครงงานล่าสุด</h2>
-        <a routerLink="/projects" class="text-sm text-slate-600 underline hover:text-slate-900">ดูทั้งหมด</a>
+    <section class="bg-[#f0f3ff] py-10">
+      <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-6 lg:px-12">
+        <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="rounded bg-[#d8e2ff] px-2 py-1 text-xs font-bold uppercase tracking-wider text-[#001a42]">โครงงานวิจัยนักศึกษาล่าสุด</span>
+            <h2 class="text-2xl font-bold text-[#0f2854]">ผลงานโครงงานวิจัยนักศึกษา</h2>
+          </div>
+          <a routerLink="/projects" class="inline-flex items-center gap-1 self-start rounded bg-white px-4 py-1.5 text-sm font-semibold text-[#0f2854] shadow-sm transition-colors hover:bg-[#e7eeff] hover:text-[#1c5bb8]">ชมผลงานทั้งหมด <span aria-hidden="true">↗</span></a>
+        </div>
+        <ul class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+          @for (item of projects(); track item.id) {
+            <li>
+              <a [routerLink]="['/projects', item.id]" class="group flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-sm transition-all hover:shadow-md">
+                <div class="relative h-52 overflow-hidden bg-[#e7eeff]">
+                  <app-file-image [fileId]="item.imageFileId" [alt]="item.nameTH" class="h-full w-full transition-transform duration-500 group-hover:scale-105" />
+                  <span class="absolute right-3 top-3 rounded bg-[#0f2854] px-1.5 py-0.5 font-mono text-xs text-white">ปีการศึกษา {{ item.academicYear }}</span>
+                </div>
+                <div class="flex flex-1 flex-col justify-between gap-3 p-4">
+                  <div>
+                    <h3 class="text-lg font-bold text-[#0f2854]">{{ item.nameTH }}</h3>
+                    <p class="mt-2 rounded bg-[#f0f3ff] px-2 py-1.5 text-sm font-medium text-[#111c2c]">{{ item.studentName }}</p>
+                  </div>
+                  <span class="self-end text-sm font-semibold text-[#1c5bb8] group-hover:underline">รายละเอียด →</span>
+                </div>
+              </a>
+            </li>
+          }
+        </ul>
       </div>
-      <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        @for (item of projects(); track item.id) {
-          <li class="overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md">
-            <a [routerLink]="['/projects', item.id]" class="block">
-              <app-file-image [fileId]="item.imageFileId" [alt]="item.nameTH" class="h-40 w-full" />
-              <div class="space-y-1 p-4">
-                <p class="text-xs text-slate-500">ปีการศึกษา {{ item.academicYear }}</p>
-                <h3 class="line-clamp-2 font-semibold text-slate-900">{{ item.nameTH }}</h3>
-                <p class="text-sm text-slate-600">{{ item.studentName }}</p>
+    </section>
+  }
+
+  <!-- Videos (from site settings) -->
+  @if (videos().length > 0) {
+    <section class="py-10">
+      <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-6 lg:px-12">
+        <div class="flex items-center gap-2">
+          <span class="size-3 rounded-full bg-[#ba1a1a]" aria-hidden="true"></span>
+          <h2 class="text-2xl font-bold text-[#0f2854]">วิดีโอแนะนำสาขาวิชา</h2>
+        </div>
+        <ul class="grid gap-4 sm:grid-cols-2 lg:gap-6">
+          @for (video of videos(); track video.url; let position = $index) {
+            <li class="flex flex-col gap-2 rounded-xl bg-white p-3 shadow-sm">
+              @if (video.embedUrl) {
+                <iframe
+                  class="aspect-video w-full rounded-lg bg-[#0f2854]"
+                  [src]="video.embedUrl"
+                  [title]="'วิดีโอแนะนำสาขาวิชา ' + (position + 1)"
+                  loading="lazy"
+                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                ></iframe>
+              }
+              <a [href]="video.url" target="_blank" rel="noopener noreferrer" class="self-end px-1 text-sm font-semibold text-[#1c5bb8] hover:underline">รับชมบน YouTube ↗</a>
+            </li>
+          }
+        </ul>
+      </div>
+    </section>
+  }
+
+  <!-- Location + direct links (from site settings) -->
+  @if (siteSettings.settings(); as settings) {
+    <section class="pb-12" [class.pt-10]="videos().length === 0">
+      <div class="mx-auto w-full max-w-[1680px] px-6 lg:px-12">
+        <div class="grid gap-8 rounded-xl bg-white p-6 shadow-sm lg:grid-cols-12">
+          <div class="flex flex-col justify-between gap-6 lg:col-span-5">
+            <div>
+              <h2 class="text-2xl font-bold text-[#0f2854]">ที่ตั้งและการติดต่อ</h2>
+              <p class="mt-2 leading-relaxed text-[#44474f]">
+                {{ settings.webName }}<br />
+                <strong class="text-[#111c2c]">{{ siteSettings.settings()?.universityName }}</strong>
+              </p>
+            </div>
+            <div class="flex flex-col gap-2">
+              @if (settings.registerUrl) {
+                <a [href]="settings.registerUrl" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between rounded bg-[#f7be33] p-3 font-bold text-[#261a00] shadow-sm transition-colors hover:bg-[#ffdf9f]">สมัครเรียนออนไลน์ <span aria-hidden="true">↗</span></a>
+              }
+              @if (settings.kruUrl) {
+                <a [href]="settings.kruUrl" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between rounded bg-[#0f2854] p-3 font-semibold text-white transition-colors hover:bg-[#1c5bb8]">เว็บไซต์มหาวิทยาลัย <span aria-hidden="true">↗</span></a>
+              }
+              @if (settings.pageFacebook) {
+                <a [href]="settings.pageFacebook" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between rounded bg-[#e7eeff] p-3 font-semibold text-[#111c2c] transition-colors hover:bg-[#d8e3f9]">Facebook สาขาวิทยาการคอมพิวเตอร์ <span aria-hidden="true">↗</span></a>
+              }
+            </div>
+          </div>
+          @if (mapLinkUrl(); as mapLink) {
+            <div class="flex flex-col gap-2 lg:col-span-7">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase text-[#44474f]">Campus map</span>
+                <a [href]="mapLink" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold text-[#1c5bb8] hover:underline">เปิดใน Google Maps ↗</a>
               </div>
-            </a>
-          </li>
-        }
-      </ul>
+              @if (mapEmbedUrl(); as embedUrl) {
+                <iframe class="h-80 w-full rounded-xl border-0 sm:h-96" [src]="embedUrl" title="แผนที่ที่ตั้งสาขา" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+              }
+            </div>
+          }
+        </div>
+      </div>
     </section>
   }
 </div>

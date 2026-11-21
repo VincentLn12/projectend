@@ -1,46 +1,193 @@
-<section class="space-y-4">
-  <div class="flex items-baseline justify-between gap-3">
-    <h1 class="text-xl font-semibold text-slate-900">{{ isNew ? 'เพิ่มผู้ใช้' : 'แก้ไขผู้ใช้' }}</h1>
-    <a routerLink="/admin/users" class="text-sm text-slate-600 underline hover:text-slate-900">← กลับไปรายการผู้ใช้</a>
-  </div>
+<section class="w-full space-y-6 pb-10">
+  <header class="relative overflow-hidden rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200/90 sm:p-6">
+    <div
+      class="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-brand-900 via-brand-700 to-gold-400"
+      aria-hidden="true"
+    ></div>
+
+    <div class="flex flex-wrap items-center justify-between gap-4 pt-1">
+      <div class="space-y-1.5">
+        <nav aria-label="เส้นทาง" class="flex flex-wrap items-center gap-1.5 text-sm text-slate-500">
+          <a routerLink="/admin/users" class="font-medium text-brand-800 transition-colors hover:text-brand-700 hover:underline">
+            จัดการผู้ใช้งาน
+          </a>
+          <span class="text-slate-300" aria-hidden="true">/</span>
+          <span class="font-medium text-slate-700">{{ isNew ? 'เพิ่มผู้ใช้' : 'แก้ไขผู้ใช้' }}</span>
+        </nav>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900">{{ isNew ? 'เพิ่มผู้ใช้งานใหม่' : 'แก้ไขข้อมูลผู้ใช้งาน' }}</h1>
+
+          @if (formValue().userType; as type) {
+            <span class="rounded-full bg-brand-900/5 px-3 py-1 text-xs font-semibold text-brand-800 ring-1 ring-brand-900/10">
+              {{ userTypeLabels[type] }}
+            </span>
+          }
+
+          @if (user(); as current) {
+            <span
+              class="rounded-full px-3 py-1 text-xs font-semibold ring-1"
+              [class]="current.isLocked ? 'bg-red-50 text-red-700 ring-red-600/20' : 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'"
+            >
+              {{ current.isLocked ? 'ถูกล็อก' : 'ใช้งานได้' }}
+            </span>
+          }
+
+          @if (form.dirty) {
+            <span class="inline-flex items-center gap-1 rounded-full bg-brand-900/5 px-2.5 py-0.5 text-xs font-medium text-brand-800">
+              มีการแก้ไขที่ยังไม่ได้บันทึก
+            </span>
+          }
+        </div>
+      </div>
+
+      <a appBack="/admin/users" href="/admin/users" app-button variant="secondary" class="gap-1.5">
+        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        กลับไปรายการผู้ใช้
+      </a>
+    </div>
+  </header>
 
   <app-data-state [loading]="loading()" [error]="loadError()" (retry)="load()">
-    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4 rounded-xl bg-white p-6 shadow-sm">
-      <app-text-input label="อีเมล" type="email" formControlName="email" [maxLength]="256" />
-      <app-text-input label="ชื่อ-สกุล" formControlName="fullName" [maxLength]="200" />
-      @if (isNew) {
-        <app-text-input label="รหัสผ่านเริ่มต้น" type="password" hint="อย่างน้อย 8 ตัวอักษร" formControlName="password" autocomplete="new-password" />
-      }
-      <app-select-input label="ประเภทผู้ใช้" formControlName="userType" [options]="typeOptions" />
+    <div class="grid w-full items-start gap-6 lg:grid-cols-12">
+      <form id="user-form" [formGroup]="form" (ngSubmit)="save()" class="space-y-6 lg:col-span-8 xl:col-span-9">
+        <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
+          <h2 class="mb-4 border-b border-slate-100 pb-3 text-lg font-semibold text-slate-900">ข้อมูลบัญชี</h2>
 
-      @if (isStudent()) {
-        <div class="grid gap-4 sm:grid-cols-2">
-          <app-text-input label="รหัสนักศึกษา" formControlName="studentCode" [maxLength]="20" />
-          <app-text-input label="ปีที่เข้าศึกษา (พ.ศ.)" type="number" formControlName="entryYear" />
+          <div class="grid gap-4">
+            <app-text-input
+              label="อีเมล"
+              type="email"
+              formControlName="email"
+              [maxLength]="256"
+              [hint]="isNew ? '' : 'อีเมลแก้ไขไม่ได้ เพราะใช้เป็นชื่อเข้าสู่ระบบ'"
+            />
+            <app-text-input label="ชื่อ-สกุล" formControlName="fullName" [maxLength]="200" />
+            @if (isNew) {
+              <app-text-input
+                label="รหัสผ่านเริ่มต้น"
+                type="password"
+                hint="อย่างน้อย 8 ตัวอักษร"
+                formControlName="password"
+                autocomplete="new-password"
+              />
+            }
+            <app-select-input label="ประเภทผู้ใช้" formControlName="userType" [options]="typeOptions" />
+          </div>
         </div>
-        <app-text-input label="โรงเรียน/สถานศึกษาเดิม" formControlName="previousSchool" [maxLength]="200" />
-        <app-text-area label="ที่อยู่" formControlName="address" [rows]="3" />
-      }
 
-      @if (formError(); as message) {
-        <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ message }}</p>
-      }
+        @if (isStudent()) {
+          <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
+            <h2 class="mb-4 border-b border-slate-100 pb-3 text-lg font-semibold text-slate-900">ข้อมูลนักศึกษา</h2>
 
-      <div class="flex justify-end gap-2">
-        <a app-button variant="secondary" routerLink="/admin/users">ยกเลิก</a>
-        <button type="submit" app-button [loading]="saving()">บันทึก</button>
-      </div>
-    </form>
-
-    @if (!isNew) {
-      <form [formGroup]="passwordForm" (ngSubmit)="resetPassword()" class="mt-6 space-y-3 rounded-xl bg-white p-6 shadow-sm">
-        <h2 class="font-semibold text-slate-900">ตั้งรหัสผ่านใหม่</h2>
-        <p class="text-sm text-slate-500">ผู้ใช้จะถูกออกจากระบบทุกอุปกรณ์ และต้องเข้าสู่ระบบด้วยรหัสผ่านใหม่</p>
-        <app-text-input label="รหัสผ่านใหม่" type="password" hint="อย่างน้อย 8 ตัวอักษร" formControlName="newPassword" autocomplete="new-password" />
-        <div class="flex justify-end">
-          <button type="submit" app-button variant="danger" [loading]="resetting()">ตั้งรหัสผ่านใหม่</button>
-        </div>
+            <div class="grid gap-4">
+              <div class="grid gap-4 sm:grid-cols-2">
+                <app-text-input label="รหัสนักศึกษา" placeholder="เช่น 6612345678" formControlName="studentCode" [maxLength]="20" />
+                <app-text-input
+                  label="ปีที่เข้าศึกษา (พ.ศ.)"
+                  placeholder="เช่น 2567"
+                  hint="ใส่เป็นปี พ.ศ. 4 หลัก"
+                  type="number"
+                  formControlName="entryYear"
+                />
+              </div>
+              <app-text-input label="โรงเรียน/สถานศึกษาเดิม" formControlName="previousSchool" [maxLength]="200" />
+              <app-text-area label="ที่อยู่" formControlName="address" [rows]="4" />
+            </div>
+          </div>
+        }
       </form>
-    }
+
+      <aside class="space-y-4 lg:col-span-4 xl:col-span-3 lg:sticky lg:top-24">
+        @if (user(); as current) {
+          <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90">
+            <div class="flex items-center gap-3.5">
+              <app-file-image
+                [fileId]="current.imageFileId"
+                [alt]="current.fullName"
+                class="size-14 shrink-0 rounded-full ring-2 ring-brand-900/15"
+              />
+              <div class="min-w-0">
+                <p class="truncate text-base font-semibold text-slate-900">{{ current.fullName }}</p>
+                <p class="truncate text-sm text-slate-500">{{ current.email }}</p>
+              </div>
+            </div>
+
+            <dl class="mt-4 space-y-2 border-t border-slate-100 pt-4 text-sm">
+              <div class="flex items-center justify-between gap-2">
+                <dt class="text-slate-500">สถานะบัญชี</dt>
+                <dd class="font-semibold" [class]="current.isLocked ? 'text-red-700' : 'text-emerald-700'">
+                  {{ current.isLocked ? 'ถูกล็อก' : 'ใช้งานได้' }}
+                </dd>
+              </div>
+              <div class="flex items-center justify-between gap-2">
+                <dt class="text-slate-500">สร้างบัญชีเมื่อ</dt>
+                <dd class="font-medium text-slate-800">{{ current.createdAt | thaiDate: 'short' }}</dd>
+              </div>
+            </dl>
+
+            <button
+              type="button"
+              app-button
+              [variant]="current.isLocked ? 'secondary' : 'danger'"
+              class="mt-4 w-full"
+              [loading]="locking()"
+              (click)="toggleLocked()"
+            >
+              {{ current.isLocked ? 'ปลดล็อกบัญชี' : 'ล็อกบัญชีนี้' }}
+            </button>
+          </div>
+        }
+
+        <div class="space-y-3 rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90">
+          @if (formError(); as message) {
+            <p role="alert" class="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700 ring-1 ring-red-200">
+              {{ message }}
+            </p>
+          }
+
+          <button type="submit" form="user-form" app-button class="w-full py-2.5!" [loading]="saving()">บันทึกข้อมูลผู้ใช้</button>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" app-button variant="ghost" class="w-full" [disabled]="!form.dirty || saving()" (click)="resetForm()">
+              คืนค่าเดิม
+            </button>
+            <a app-button variant="secondary" class="w-full" appBack="/admin/users" href="/admin/users">ยกเลิก</a>
+          </div>
+        </div>
+
+        @if (!isNew) {
+          <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90">
+            <h2 class="text-lg font-semibold text-slate-900">รหัสผ่าน</h2>
+
+            @if (!showPasswordForm()) {
+              <p class="mt-1 text-sm text-slate-500">ตั้งรหัสผ่านใหม่ให้ผู้ใช้ เมื่อผู้ใช้ลืมรหัสผ่าน</p>
+              <button type="button" app-button variant="secondary" class="mt-4 w-full" (click)="showPasswordForm.set(true)">
+                ตั้งรหัสผ่านใหม่
+              </button>
+            } @else {
+              <form [formGroup]="passwordForm" (ngSubmit)="resetPassword()" class="mt-3 space-y-3">
+                <p role="note" class="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-800 ring-1 ring-red-200">
+                  ผู้ใช้จะถูกออกจากระบบทุกอุปกรณ์ และต้องเข้าสู่ระบบด้วยรหัสผ่านใหม่
+                </p>
+                <app-text-input
+                  label="รหัสผ่านใหม่"
+                  type="password"
+                  hint="อย่างน้อย 8 ตัวอักษร"
+                  formControlName="newPassword"
+                  autocomplete="new-password"
+                />
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" app-button variant="ghost" class="w-full" (click)="showPasswordForm.set(false)">ยกเลิก</button>
+                  <button type="submit" app-button variant="danger" class="w-full" [loading]="resetting()">ยืนยัน</button>
+                </div>
+              </form>
+            }
+          </div>
+        }
+      </aside>
+    </div>
   </app-data-state>
 </section>

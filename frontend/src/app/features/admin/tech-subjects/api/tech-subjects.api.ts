@@ -30,6 +30,10 @@ export class AdminTechSubjectsApi {
     return this.http.patch<AdminTechSubject>(`${URL}/${id}/published`, { isPublished });
   }
 
+  move(id: string, direction: 'up' | 'down'): Observable<void> {
+    return this.http.post<void>(`${URL}/${id}/move`, { direction });
+  }
+
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${URL}/${id}`);
   }

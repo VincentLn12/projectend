@@ -1,38 +1,103 @@
 <section class="space-y-4">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <h1 class="text-xl font-semibold text-slate-900">จัดการเทคโนโลยี</h1>
-    <div class="flex items-center gap-3">
-      <a app-button routerLink="/admin/tech-subjects/new">เพิ่มเทคโนโลยี</a>
+  <app-page-header title="จัดการเทคโนโลยี" description="เรียงตามลำดับที่แสดงบนหน้าเว็บไซต์" [count]="rows().length" unit="รายการ">
+    <a app-button variant="accent" routerLink="/admin/tech-subjects/new">เพิ่มเทคโนโลยี</a>
+  </app-page-header>
+
+  <div class="flex flex-wrap items-end gap-3">
+    <div class="min-w-60 flex-1">
+      <app-search-box placeholder="ค้นหาชื่อเทคโนโลยี" (searchChange)="searchText.set($event)" />
     </div>
+    <div class="w-full sm:w-44">
+      <app-select-input
+        label="สถานะ"
+        shape="soft"
+        placeholder="ทุกสถานะ"
+        [options]="statusOptions"
+        [formControl]="statusControl"
+      />
+    </div>
+    @if (statusFilter() !== 'all') {
+      <button type="button" app-button variant="ghost" class="rounded-lg" (click)="clearFilter()">ล้างตัวกรอง</button>
+    }
   </div>
 
-  <app-data-table
-    [columns]="columns"
-    [rows]="rows()"
+  <app-data-state
     [loading]="loading()"
     [error]="error()"
+    [empty]="filteredRows().length === 0"
+    [emptyMessage]="statusFilter() === 'all' && !searchText() ? 'ยังไม่มีเทคโนโลยี กดปุ่มเพิ่มเทคโนโลยีเพื่อเริ่มต้น' : 'ไม่พบเทคโนโลยีที่ตรงกับตัวกรอง'"
     (retry)="load()"
-    [trackBy]="rowKey"
-    emptyMessage="ยังไม่มีเทคโนโลยี"
   >
-    <ng-template appCell="subjectName" let-row>
-      <a [routerLink]="['/admin/tech-subjects', row.id]" class="font-medium text-slate-900 hover:underline">{{ row.subjectName }}</a>
-    </ng-template>
-    <ng-template appCell="status" let-row>
-      <span
-        class="rounded-full px-2.5 py-0.5 text-sm font-medium"
-        [class]="row.isPublished ? 'bg-green-600 text-white' : 'bg-slate-500 text-white'"
-        >{{ row.isPublished ? 'เผยแพร่' : 'ฉบับร่าง' }}</span
-      >
-    </ng-template>
-    <ng-template appCell="actions" let-row>
-      <div class="flex flex-wrap justify-end gap-1.5">
-        <button type="button" app-button size="sm" variant="ghost" (click)="togglePublished(row)">
-          {{ row.isPublished ? 'ยกเลิกเผยแพร่' : 'เผยแพร่' }}
-        </button>
-        <a app-button size="sm" variant="secondary" [routerLink]="['/admin/tech-subjects', row.id]">แก้ไข</a>
-        <button type="button" app-button size="sm" variant="danger" (click)="askToDelete(row)">ลบ</button>
-      </div>
-    </ng-template>
-  </app-data-table>
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      @for (row of filteredRows(); track row.id; let index = $index) {
+        <article class="flex flex-col overflow-hidden rounded-2xl bg-white shadow-xs ring-1 ring-slate-200/90">
+          <a [routerLink]="['/admin/tech-subjects', row.id]" class="relative block aspect-[16/9] w-full overflow-hidden bg-slate-100">
+            <app-file-image [fileId]="row.imageFileIds[0]" [alt]="row.subjectName" class="h-full w-full" />
+            <span
+              class="absolute right-3 top-3 rounded-full px-2.5 py-1 text-xs font-semibold text-white"
+              [class]="row.isPublished ? 'bg-green-600' : 'bg-slate-500'"
+            >
+              {{ row.isPublished ? 'เผยแพร่' : 'ฉบับร่าง' }}
+            </span>
+          </a>
+
+          <div class="flex flex-1 flex-col gap-3 p-4">
+            <div class="space-y-1">
+              <a [routerLink]="['/admin/tech-subjects', row.id]" class="line-clamp-1 text-base font-semibold text-slate-900 hover:underline">
+                {{ row.subjectName }}
+              </a>
+              @if (row.subTitle) {
+                <p class="line-clamp-2 text-sm text-slate-600">{{ row.subTitle }}</p>
+              } @else {
+                <p class="text-sm text-slate-400">ไม่มีคำอธิบายสั้น</p>
+              }
+            </div>
+
+            <div class="mt-auto flex items-center justify-between gap-2 rounded-xl bg-slate-100 px-2 py-1.5">
+              @if (canReorder()) {
+                <button
+                  type="button"
+                  app-button
+                  size="sm"
+                  variant="secondary"
+                  aria-label="เลื่อนไปก่อนหน้า"
+                  [disabled]="isFirst(index)"
+                  (click)="move(row, 'up')"
+                >
+                  ◀ เลื่อนก่อน
+                </button>
+              }
+              <span class="flex-1 text-center text-sm text-slate-600">
+                ลำดับที่ <strong class="text-lg font-bold text-slate-900">{{ index + 1 }}</strong>
+                <span class="text-slate-400">/ {{ filteredRows().length }}</span>
+              </span>
+              @if (canReorder()) {
+                <button
+                  type="button"
+                  app-button
+                  size="sm"
+                  variant="secondary"
+                  aria-label="เลื่อนไปถัดไป"
+                  [disabled]="isLast(index)"
+                  (click)="move(row, 'down')"
+                >
+                  เลื่อนหลัง ▶
+                </button>
+              }
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
+              <button type="button" app-button size="sm" variant="ghost" (click)="togglePublished(row)">
+                {{ row.isPublished ? 'ยกเลิกเผยแพร่' : 'เผยแพร่' }}
+              </button>
+              <div class="flex items-center gap-1.5">
+                <a app-button size="sm" variant="secondary" [routerLink]="['/admin/tech-subjects', row.id]">แก้ไข</a>
+                <button type="button" app-button size="sm" variant="danger" (click)="askToDelete(row)">ลบ</button>
+              </div>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  </app-data-state>
 </section>

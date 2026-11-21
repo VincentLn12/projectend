@@ -5,12 +5,11 @@ import { MENU_KIND_PAGE, MenuEntry } from '../types/menu.types';
 
 // Shown only while the API cannot be reached, so the site never has an empty menu because of an outage.
 const FALLBACK_PAGES: [string, string][] = [
-  ['/', 'หน้าแรก'],
-  ['/news', 'ข่าว'],
-  ['/projects', 'โครงงาน'],
-  ['/syllabus', 'หลักสูตร'],
-  ['/courses', 'อบรมระยะสั้น'],
-  ['/tech-subjects', 'เทคโนโลยี'],
+  ['/home', 'หน้าหลัก'],
+  ['/syllabus', 'หลักสูตรวิทย์คอม'],
+  ['/projects', 'โครงการงานวิจัย'],
+  ['/student-projects', 'โครงงานนักศึกษา'],
+  ['/short-courses', 'หลักสูตรอบรม'],
   ['/lecturers', 'อาจารย์'],
 ];
 

@@ -1,0 +1,78 @@
+<div class="relative left-1/2 -my-8 min-h-[60vh] w-screen -translate-x-1/2 bg-[#f9f9ff] text-[#111c2c]">
+  <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-12 lg:py-10">
+    <header class="flex flex-col gap-4 border-b-2 border-[#0f2854] pb-4 lg:flex-row lg:items-end lg:justify-between">
+      <div class="space-y-1">
+        <nav aria-label="เส้นทางหน้า" class="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+          <a routerLink="/home" class="hover:text-[#0f2854] hover:underline">หน้าหลัก</a>
+          <span aria-hidden="true">›</span>
+          <span class="font-semibold text-[#1c5bb8]">หลักสูตรอบรมระยะสั้น</span>
+        </nav>
+        <h1 class="text-2xl font-bold text-[#0f2854] sm:text-3xl">หลักสูตรอบรมระยะสั้น</h1>
+        @if (!list.loading() || list.items().length > 0) {
+          <p class="text-base text-slate-600">ทั้งหมด {{ list.total() }} หลักสูตร สมัครได้ทันทีโดยไม่ต้องเข้าสู่ระบบ</p>
+        }
+      </div>
+      <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-center lg:w-auto">
+        <div class="w-full sm:w-80"><app-search-box placeholder="ค้นหาชื่อหลักสูตร" (searchChange)="list.setSearch($event)" /></div>
+        <a app-button variant="secondary" routerLink="/short-courses/my-registration">ตรวจสอบการสมัคร</a>
+      </div>
+    </header>
+
+    @if (list.search()) {
+      <p class="text-base text-[#0f2854]">
+        ผลการค้นหา <strong class="font-bold text-[#1c5bb8]">"{{ list.search() }}"</strong> พบ {{ list.total() }} หลักสูตร
+      </p>
+    }
+
+    <app-data-state
+      [loading]="list.loading() && list.items().length === 0"
+      [error]="list.error()"
+      [empty]="!list.loading() && list.items().length === 0"
+      emptyMessage="ยังไม่มีหลักสูตรอบรมที่เปิดให้ดู"
+      (retry)="list.reload()"
+    >
+      <div class="flex flex-col gap-8">
+        <ul class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          @for (item of list.items(); track item.id) {
+            <li>
+              <a
+                [routerLink]="['/short-courses', item.id]"
+                class="group flex h-full flex-col overflow-hidden rounded-2xl border-2 border-slate-300 bg-white transition-colors hover:border-[#1c5bb8]"
+              >
+                <div class="relative aspect-[16/10] overflow-hidden bg-[#e7eeff]">
+                  <app-file-image [fileId]="item.coverFileId" [alt]="item.title" class="size-full" />
+                  <span class="absolute left-3 top-3 rounded-md px-3 py-1 text-sm font-bold shadow-sm {{ availabilityBadgeClasses[item.availability] }}">{{
+                    availabilityLabels[item.availability]
+                  }}</span>
+                </div>
+                <div class="flex flex-1 flex-col gap-3 p-5">
+                  <h2 class="text-lg font-bold leading-snug text-[#0f2854] group-hover:text-[#1c5bb8] sm:text-xl">{{ item.title }}</h2>
+                  <ul class="space-y-1 text-base text-slate-700">
+                    <li>
+                      <span class="font-semibold text-[#0f2854]">วันที่อบรม</span> {{ item.startDate | thaiDate }}
+                      @if (item.endDate.slice(0, 10) !== item.startDate.slice(0, 10)) {
+                        – {{ item.endDate | thaiDate }}
+                      }
+                    </li>
+                    @if (item.hours) {
+                      <li><span class="font-semibold text-[#0f2854]">ระยะเวลา</span> {{ item.hours }} ชั่วโมง</li>
+                    }
+                    @if (item.location) {
+                      <li><span class="font-semibold text-[#0f2854]">สถานที่</span> {{ item.location }}</li>
+                    }
+                  </ul>
+                  <div class="mt-auto flex items-center justify-between gap-3 border-t-2 border-slate-200 pt-3 text-base">
+                    <span class="text-slate-600">{{ seatsText(item) }}</span>
+                    <span class="font-semibold text-[#1c5bb8]">ดูรายละเอียด →</span>
+                  </div>
+                </div>
+              </a>
+            </li>
+          }
+        </ul>
+
+        <app-pagination [page]="list.page()" [pageSize]="list.pageSize" [total]="list.total()" (pageChange)="list.setPage($event)" />
+      </div>
+    </app-data-state>
+  </div>
+</div>

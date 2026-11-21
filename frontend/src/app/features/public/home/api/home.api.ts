@@ -5,7 +5,8 @@ import { API_BASE } from '../../../../core/api.config';
 import { PagedResult } from '../../../../shared/data/types/paging.types';
 import { HomeBanner, HomeNews, HomeProject } from '../types/home.types';
 
-const SECTION_SIZE = 3;
+const PROJECTS_SIZE = 4;
+const NEWS_SIZE = 4;
 
 @Injectable({ providedIn: 'root' })
 export class HomeApi {
@@ -16,12 +17,12 @@ export class HomeApi {
   }
 
   latestNews(): Observable<HomeNews[]> {
-    const params = new HttpParams().set('page', 1).set('pageSize', SECTION_SIZE);
+    const params = new HttpParams().set('page', 1).set('pageSize', NEWS_SIZE);
     return this.http.get<PagedResult<HomeNews>>(`${API_BASE}/news`, { params }).pipe(map((result) => result.items));
   }
 
   latestProjects(): Observable<HomeProject[]> {
-    const params = new HttpParams().set('page', 1).set('pageSize', SECTION_SIZE);
+    const params = new HttpParams().set('page', 1).set('pageSize', PROJECTS_SIZE);
     return this.http.get<PagedResult<HomeProject>>(`${API_BASE}/projects`, { params }).pipe(map((result) => result.items));
   }
 }

@@ -1,0 +1,37 @@
+<section class="space-y-4">
+  <div class="flex items-baseline justify-between gap-3">
+    <h1 class="text-xl font-semibold text-slate-900">{{ isNew ? 'เพิ่มแม่แบบเกียรติบัตร' : 'แก้ไขแม่แบบเกียรติบัตร' }}</h1>
+    <a appBack="/admin/certificate-templates" href="/admin/certificate-templates" class="text-sm text-slate-600 underline hover:text-slate-900">← กลับไปรายการแม่แบบ</a>
+  </div>
+
+  <app-data-state [loading]="loading()" [error]="loadError()" (retry)="load()">
+    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-4 rounded-xl bg-white p-6 shadow-sm">
+      <app-text-input label="ชื่อแม่แบบ" hint="ใช้เลือกในหน้าหลักสูตร เช่น เกียรติบัตรอบรมปี 2569" formControlName="name" [maxLength]="200" />
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <app-text-input label="ผู้ลงนามคนที่ 1" formControlName="signerName" [maxLength]="200" />
+        <app-text-input label="ตำแหน่งผู้ลงนามคนที่ 1" formControlName="signerPosition" [maxLength]="300" />
+        <app-file-upload label="ลายเซ็นผู้ลงนามคนที่ 1" hint="ไฟล์ PNG พื้นหลังโปร่งใสจะสวยที่สุด" formControlName="signatureFileId" accept="image" />
+        <app-text-input label="ผู้ลงนามคนที่ 2 (ถ้ามี)" formControlName="secondSignerName" [maxLength]="200" />
+        <app-text-input label="ตำแหน่งผู้ลงนามคนที่ 2" formControlName="secondSignerPosition" [maxLength]="300" />
+        <app-file-upload label="ลายเซ็นผู้ลงนามคนที่ 2" formControlName="secondSignatureFileId" accept="image" />
+      </div>
+
+      <app-file-upload
+        label="ภาพพื้นหลังเกียรติบัตร"
+        hint="ภาพแนวนอนสัดส่วน A4 (297 x 210 มม.) ถ้าไม่ใส่จะใช้กรอบสีกรมท่า"
+        formControlName="backgroundFileId"
+        accept="image"
+      />
+
+      @if (formError(); as message) {
+        <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ message }}</p>
+      }
+
+      <div class="flex justify-end gap-2">
+        <a app-button variant="secondary" appBack="/admin/certificate-templates" href="/admin/certificate-templates">ยกเลิก</a>
+        <button type="submit" app-button [loading]="saving()">บันทึก</button>
+      </div>
+    </form>
+  </app-data-state>
+</section>

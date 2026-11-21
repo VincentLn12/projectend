@@ -1,0 +1,78 @@
+<div class="relative left-1/2 -my-8 min-h-[60vh] w-screen -translate-x-1/2 bg-[#f9f9ff] text-[#111c2c]">
+  <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-12 lg:py-10">
+    <header class="flex flex-col gap-4 border-b-2 border-[#0f2854] pb-4 sm:flex-row sm:items-end sm:justify-between">
+      <div class="space-y-1">
+        <nav aria-label="เส้นทางหน้า" class="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+          <a routerLink="/home" class="hover:text-[#0f2854] hover:underline">หน้าหลัก</a>
+          <span aria-hidden="true">›</span>
+          <a routerLink="/student-projects" class="hover:text-[#0f2854] hover:underline">โครงงานนักศึกษา</a>
+          <span aria-hidden="true">›</span>
+          <span class="font-semibold text-[#1c5bb8]">ของฉัน</span>
+        </nav>
+        <h1 class="text-2xl font-bold text-[#0f2854] sm:text-3xl">โครงงานนักศึกษาของฉัน</h1>
+        <p class="text-base text-slate-600">เพิ่มโปรเจคที่ทำในแต่ละเทอม ใช้เป็นผลงานใน portfolio</p>
+      </div>
+      <a app-button variant="accent" routerLink="/my/student-projects/new">+ เพิ่มโปรเจค</a>
+    </header>
+
+    <nav aria-label="ประเภทโครงงาน" class="flex flex-wrap gap-2">
+      <a routerLink="/my/student-projects" class="rounded-lg border-2 border-[#0f2854] bg-[#0f2854] px-4 py-2 text-base font-semibold text-white" aria-current="page">โครงงานนักศึกษา (ระหว่างเรียน)</a>
+      <a routerLink="/my/projects" class="rounded-lg border-2 border-slate-300 bg-white px-4 py-2 text-base font-semibold text-[#0f2854] hover:border-[#1c5bb8]">โครงงานวิจัย (โปรเจคจบ)</a>
+    </nav>
+
+    <section class="space-y-3 rounded-2xl border-2 border-slate-300 bg-white p-5">
+      <h2 class="border-b-2 border-[#f7be33] pb-2 text-xl font-bold text-[#0f2854]">หน้า portfolio ของฉัน</h2>
+      <p class="text-base text-slate-700">เปิดเพื่อให้ผู้เข้าชมเปิดดูหน้า portfolio รวมโปรเจคที่เผยแพร่ของคุณได้ (แสดงชื่อ-นามสกุล ไม่แสดงที่อยู่หรือโรงเรียนเดิม)</p>
+      <app-toggle
+        label="แสดงหน้า portfolio"
+        tone="success"
+        boxed
+        onHint="เปิดอยู่ ผู้เข้าชมเห็นหน้า portfolio ของคุณ"
+        offHint="ปิดอยู่ ผู้เข้าชมยังไม่เห็นหน้า portfolio"
+        [formControl]="showProfile"
+      />
+      @if (showProfile.value && auth.user(); as user) {
+        <a [routerLink]="['/students', user.id]" class="inline-block text-base font-semibold text-[#1c5bb8] hover:underline">ดูหน้า portfolio ของฉัน →</a>
+      }
+    </section>
+
+    <app-data-state [loading]="loading()" [error]="error()" [empty]="!loading() && projects().length === 0" emptyMessage="ยังไม่มีโปรเจค กด &quot;เพิ่มโปรเจค&quot; เพื่อเริ่มต้น" (retry)="load()">
+      <div class="flex flex-col gap-8">
+        @for (group of groups(); track group.label) {
+          <section class="space-y-3">
+            <h2 class="flex items-center gap-3 text-xl font-bold text-[#0f2854] sm:text-2xl">
+              <span class="h-7 w-1.5 shrink-0 rounded-full bg-[#f7be33]" aria-hidden="true"></span>
+              {{ group.label }}
+            </h2>
+            <ul class="grid gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3 2xl:grid-cols-4">
+              @for (project of group.items; track project.id) {
+                <li class="flex flex-col overflow-hidden rounded-2xl border-2 border-slate-300 bg-white">
+                  <app-file-image [fileId]="project.imageFileId" [alt]="project.title" class="aspect-[2/1] w-full border-b-2 border-slate-200" />
+                  <div class="flex min-w-0 flex-1 flex-col gap-2 p-4">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <h3 class="text-lg font-bold text-[#0f2854] sm:text-xl">{{ project.title }}</h3>
+                      <span class="rounded-md px-2.5 py-0.5 text-sm font-bold" [class]="project.isPublished ? 'bg-[#f7be33] text-[#261a00]' : 'bg-slate-500 text-white'">{{
+                        project.isPublished ? 'เผยแพร่แล้ว' : 'ฉบับร่าง'
+                      }}</span>
+                    </div>
+                    @if (project.courseName) {
+                      <p class="text-base text-slate-700">วิชา {{ project.courseName }}</p>
+                    }
+                    <div class="mt-auto flex flex-wrap gap-2 pt-2">
+                      <a app-button size="sm" variant="secondary" [routerLink]="['/my/student-projects', project.id]">แก้ไข</a>
+                      <button type="button" app-button size="sm" variant="ghost" (click)="togglePublished(project)">{{ project.isPublished ? 'ซ่อน' : 'เผยแพร่' }}</button>
+                      @if (project.isPublished) {
+                        <a app-button size="sm" variant="ghost" [routerLink]="['/student-projects', project.id]">ดูหน้าเว็บ</a>
+                      }
+                      <button type="button" app-button size="sm" variant="danger" (click)="askToDelete(project)">ลบ</button>
+                    </div>
+                  </div>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      </div>
+    </app-data-state>
+  </div>
+</div>

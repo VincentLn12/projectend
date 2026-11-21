@@ -4,6 +4,8 @@ using ComSci.Application.Dtos.Common;
 using ComSci.Application.Dtos.JobHistories;
 using ComSci.Application.Dtos.Profiles;
 using ComSci.Application.Dtos.Projects;
+using ComSci.Application.Helpers;
+using ComSci.Application.Dtos.StudentProjects;
 using ComSci.Application.Exceptions;
 using ComSci.Domain.Entities;
 using ComSci.Domain.Enums;
@@ -56,9 +58,27 @@ public class ProfileService : IProfileService
         user.ImageFileId = request.ImageFileId;
         user.ShowEmail = request.ShowEmail;
         user.ShowProfile = request.ShowProfile;
+        user.ShowPhone = request.ShowPhone;
+        user.LinkedInUrl = string.IsNullOrWhiteSpace(request.LinkedInUrl) ? null : request.LinkedInUrl.Trim();
+        user.GithubUrl = string.IsNullOrWhiteSpace(request.GithubUrl) ? null : request.GithubUrl.Trim();
+        user.Skills = string.IsNullOrWhiteSpace(request.Skills) ? null : request.Skills.Trim();
+
+        if (string.IsNullOrWhiteSpace(request.Phone))
+        {
+            user.PhoneNumber = null;
+        }
+        else
+        {
+            string? phone = PhoneNumberNormalizer.Normalize(request.Phone);
+            if (phone == null)
+            {
+                throw new BadRequestException("เบอร์โทรไม่ถูกต้อง ต้องเป็นตัวเลข 9-10 หลักและขึ้นต้นด้วย 0");
+            }
+            user.PhoneNumber = phone;
+        }
 
         // บันทึกวันที่ผู้ใช้ยินยอมให้แสดงข้อมูลครั้งแรก (หลักฐานตาม PDPA)
-        if ((request.ShowEmail || request.ShowProfile) && user.ConsentAt == null)
+        if ((request.ShowEmail || request.ShowProfile || request.ShowPhone) && user.ConsentAt == null)
         {
             user.ConsentAt = DateTime.UtcNow;
         }
@@ -158,7 +178,11 @@ public class ProfileService : IProfileService
                 Bio = user.Bio,
                 ImageFileId = user.ImageFileId,
                 EntryYear = user.StudentProfile != null ? (short?)user.StudentProfile.EntryYear : null,
-                Email = user.ShowEmail ? user.Email : null
+                Email = user.ShowEmail ? user.Email : null,
+                Phone = user.ShowPhone ? user.PhoneNumber : null,
+                LinkedInUrl = user.LinkedInUrl,
+                GithubUrl = user.GithubUrl,
+                Skills = user.Skills
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -181,6 +205,25 @@ public class ProfileService : IProfileService
                 AcademicYear = project.AcademicYear,
                 KeyWords = project.KeyWords,
                 ImageFileId = project.ImageFileId,
+                StudentName = studentName
+            })
+            .ToListAsync(cancellationToken);
+
+        detail.StudentProjects = await _dbContext.StudentProjects
+            .AsNoTracking()
+            .Where(project => project.StudentId == userId && project.IsPublished)
+            .OrderByDescending(project => project.AcademicYear)
+            .ThenByDescending(project => project.Semester)
+            .Select(project => new StudentProjectListItemDto
+            {
+                Id = project.Id,
+                Title = project.Title,
+                AcademicYear = project.AcademicYear,
+                Semester = project.Semester,
+                CourseName = project.CourseName,
+                Technologies = project.Technologies,
+                ImageFileId = project.ImageFileId,
+                StudentId = project.StudentId,
                 StudentName = studentName
             })
             .ToListAsync(cancellationToken);
@@ -239,6 +282,11 @@ public class ProfileService : IProfileService
                 UserType = user.UserType,
                 ShowEmail = user.ShowEmail,
                 ShowProfile = user.ShowProfile,
+                Phone = user.PhoneNumber,
+                ShowPhone = user.ShowPhone,
+                LinkedInUrl = user.LinkedInUrl,
+                GithubUrl = user.GithubUrl,
+                Skills = user.Skills,
                 ConsentAt = user.ConsentAt,
                 Student = user.StudentProfile == null ? null : new StudentProfileDto
                 {

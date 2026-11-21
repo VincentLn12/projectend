@@ -11,4 +11,9 @@ public class SystemSettingDto
     public string? MapLocation { get; set; }
     public string? UniversityName { get; set; }
     public string? FooterText { get; set; }
+    public string? AboutTitle { get; set; }
+    public string? AboutDescription { get; set; }
+    public bool QuickMenuEnabled { get; set; } = true;
+    public Guid? QuickMenuBackgroundFileId { get; set; }
+    public List<QuickMenuItemDto> QuickMenuItems { get; set; } = new List<QuickMenuItemDto>();
 }

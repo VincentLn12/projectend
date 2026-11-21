@@ -12,7 +12,7 @@ public static class MenuDefaults
         List<MenuItem> items = new List<MenuItem>();
         int sortOrder = 0;
 
-        foreach (MenuPageOption page in MenuPages.All)
+        foreach (MenuPageOption page in MenuPages.Defaults)
         {
             MenuItem item = new MenuItem();
             item.Label = page.Label;

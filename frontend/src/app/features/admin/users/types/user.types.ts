@@ -31,8 +31,10 @@ export interface AdminUser {
   id: string;
   fullName: string;
   email: string;
+  imageFileId: string | null;
   userType: number;
   isLocked: boolean;
+  createdAt: string;
   showEmail: boolean;
   showProfile: boolean;
   student: StudentProfile | null;

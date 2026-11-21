@@ -50,6 +50,27 @@ public class AuthController : ControllerBase
         return ValidationProblem(ModelState);
     }
 
+    [HttpPost("auth/register-student")]
+    [EnableRateLimiting("auth")]
+    public async Task<ActionResult<AuthResponse>> RegisterStudent(RegisterStudentRequest request, CancellationToken cancellationToken)
+    {
+        RegisterResult result = await _authService.RegisterStudentAsync(request, cancellationToken);
+        if (result.Response != null)
+        {
+            return Ok(result.Response);
+        }
+
+        foreach (KeyValuePair<string, string> fieldError in result.FieldErrors)
+        {
+            ModelState.AddModelError(fieldError.Key, fieldError.Value);
+        }
+        foreach (string error in result.Errors)
+        {
+            ModelState.AddModelError("Password", error);
+        }
+        return ValidationProblem(ModelState);
+    }
+
     [HttpPost("auth/refresh")]
     [EnableRateLimiting("auth")]
     public async Task<ActionResult<AuthResponse>> Refresh(RefreshRequest request, CancellationToken cancellationToken)

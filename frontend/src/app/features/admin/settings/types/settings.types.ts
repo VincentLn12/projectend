@@ -8,4 +8,16 @@ export interface SiteSettings {
   mapLocation: string | null;
   universityName: string | null;
   footerText: string | null;
+  aboutTitle: string | null;
+  aboutDescription: string | null;
+  quickMenuEnabled: boolean;
+  quickMenuBackgroundFileId: string | null;
+  quickMenuItems: QuickMenuItemSetting[];
+}
+
+export interface QuickMenuItemSetting {
+  key: string;
+  enabled: boolean;
+  title: string | null;
+  imageFileId: string | null;
 }

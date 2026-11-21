@@ -16,5 +16,7 @@ public interface IHomeBannerService
 
     Task<AdminHomeBannerDto> SetPublishedAsync(Guid bannerId, bool isPublished, CancellationToken cancellationToken);
 
+    Task MoveAsync(Guid bannerId, bool moveUp, CancellationToken cancellationToken);
+
     Task DeleteAsync(Guid bannerId, CancellationToken cancellationToken);
 }

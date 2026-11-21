@@ -17,6 +17,12 @@ export class AdminSyllabusesApi {
     if (query.search) {
       params = params.set('search', query.search);
     }
+    if (query.sort) {
+      params = params.set('sortBy', query.sort.key).set('sortDescending', query.sort.direction === 'desc');
+    }
+    for (const [name, value] of Object.entries(query.filters ?? {})) {
+      params = params.set(name, value);
+    }
     return this.http.get<PagedResult<AdminSyllabusListItem>>(SYLLABUSES_URL, { params });
   }
 

@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { startWith } from 'rxjs';
 import { applyServerErrors, describeHttpError } from '../../../../shared/forms/server-errors';
 import { ThaiDatePipe } from '../../../../shared/pipes/thai-date.pipe';
+import { BackLink } from '../../../../shared/navigation/back-link';
 import { Button } from '../../../../shared/ui/button/button';
 import { ConfirmService } from '../../../../shared/ui/confirm-dialog/confirm.service';
 import { DataState } from '../../../../shared/ui/data-state/data-state';
@@ -22,7 +23,7 @@ import { AdminNews, SaveNewsRequest } from '../types/news.types';
     ReactiveFormsModule,
     RouterLink,
     ThaiDatePipe,
-    Button,
+    BackLink, Button,
     DataState,
     FileUpload,
     TextArea,

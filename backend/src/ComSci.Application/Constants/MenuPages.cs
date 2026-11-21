@@ -14,17 +14,20 @@ public class MenuPageOption
 
 public static class MenuPages
 {
-    // หน้าในระบบที่เมนูลิงก์ไปได้ และเป็นเมนูเริ่มต้นของเว็บใหม่
+    // หน้าสาธารณะที่เมนูลิงก์ไปได้ ต้องตรงกับเส้นทางใน frontend (app.routes.ts)
     public static readonly IReadOnlyList<MenuPageOption> All = new List<MenuPageOption>
     {
-        new MenuPageOption("/", "หน้าแรก"),
-        new MenuPageOption("/news", "ข่าว"),
-        new MenuPageOption("/projects", "โครงงาน"),
-        new MenuPageOption("/syllabus", "หลักสูตร"),
-        new MenuPageOption("/courses", "อบรมระยะสั้น"),
-        new MenuPageOption("/tech-subjects", "เทคโนโลยี"),
-        new MenuPageOption("/lecturers", "อาจารย์")
+        new MenuPageOption("/home", "หน้าหลัก"),
+        new MenuPageOption("/syllabus", "หลักสูตรวิทย์คอม"),
+        new MenuPageOption("/projects", "โครงการงานวิจัย"),
+        new MenuPageOption("/student-projects", "โครงงานนักศึกษา"),
+        new MenuPageOption("/short-courses", "หลักสูตรอบรม"),
+        new MenuPageOption("/lecturers", "อาจารย์"),
+        new MenuPageOption("/news", "ข่าวสาร")
     };
+
+    // เมนูเริ่มต้นของเว็บใหม่: ทุกหน้าข้างบนยกเว้นข่าวสาร (ข่าวแสดงในหน้าหลักอยู่แล้ว)
+    public static readonly IReadOnlyList<MenuPageOption> Defaults = All.Where(page => page.Path != "/news").ToList();
 
     public const int MaxMenuItems = 40;
 }

@@ -13,6 +13,10 @@ public class AppUser : IdentityUser<Guid>, IAuditable
     public UserType UserType { get; set; } = UserType.General;
     public bool ShowEmail { get; set; }
     public bool ShowProfile { get; set; }
+    public bool ShowPhone { get; set; }
+    public string? LinkedInUrl { get; set; }
+    public string? GithubUrl { get; set; }
+    public string? Skills { get; set; }
     public DateTime? ConsentAt { get; set; }
     public bool IsPublished { get; set; }
     public DateTime CreatedAt { get; set; }

@@ -1,0 +1,57 @@
+<section class="space-y-4">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-semibold text-slate-900">โครงงานนักศึกษา (ระหว่างเรียน)</h1>
+      <p class="text-sm text-slate-600">นักศึกษาเพิ่มเอง แอดมินซ่อนหรือลบโปรเจคที่ไม่เหมาะสมได้</p>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-end gap-3">
+    <div class="min-w-60 flex-1">
+      <app-search-box placeholder="ค้นหาชื่อโปรเจค วิชา หรือชื่อนักศึกษา" (searchChange)="list.setSearch($event)" />
+    </div>
+    <div class="w-[calc(50%-0.375rem)] sm:w-40">
+      <app-select-input label="ปีการศึกษา" shape="soft" placeholder="ทุกปี" [options]="yearOptions" [formControl]="yearControl" />
+    </div>
+    <div class="w-[calc(50%-0.375rem)] sm:w-44">
+      <app-select-input label="ภาคเรียน" shape="soft" placeholder="ทุกภาคเรียน" [options]="semesterOptions" [searchable]="false" [formControl]="semesterControl" />
+    </div>
+    <div class="w-[calc(50%-0.375rem)] sm:w-44">
+      <app-select-input label="สถานะ" shape="soft" placeholder="ทุกสถานะ" [options]="statusOptions" [searchable]="false" [formControl]="statusControl" />
+    </div>
+    @if (hasFilters()) {
+      <button type="button" app-button variant="ghost" class="rounded-lg" (click)="clearFilters()">ล้างตัวกรอง</button>
+    }
+  </div>
+
+  @if (!list.loading() || list.items().length > 0) {
+    <p class="text-sm text-slate-600">พบ {{ list.total() }} โปรเจค</p>
+  }
+
+  <app-data-table
+    [columns]="columns"
+    [rows]="list.items()"
+    [trackBy]="rowKey"
+    [loading]="list.loading()"
+    [error]="list.error()"
+    [emptyMessage]="hasFilters() || list.search() ? 'ไม่พบโปรเจคที่ตรงกับตัวกรอง' : 'ยังไม่มีโปรเจคที่นักศึกษาเพิ่ม'"
+    (retry)="list.reload()"
+  >
+    <ng-template appCell="title" let-row>
+      <a [routerLink]="['/student-projects', row.id]" target="_blank" class="font-medium text-slate-900 hover:underline">{{ row.title }}</a>
+    </ng-template>
+    <ng-template appCell="status" let-row>
+      <span class="rounded-full px-2.5 py-0.5 text-sm font-medium" [class]="row.isPublished ? 'bg-green-600 text-white' : 'bg-slate-500 text-white'">{{
+        row.isPublished ? 'เผยแพร่' : 'ซ่อน/ฉบับร่าง'
+      }}</span>
+    </ng-template>
+    <ng-template appCell="actions" let-row>
+      <div class="flex flex-wrap justify-end gap-1.5">
+        <button type="button" app-button size="sm" variant="ghost" (click)="togglePublished(row)">{{ row.isPublished ? 'ซ่อน' : 'เผยแพร่' }}</button>
+        <button type="button" app-button size="sm" variant="danger" (click)="askToDelete(row)">ลบ</button>
+      </div>
+    </ng-template>
+  </app-data-table>
+
+  <app-pagination [page]="list.page()" [pageSize]="list.pageSize" [total]="list.total()" (pageChange)="list.setPage($event)" />
+</section>

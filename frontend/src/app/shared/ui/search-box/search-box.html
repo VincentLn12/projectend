@@ -14,7 +14,7 @@
     [value]="text()"
     [placeholder]="placeholder()"
     [attr.aria-label]="placeholder()"
-    [class]="inputClass(false) + ' h-11 rounded-full! pl-11 pr-11 text-base shadow-sm [&::-webkit-search-cancel-button]:hidden'"
+    [class]="inputClass(false) + ' h-11 rounded-lg! pl-11 pr-11 text-base shadow-sm [&::-webkit-search-cancel-button]:hidden'"
     (input)="onInput($event)"
     (keydown.enter)="submitNow()"
   />

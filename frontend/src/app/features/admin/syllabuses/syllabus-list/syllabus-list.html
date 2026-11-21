@@ -1,7 +1,24 @@
 <section class="space-y-4">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <h1 class="text-xl font-semibold text-slate-900">จัดการหลักสูตร</h1>
-    <a app-button routerLink="/admin/syllabuses/new">เพิ่มหลักสูตร</a>
+  <app-page-header title="จัดการหลักสูตร" [count]="list.total()" unit="หลักสูตร">
+    <a app-button variant="accent" routerLink="/admin/syllabuses/new">เพิ่มหลักสูตร</a>
+  </app-page-header>
+
+  <div class="flex flex-wrap items-end gap-3">
+    <div class="min-w-60 flex-1">
+      <app-search-box placeholder="ค้นหาชื่อหลักสูตร" (searchChange)="list.setSearch($event)" />
+    </div>
+    <div class="w-full sm:w-44">
+      <app-select-input
+        label="สถานะ"
+        shape="soft"
+        placeholder="ทุกสถานะ"
+        [options]="statusOptions"
+        [formControl]="statusControl"
+      />
+    </div>
+    @if (hasFilters()) {
+      <button type="button" app-button variant="ghost" class="rounded-lg" (click)="clearFilters()">ล้างตัวกรอง</button>
+    }
   </div>
 
   <app-data-table
@@ -10,7 +27,9 @@
     [trackBy]="rowKey"
     [loading]="list.loading()"
     [error]="list.error()"
-    emptyMessage="ยังไม่มีหลักสูตร"
+    [sort]="list.sort()"
+    [emptyMessage]="hasFilters() || list.search() ? 'ไม่พบหลักสูตรที่ตรงกับตัวกรอง' : 'ยังไม่มีหลักสูตร'"
+    (sortChange)="list.toggleSort($event)"
     (retry)="list.reload()"
   >
     <ng-template appCell="nameTH" let-row>
@@ -18,7 +37,7 @@
     </ng-template>
     <ng-template appCell="current" let-row>
       @if (row.isCurrent) {
-        <span class="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">ฉบับปัจจุบัน</span>
+        <span class="rounded-full bg-blue-600 px-2.5 py-0.5 text-sm font-medium text-white">ฉบับปัจจุบัน</span>
       }
     </ng-template>
     <ng-template appCell="status" let-row>
