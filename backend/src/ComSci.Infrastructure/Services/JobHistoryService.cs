@@ -81,6 +81,12 @@ public class JobHistoryService : IJobHistoryService
             jobQuery = jobQuery.Where(job => job.IsPublished == wantedState);
         }
 
+        if (query.UserId.HasValue)
+        {
+            Guid wantedUserId = query.UserId.Value;
+            jobQuery = jobQuery.Where(job => job.UserId == wantedUserId);
+        }
+
         int total = await jobQuery.CountAsync(cancellationToken);
 
         int itemsToSkip = (query.Page - 1) * query.PageSize;

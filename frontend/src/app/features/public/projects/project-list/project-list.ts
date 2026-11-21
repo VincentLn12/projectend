@@ -13,6 +13,8 @@ import { ProjectListItem } from '../types/project.types';
 
 const BUDDHIST_ERA_OFFSET = 543;
 const YEARS_SHOWN = 8;
+const PAGE_SIZE = 12;
+const MAX_TAGS = 3;
 
 @Component({
   selector: 'app-public-project-list',
@@ -25,10 +27,18 @@ export class PublicProjectList implements OnInit {
   protected readonly year = new FormControl<number | null>(null);
   protected readonly yearOptions: SelectOption<number | null>[] = this.buildYearOptions();
 
-  protected readonly list = createPagedList<ProjectListItem>((query) => this.api.list(query, this.year.value), 9);
+  protected readonly list = createPagedList<ProjectListItem>((query) => this.api.list(query, this.year.value), PAGE_SIZE);
 
   constructor() {
     this.year.valueChanges.pipe(takeUntilDestroyed(inject(DestroyRef))).subscribe(() => this.list.setPage(1));
+  }
+
+  protected tags(keyWords: string | null): string[] {
+    return (keyWords ?? '')
+      .split(',')
+      .map((word) => word.trim())
+      .filter((word) => word.length > 0)
+      .slice(0, MAX_TAGS);
   }
 
   ngOnInit(): void {

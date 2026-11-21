@@ -1,33 +1,132 @@
-<section class="space-y-6">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <h1 class="text-2xl font-semibold text-slate-900">ข่าวประชาสัมพันธ์</h1>
-    <div class="w-64"><app-search-box placeholder="ค้นหาข่าว" (searchChange)="list.setSearch($event)" /></div>
-  </div>
+<div class="relative left-1/2 -my-8 min-h-[60vh] w-screen -translate-x-1/2 bg-[#f9f9ff] text-[#111c2c]">
+  <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-12 lg:py-10">
+    <header class="flex flex-col gap-4 border-b-2 border-[#0f2854] pb-4 lg:flex-row lg:items-end lg:justify-between">
+      <div class="space-y-1">
+        <nav aria-label="เส้นทางหน้า" class="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+          <a routerLink="/home" class="hover:text-[#0f2854] hover:underline">หน้าหลัก</a>
+          <span aria-hidden="true">›</span>
+          <span class="font-semibold text-[#1c5bb8]">ข่าวประชาสัมพันธ์</span>
+        </nav>
+        <h1 class="text-2xl font-bold text-[#0f2854] sm:text-3xl">ข่าวประชาสัมพันธ์</h1>
+        @if (!list.loading() || list.items().length > 0) {
+          <p class="text-base text-slate-600">ทั้งหมด {{ list.total() }} รายการ</p>
+        }
+      </div>
+      <div class="w-full lg:w-96">
+        <app-search-box placeholder="ค้นหาข่าวหรือประกาศ" (searchChange)="list.setSearch($event)" />
+      </div>
+    </header>
 
-  <app-data-state
-    [loading]="list.loading() && list.items().length === 0"
-    [error]="list.error()"
-    [empty]="!list.loading() && list.items().length === 0"
-    emptyMessage="ไม่พบข่าว"
-    (retry)="list.reload()"
-  >
-    <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      @for (news of list.items(); track news.id) {
-        <li class="overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md">
-          <a [routerLink]="['/news', news.id]" class="block">
-            <app-file-image [fileId]="news.mainImageFileId" [alt]="news.title" class="h-44 w-full" />
-            <div class="space-y-1 p-4">
-              <p class="text-xs text-slate-500">{{ news.publishedAt | thaiDate }}</p>
-              <h2 class="line-clamp-2 font-semibold text-slate-900">{{ news.title }}</h2>
-              @if (news.subTitle) {
-                <p class="line-clamp-2 text-sm text-slate-600">{{ news.subTitle }}</p>
+    @if (list.search()) {
+      <p class="text-base text-[#0f2854]">
+        ผลการค้นหา <strong class="font-bold text-[#1c5bb8]">"{{ list.search() }}"</strong> พบ {{ list.total() }} รายการ
+      </p>
+    }
+
+    <app-data-state
+      [loading]="list.loading() && list.items().length === 0"
+      [error]="list.error()"
+      [empty]="!list.loading() && list.items().length === 0"
+      emptyMessage="ไม่พบข่าวประชาสัมพันธ์"
+      (retry)="list.reload()"
+    >
+      <div class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <div class="flex min-w-0 flex-col gap-6">
+          @if (featured(); as top) {
+            <a
+              [routerLink]="['/news', top.id]"
+              class="group grid overflow-hidden rounded-2xl border-2 border-slate-300 bg-white transition-colors hover:border-[#1c5bb8] md:grid-cols-[20rem_minmax(0,1fr)]"
+            >
+              <div class="aspect-[16/10] overflow-hidden bg-[#e7eeff] md:aspect-auto md:min-h-52">
+                @if (top.mainImageFileId) {
+                  <app-file-image [fileId]="top.mainImageFileId" [alt]="top.title" class="size-full" />
+                } @else {
+                  <span class="flex size-full items-center justify-center text-5xl font-bold text-[#1c5bb8]/40" aria-hidden="true">{{ initial(top.title) }}</span>
+                }
+              </div>
+              <div class="flex flex-col justify-start gap-3 p-4 sm:p-5">
+                <div class="flex flex-wrap items-center gap-3">
+                  <span class="rounded-md bg-[#f7be33] px-3 py-1 text-sm font-bold text-[#261a00]">ข่าวล่าสุด</span>
+                  <span class="font-mono text-base text-[#1c5bb8]">{{ top.publishedAt | thaiDate }}</span>
+                </div>
+                <h2 class="text-xl font-bold leading-snug text-[#0f2854] group-hover:text-[#1c5bb8] sm:text-2xl">{{ top.title }}</h2>
+                @if (top.subTitle) {
+                  <p class="text-base leading-relaxed text-slate-700">{{ top.subTitle }}</p>
+                }
+                <span class="mt-auto pt-2 text-base font-semibold text-[#1c5bb8]">อ่านต่อ →</span>
+              </div>
+            </a>
+          }
+
+          <ul class="flex flex-col gap-4">
+            @for (news of restItems(); track news.id) {
+              <li>
+                <a
+                  [routerLink]="['/news', news.id]"
+                  class="group grid gap-4 rounded-2xl border-2 border-slate-300 bg-white p-4 transition-colors hover:border-[#1c5bb8] sm:grid-cols-[11rem_minmax(0,1fr)] sm:p-4"
+                >
+                  <div class="aspect-[4/3] overflow-hidden rounded-xl bg-[#e7eeff]">
+                    @if (news.mainImageFileId) {
+                      <app-file-image [fileId]="news.mainImageFileId" [alt]="news.title" class="size-full" />
+                    } @else {
+                      <span class="flex size-full items-center justify-center text-4xl font-bold text-[#1c5bb8]/40" aria-hidden="true">{{ initial(news.title) }}</span>
+                    }
+                  </div>
+                  <div class="flex min-w-0 flex-col gap-2">
+                    <span class="font-mono text-base text-[#1c5bb8]">{{ news.publishedAt | thaiDate }}</span>
+                    <h2 class="text-lg font-bold leading-snug text-[#0f2854] group-hover:text-[#1c5bb8] sm:text-xl">{{ news.title }}</h2>
+                    @if (news.subTitle) {
+                      <p class="text-base leading-relaxed text-slate-700">{{ news.subTitle }}</p>
+                    }
+                    <span class="mt-auto pt-1 text-base font-semibold text-[#1c5bb8]">อ่านต่อ →</span>
+                  </div>
+                </a>
+              </li>
+            }
+          </ul>
+
+          <app-pagination [page]="list.page()" [pageSize]="list.pageSize" [total]="list.total()" (pageChange)="list.setPage($event)" />
+        </div>
+
+        <aside class="hidden flex-col gap-6 xl:flex" aria-label="ข้อมูลเพิ่มเติม">
+          @if (latest().length > 0) {
+            <section class="rounded-2xl border-2 border-slate-300 bg-white p-5">
+              <h2 class="border-b-2 border-[#f7be33] pb-2 text-xl font-bold text-[#0f2854]">ข่าวล่าสุด</h2>
+              <ul class="mt-2 divide-y divide-slate-200">
+                @for (news of latest(); track news.id) {
+                  <li>
+                    <a [routerLink]="['/news', news.id]" class="group flex flex-col gap-1 py-3">
+                      <span class="font-mono text-sm text-[#1c5bb8]">{{ news.publishedAt | thaiDate }}</span>
+                      <span class="text-base font-semibold leading-snug text-[#0f2854] group-hover:text-[#1c5bb8]">{{ news.title }}</span>
+                    </a>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+
+          <section class="rounded-2xl border-2 border-slate-300 bg-white p-5">
+            <h2 class="border-b-2 border-[#f7be33] pb-2 text-xl font-bold text-[#0f2854]">ลิงก์ด่วน</h2>
+            <ul class="mt-2 divide-y divide-slate-200 text-base font-medium text-[#0f2854]">
+              @for (link of quickLinks; track link.path) {
+                <li>
+                  <a [routerLink]="link.path" class="block py-3 hover:text-[#1c5bb8]">{{ link.label }} →</a>
+                </li>
               }
-            </div>
-          </a>
-        </li>
-      }
-    </ul>
-  </app-data-state>
-
-  <app-pagination [page]="list.page()" [pageSize]="list.pageSize" [total]="list.total()" (pageChange)="list.setPage($event)" />
-</section>
+              @if (siteSettings.settings()?.registerUrl; as registerUrl) {
+                <li>
+                  <a [href]="registerUrl" target="_blank" rel="noopener noreferrer" class="block py-3 hover:text-[#1c5bb8]">สมัครเรียน →</a>
+                </li>
+              }
+              @if (siteSettings.settings()?.pageFacebook; as facebook) {
+                <li>
+                  <a [href]="facebook" target="_blank" rel="noopener noreferrer" class="block py-3 hover:text-[#1c5bb8]">Facebook สาขา →</a>
+                </li>
+              }
+            </ul>
+          </section>
+        </aside>
+      </div>
+    </app-data-state>
+  </div>
+</div>

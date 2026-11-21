@@ -18,5 +18,7 @@ public interface ITechSubjectService
 
     Task<AdminTechSubjectDto> SetPublishedAsync(Guid subjectId, bool isPublished, CancellationToken cancellationToken);
 
+    Task MoveAsync(Guid subjectId, bool moveUp, CancellationToken cancellationToken);
+
     Task DeleteAsync(Guid subjectId, CancellationToken cancellationToken);
 }

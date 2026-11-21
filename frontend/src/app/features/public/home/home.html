@@ -2,7 +2,7 @@
 <div class="relative left-1/2 -my-8 w-screen -translate-x-1/2 bg-[#f9f9ff] text-[#111c2c]">
   <!-- Hero: heading + banner carousel -->
   <section class="bg-[#f0f3ff] py-6 lg:py-10">
-    <div class="mx-auto flex w-full max-w-[1800px] flex-col gap-4 px-6 lg:px-12">
+    <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-4 px-6 lg:px-12">
       <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
         <div>
           <p class="text-xs font-bold uppercase tracking-widest text-[#1c5bb8]">Computer Science · Kanchanaburi Rajabhat University</p>
@@ -55,7 +55,7 @@
 
   <!-- Intro + admissions card -->
   <section class="py-10">
-    <div class="mx-auto grid w-full max-w-[1800px] items-center gap-8 px-6 lg:grid-cols-12 lg:px-12">
+    <div class="mx-auto grid w-full max-w-[1680px] items-center gap-8 px-6 lg:grid-cols-12 lg:px-12">
       @if (siteSettings.settings(); as settings) {
         @if (settings.aboutTitle || settings.aboutDescription) {
           <div class="flex flex-col gap-3 lg:col-span-7">
@@ -67,7 +67,7 @@
               <h2 class="text-2xl font-bold leading-snug text-[#0f2854] sm:text-3xl">{{ settings.aboutTitle }}</h2>
             }
             @if (settings.aboutDescription) {
-              <p class="whitespace-pre-line text-lg leading-relaxed text-[#44474f]">{{ settings.aboutDescription }}</p>
+              <p class="whitespace-pre-line text-justify text-lg leading-relaxed text-[#44474f] [text-justify:inter-character]">{{ settings.aboutDescription }}</p>
             }
           </div>
         }
@@ -110,13 +110,13 @@
       <app-file-image [fileId]="backgroundFileId" class="absolute inset-0 size-full" />
       <div class="absolute inset-0 bg-[#f0f3ff]/80" aria-hidden="true"></div>
     }
-    <div class="relative mx-auto flex w-full max-w-[1800px] flex-col gap-6 px-6 lg:px-12">
+    <div class="relative mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-6 lg:px-12">
       <div class="flex flex-col justify-between gap-1 sm:flex-row sm:items-end">
         <div>
           <span class="text-xs font-bold uppercase tracking-wider text-[#1c5bb8]">Quick directory</span>
           <h2 class="text-2xl font-bold text-[#0f2854] sm:text-3xl">เมนูลัดสู่ข้อมูลสาขา</h2>
         </div>
-        <p class="max-w-md text-sm text-[#44474f]">เข้าถึงหลักสูตร เทคโนโลยีที่เรียน โครงงาน และคณาจารย์ได้สะดวกรวดเร็ว</p>
+        <p class="max-w-md text-sm text-[#44474f]">เข้าถึงหลักสูตร เทคโนโลยีที่เรียน โครงงาน และอาจารย์ได้สะดวกรวดเร็ว</p>
       </div>
       <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
         @for (link of quickLinks(); track link.path) {
@@ -153,7 +153,7 @@
   <!-- Latest news -->
   @if (news().length > 0) {
     <section class="py-10">
-      <div class="mx-auto flex w-full max-w-[1800px] flex-col gap-6 px-6 lg:px-12">
+      <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-6 lg:px-12">
         <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
           <div class="flex flex-wrap items-center gap-2">
             <span class="rounded bg-[#0f2854] px-2 py-1 text-xs font-bold uppercase tracking-wider text-white">ข่าวประชาสัมพันธ์ล่าสุด</span>
@@ -161,7 +161,7 @@
           </div>
           <a routerLink="/news" class="flex items-center gap-1 text-sm font-semibold text-[#1c5bb8] transition-colors hover:text-[#0f2854]">ดูข่าวทั้งหมด <span aria-hidden="true">›</span></a>
         </div>
-        <ul class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+        <ul class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
           @for (item of news(); track item.id) {
             <li>
               <a [routerLink]="['/news', item.id]" class="group flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-sm transition-all hover:shadow-md">
@@ -189,15 +189,15 @@
   <!-- Student projects -->
   @if (projects().length > 0) {
     <section class="bg-[#f0f3ff] py-10">
-      <div class="mx-auto flex w-full max-w-[1800px] flex-col gap-6 px-6 lg:px-12">
+      <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-6 lg:px-12">
         <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
           <div class="flex flex-wrap items-center gap-2">
-            <span class="rounded bg-[#d8e2ff] px-2 py-1 text-xs font-bold uppercase tracking-wider text-[#001a42]">โครงงานนักศึกษาล่าสุด</span>
-            <h2 class="text-2xl font-bold text-[#0f2854]">ผลงานโครงงานนักศึกษา</h2>
+            <span class="rounded bg-[#d8e2ff] px-2 py-1 text-xs font-bold uppercase tracking-wider text-[#001a42]">โครงงานวิจัยนักศึกษาล่าสุด</span>
+            <h2 class="text-2xl font-bold text-[#0f2854]">ผลงานโครงงานวิจัยนักศึกษา</h2>
           </div>
           <a routerLink="/projects" class="inline-flex items-center gap-1 self-start rounded bg-white px-4 py-1.5 text-sm font-semibold text-[#0f2854] shadow-sm transition-colors hover:bg-[#e7eeff] hover:text-[#1c5bb8]">ชมผลงานทั้งหมด <span aria-hidden="true">↗</span></a>
         </div>
-        <ul class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+        <ul class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
           @for (item of projects(); track item.id) {
             <li>
               <a [routerLink]="['/projects', item.id]" class="group flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-sm transition-all hover:shadow-md">
@@ -207,7 +207,7 @@
                 </div>
                 <div class="flex flex-1 flex-col justify-between gap-3 p-4">
                   <div>
-                    <h3 class="line-clamp-2 text-lg font-bold text-[#0f2854]">{{ item.nameTH }}</h3>
+                    <h3 class="text-lg font-bold text-[#0f2854]">{{ item.nameTH }}</h3>
                     <p class="mt-2 rounded bg-[#f0f3ff] px-2 py-1.5 text-sm font-medium text-[#111c2c]">{{ item.studentName }}</p>
                   </div>
                   <span class="self-end text-sm font-semibold text-[#1c5bb8] group-hover:underline">รายละเอียด →</span>
@@ -223,7 +223,7 @@
   <!-- Videos (from site settings) -->
   @if (videos().length > 0) {
     <section class="py-10">
-      <div class="mx-auto flex w-full max-w-[1800px] flex-col gap-6 px-6 lg:px-12">
+      <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-6 px-6 lg:px-12">
         <div class="flex items-center gap-2">
           <span class="size-3 rounded-full bg-[#ba1a1a]" aria-hidden="true"></span>
           <h2 class="text-2xl font-bold text-[#0f2854]">วิดีโอแนะนำสาขาวิชา</h2>
@@ -252,7 +252,7 @@
   <!-- Location + direct links (from site settings) -->
   @if (siteSettings.settings(); as settings) {
     <section class="pb-12" [class.pt-10]="videos().length === 0">
-      <div class="mx-auto w-full max-w-[1800px] px-6 lg:px-12">
+      <div class="mx-auto w-full max-w-[1680px] px-6 lg:px-12">
         <div class="grid gap-8 rounded-xl bg-white p-6 shadow-sm lg:grid-cols-12">
           <div class="flex flex-col justify-between gap-6 lg:col-span-5">
             <div>

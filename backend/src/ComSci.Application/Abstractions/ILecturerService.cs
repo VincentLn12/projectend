@@ -17,5 +17,7 @@ public interface ILecturerService
 
     Task<AdminLecturerDto> SetPublishedAsync(Guid lecturerId, bool isPublished, CancellationToken cancellationToken);
 
+    Task MoveAsync(Guid lecturerId, bool moveUp, CancellationToken cancellationToken);
+
     Task DeleteAsync(Guid lecturerId, CancellationToken cancellationToken);
 }

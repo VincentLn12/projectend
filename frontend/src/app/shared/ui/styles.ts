@@ -10,5 +10,5 @@ export function inputClass(invalid: boolean): string {
 
 // The gently rounded, taller look of the search box, for filters that sit beside it (shape="soft").
 export function softInputClass(invalid: boolean): string {
-  return `${inputClass(invalid)} h-11 rounded-lg! px-4 shadow-sm`;
+  return `${inputClass(invalid)} h-11 rounded-lg! px-3 shadow-sm sm:px-4`;
 }

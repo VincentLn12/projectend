@@ -328,7 +328,7 @@ describe('SelectInput', () => {
   imports: [ReactiveFormsModule, Checkbox, Toggle],
   template: `
     <app-checkbox label="ยอมรับ" [formControl]="accepted" />
-    <app-toggle label="เผยแพร่" [formControl]="published" />
+    <app-toggle label="เผยแพร่" tone="success" [formControl]="published" />
   `,
 })
 class SwitchesHost {
@@ -362,6 +362,16 @@ describe('Checkbox and Toggle', () => {
 
     expect(fixture.componentInstance.published.value).toBe(false);
     expect(toggle.getAttribute('aria-checked')).toBe('false');
+  });
+
+  it('toggle with tone success is green while on and grey when off', async () => {
+    const fixture = await render(SwitchesHost);
+    const toggle = query<HTMLButtonElement>(fixture, '[role="switch"]');
+    expect(toggle.className).toContain('bg-emerald-600');
+
+    toggle.click();
+    fixture.detectChanges();
+    expect(toggle.className).toContain('bg-slate-300');
   });
 
   it('toggle cannot be used when the control is disabled', async () => {

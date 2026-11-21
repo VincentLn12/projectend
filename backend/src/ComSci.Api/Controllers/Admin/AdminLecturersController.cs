@@ -62,6 +62,13 @@ public class AdminLecturersController : ControllerBase
         return Ok(updated);
     }
 
+    [HttpPost("{id:guid}/move")]
+    public async Task<IActionResult> Move(Guid id, MoveLecturerRequest request, CancellationToken cancellationToken)
+    {
+        await _lecturerService.MoveAsync(id, request.Direction == "up", cancellationToken);
+        return NoContent();
+    }
+
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {

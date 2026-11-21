@@ -1,38 +1,101 @@
-<section class="space-y-6">
-  <h1 class="text-2xl font-semibold text-slate-900">คณาจารย์</h1>
+<div class="relative left-1/2 -my-8 min-h-[60vh] w-screen -translate-x-1/2 bg-[#f9f9ff] text-[#111c2c]">
+  <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-12 lg:py-10">
+    <header class="space-y-3 border-b-2 border-[#0f2854] pb-4">
+      <nav aria-label="เส้นทางหน้า" class="flex flex-wrap items-center gap-2 text-sm text-slate-600 sm:text-base">
+        <a routerLink="/home" class="hover:text-[#0f2854] hover:underline">หน้าหลัก</a>
+        <span aria-hidden="true">›</span>
+        <span class="font-semibold text-[#1c5bb8]">อาจารย์</span>
+      </nav>
+      <h1 class="text-2xl font-bold text-[#0f2854] sm:text-3xl">อาจารย์ประจำหลักสูตร</h1>
+      <p class="text-base text-slate-700 sm:text-lg">สาขาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยราชภัฏกาญจนบุรี</p>
+    </header>
 
-  <app-data-state
-    [loading]="loading()"
-    [error]="error()"
-    [empty]="!loading() && lecturers().length === 0"
-    emptyMessage="ยังไม่มีข้อมูลอาจารย์"
-    (retry)="load()"
-  >
-    <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      @for (lecturer of lecturers(); track lecturer.id) {
-        <li class="flex gap-4 rounded-xl bg-white p-4 shadow-sm">
-          <app-file-image
-            [fileId]="lecturer.imageFileId"
-            [alt]="lecturer.fullName"
-            class="h-28 w-24 shrink-0 rounded-lg"
-          />
-          <div class="min-w-0 space-y-1 text-sm">
-            <h2 class="font-semibold text-slate-900">{{ lecturer.prefix }}{{ lecturer.fullName }}</h2>
-            @if (lecturer.position) {
-              <p class="text-slate-600">{{ lecturer.position }}</p>
-            }
-            @if (lecturer.educationLevel) {
-              <p class="text-slate-500">{{ lecturer.educationLevel }}</p>
-            }
-            @if (lecturer.program) {
-              <p class="text-slate-500">{{ lecturer.program }}</p>
-            }
-            @if (lecturer.expertise) {
-              <p class="line-clamp-5 whitespace-pre-line text-slate-600">{{ lecturer.expertise }}</p>
-            }
-          </div>
-        </li>
-      }
-    </ul>
-  </app-data-state>
-</section>
+    <app-data-state
+      [loading]="loading()"
+      [error]="error()"
+      [empty]="!loading() && lecturers().length === 0"
+      emptyMessage="ยังไม่มีข้อมูลอาจารย์"
+      (retry)="load()"
+    >
+      <div class="space-y-10">
+        @if (featured(); as chair) {
+          <section class="space-y-4">
+            <h2 class="border-b-2 border-[#f7be33] pb-2 text-xl font-bold text-[#0f2854] sm:text-2xl">ประธานหลักสูตร</h2>
+            <article class="grid gap-5 rounded-2xl border-2 border-slate-300 bg-white p-4 sm:p-6 md:grid-cols-[14rem_minmax(0,1fr)] md:gap-8">
+              <app-file-image
+                [fileId]="chair.imageFileId"
+                [alt]="displayName(chair)"
+                class="mx-auto aspect-[4/5] w-full max-w-56 rounded-xl border-2 border-slate-300 md:max-w-none"
+              />
+              <div class="space-y-4">
+                <div class="space-y-1">
+                  @if (chair.position) {
+                    <p class="text-base font-semibold text-[#1c5bb8]">{{ chair.position }}</p>
+                  }
+                  <h3 class="text-xl font-bold leading-snug text-[#0f2854] sm:text-2xl">{{ displayName(chair) }}</h3>
+                </div>
+                <div class="grid gap-5 border-t-2 border-slate-200 pt-4 lg:grid-cols-2">
+                  @for (section of sections(chair.expertise); track $index) {
+                    <section class="space-y-2">
+                      @if (section.title) {
+                        <h4 class="text-lg font-bold text-[#0f2854]">{{ section.title }}</h4>
+                      }
+                      <ul class="space-y-1.5 text-base text-slate-700 sm:text-lg">
+                        @for (item of section.items; track $index) {
+                          <li class="flex gap-3">
+                            <span class="mt-2.5 size-2 shrink-0 rounded-full bg-[#1c5bb8]" aria-hidden="true"></span>
+                            <span>{{ item }}</span>
+                          </li>
+                        }
+                      </ul>
+                    </section>
+                  }
+                </div>
+              </div>
+            </article>
+          </section>
+        }
+
+        @for (group of groups(); track group.title) {
+          <section class="space-y-4">
+            <h2 class="border-b-2 border-[#f7be33] pb-2 text-xl font-bold text-[#0f2854] sm:text-2xl">{{ group.title }}</h2>
+            <ul class="grid items-start gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+              @for (lecturer of group.lecturers; track lecturer.id) {
+                <li class="flex h-full flex-col overflow-hidden rounded-2xl border-2 border-slate-300 bg-white">
+                  <app-file-image [fileId]="lecturer.imageFileId" [alt]="displayName(lecturer)" class="aspect-[4/5] w-full" />
+                  <div class="flex flex-1 flex-col gap-3 p-4">
+                    <div class="space-y-1">
+                      <h3 class="text-lg font-bold leading-snug text-[#0f2854] sm:text-xl">{{ displayName(lecturer) }}</h3>
+                      @if (lecturer.position) {
+                        <p class="text-base font-medium text-[#1c5bb8]">{{ lecturer.position }}</p>
+                      }
+                    </div>
+                    @if (lecturer.expertise) {
+                      <div class="space-y-3 border-t-2 border-slate-200 pt-3">
+                        @for (section of sections(lecturer.expertise); track $index) {
+                          <div class="space-y-1">
+                            @if (section.title) {
+                              <p class="text-base font-bold text-[#0f2854]">{{ section.title }}</p>
+                            }
+                            <ul class="space-y-1 text-base text-slate-700">
+                              @for (item of section.items; track $index) {
+                                <li class="flex gap-2.5">
+                                  <span class="mt-2.5 size-2 shrink-0 rounded-full bg-[#1c5bb8]" aria-hidden="true"></span>
+                                  <span>{{ item }}</span>
+                                </li>
+                              }
+                            </ul>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      </div>
+    </app-data-state>
+  </div>
+</div>

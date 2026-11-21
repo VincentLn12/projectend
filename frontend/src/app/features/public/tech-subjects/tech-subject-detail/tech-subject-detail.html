@@ -1,28 +1,121 @@
-<article class="mx-auto max-w-3xl space-y-4">
-  <a routerLink="/tech-subjects" class="text-sm text-slate-600 underline hover:text-slate-900">← เทคโนโลยีทั้งหมด</a>
-
-  <app-data-state [loading]="loading()" [error]="error()" (retry)="load()">
+<div class="relative left-1/2 -my-8 min-h-[60vh] w-screen -translate-x-1/2 bg-[#f9f9ff] text-[#111c2c]">
+  <app-data-state
+    [loading]="loading()"
+    [error]="error()"
+    [empty]="!loading() && !error() && subject() === null"
+    emptyMessage="ยังไม่มีข้อมูล"
+    (retry)="load()"
+  >
     @if (subject(); as item) {
-      <div class="space-y-4 rounded-xl bg-white p-6 shadow-sm">
-        <header class="space-y-1">
-          <h1 class="text-2xl font-semibold text-slate-900">{{ item.subjectName }}</h1>
-          @if (item.subTitle) {
-            <p class="text-slate-600">{{ item.subTitle }}</p>
+      <header class="mx-auto w-full max-w-[1680px] px-4 pt-6 sm:px-6 lg:px-12 lg:pt-10">
+        <div class="space-y-3 border-b-2 border-[#0f2854] pb-4">
+          <nav aria-label="เส้นทางหน้า" class="flex flex-wrap items-center gap-2 text-sm text-slate-600 sm:text-base">
+            <a routerLink="/home" class="hover:text-[#0f2854] hover:underline">หน้าหลัก</a>
+            <span aria-hidden="true">›</span>
+            <span class="font-semibold text-[#1c5bb8]">เทคโนโลยีที่เรียน</span>
+          </nav>
+          <h1 class="text-2xl font-bold text-[#0f2854] sm:text-3xl">เทคโนโลยีที่เรียนในหลักสูตร</h1>
+        </div>
+      </header>
+
+      <nav aria-label="เลือกเทคโนโลยี" class="sticky top-20 z-30 bg-[#f9f9ff]/95 backdrop-blur">
+        <ul class="mx-auto flex w-full max-w-[1680px] gap-3 overflow-x-auto px-4 py-3 [scrollbar-width:none] sm:px-6 lg:px-12 [&::-webkit-scrollbar]:hidden">
+          @for (entry of allSubjects(); track entry.id) {
+            <li class="shrink-0">
+              <a
+                [routerLink]="['/tech-subjects', entry.id]"
+                [attr.aria-current]="entry.id === item.id ? 'page' : null"
+                class="inline-block whitespace-nowrap rounded-xl border-2 px-5 py-2.5 text-base font-semibold transition-colors sm:text-lg"
+                [class]="entry.id === item.id ? 'border-[#0f2854] bg-[#0f2854] text-white' : 'border-slate-300 bg-white text-[#0f2854] hover:border-[#1c5bb8]'"
+                >{{ entry.subjectName }}</a
+              >
+            </li>
           }
-        </header>
+        </ul>
+      </nav>
 
-        @if (item.description) {
-          <p class="whitespace-pre-line text-slate-800">{{ item.description }}</p>
-        }
+      <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-8 px-4 py-6 transition-opacity duration-200 sm:px-6 lg:px-12 lg:py-8" [class.opacity-50]="switching()">
+        <div class="grid items-start gap-6 lg:gap-10" [class]="item.imageFileIds.length > 0 ? 'lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]' : ''">
+          @if (item.imageFileIds.length > 0) {
+            <section class="space-y-3 lg:sticky lg:top-40" aria-label="ภาพประกอบ">
+              <app-file-image
+                [fileId]="mainImageId()"
+                [alt]="item.subjectName"
+                fit="contain"
+                class="aspect-[4/3] w-full rounded-2xl border-2 border-slate-300 bg-white"
+              />
+              @if (item.imageFileIds.length > 1) {
+                <ul class="grid grid-cols-4 gap-3">
+                  @for (fileId of item.imageFileIds; track fileId; let position = $index) {
+                    <li>
+                      <!-- shared-ui-exempt: image thumbnail picker, no shared control for picture selection -->
+                      <button
+                        type="button"
+                        class="block w-full rounded-xl border-2 p-0.5 transition-colors"
+                        [class]="position === selectedImageIndex() ? 'border-[#0f2854]' : 'border-slate-300 hover:border-[#1c5bb8]'"
+                        [attr.aria-label]="'ดูภาพที่ ' + (position + 1)"
+                        [attr.aria-pressed]="position === selectedImageIndex()"
+                        (click)="selectedImageIndex.set(position)"
+                      >
+                        <app-file-image [fileId]="fileId" [alt]="item.subjectName" fit="contain" class="aspect-[4/3] w-full rounded-lg bg-white" />
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+            </section>
+          }
 
-        @if (item.imageFileIds.length > 0) {
-          <div class="grid gap-3 sm:grid-cols-2">
-            @for (fileId of item.imageFileIds; track fileId) {
-              <app-file-image [fileId]="fileId" [alt]="item.subjectName" class="h-56 w-full rounded-lg" />
+          <article class="min-w-0 space-y-4 rounded-2xl border-2 border-slate-300 bg-white p-5 sm:p-8">
+            <h2 class="border-b-2 border-[#f7be33] pb-2 text-2xl font-bold text-[#0f2854] sm:text-3xl">{{ item.subjectName }}</h2>
+            @if (item.subTitle) {
+              <p class="text-base leading-relaxed text-slate-700 sm:text-lg">{{ item.subTitle }}</p>
             }
-          </div>
-        }
+            @for (block of descriptionBlocks(); track $index) {
+              @switch (block.kind) {
+                @case ('heading') {
+                  <h3 class="border-l-[6px] border-[#f7be33] pl-3 pt-3 text-xl font-bold text-[#0f2854] sm:text-2xl">{{ block.text }}</h3>
+                }
+                @case ('callout') {
+                  <div class="rounded-xl border-2 border-[#1c5bb8]/30 bg-[#e7eeff] p-5">
+                    <p class="text-base font-bold text-[#1c5bb8]">สรุปง่ายๆ</p>
+                    <p class="mt-1 text-lg font-medium leading-8 text-[#0f2854]">{{ block.text }}</p>
+                  </div>
+                }
+                @case ('lead') {
+                  <p class="text-lg leading-8 text-[#0f2854] sm:text-xl sm:leading-9">{{ block.text }}</p>
+                }
+                @default {
+                  <p class="text-base leading-7 text-[#111c2c] sm:text-lg sm:leading-8">{{ block.text }}</p>
+                }
+              }
+            }
+          </article>
+        </div>
+
+        <nav aria-label="เทคโนโลยีก่อนหน้าและถัดไป" class="grid gap-3 sm:grid-cols-2">
+          @if (previousSubject(); as previous) {
+            <a
+              [routerLink]="['/tech-subjects', previous.id]"
+              class="rounded-xl border-2 border-slate-300 bg-white px-5 py-3 transition-colors hover:border-[#1c5bb8]"
+            >
+              <span class="block text-sm text-slate-600">← ก่อนหน้า</span>
+              <span class="block text-lg font-bold text-[#0f2854]">{{ previous.subjectName }}</span>
+            </a>
+          } @else {
+            <span class="hidden sm:block"></span>
+          }
+          @if (nextSubject(); as next) {
+            <a
+              [routerLink]="['/tech-subjects', next.id]"
+              class="rounded-xl border-2 border-slate-300 bg-white px-5 py-3 text-right transition-colors hover:border-[#1c5bb8]"
+            >
+              <span class="block text-sm text-slate-600">ถัดไป →</span>
+              <span class="block text-lg font-bold text-[#0f2854]">{{ next.subjectName }}</span>
+            </a>
+          }
+        </nav>
       </div>
     }
   </app-data-state>
-</article>
+</div>

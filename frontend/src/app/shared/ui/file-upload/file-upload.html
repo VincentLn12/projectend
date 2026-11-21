@@ -5,48 +5,40 @@
   [required]="isRequired()"
   [inputId]="uid"
 >
-  @if (ids().length > 0) {
-    <ul class="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-      @for (id of ids(); track id; let index = $index) {
-        <li class="relative overflow-hidden rounded-md border border-slate-200 bg-white">
-          @if (showsAsImage(id)) {
-            <img [src]="url(id)" alt="" class="h-28 w-full object-cover" (error)="previewFailed(id)" />
-          } @else {
-            <a
-              [href]="url(id)"
-              target="_blank"
-              rel="noopener"
-              class="flex h-28 items-center justify-center px-2 text-center text-sm text-slate-600 underline hover:text-slate-900"
-            >
-              {{ fileName(id) }}
-            </a>
-          }
-
-          @if (multiple() && index === 0) {
-            <span class="absolute left-1 top-1 rounded bg-slate-900 px-1.5 py-0.5 text-xs text-white">รูปหลัก</span>
-          }
-
-          <div class="flex items-center justify-between gap-1 border-t border-slate-200 px-2 py-1 text-xs">
-            @if (multiple() && index > 0) {
-              <button type="button" (click)="makeMain(id)" [disabled]="isDisabled()" class="text-slate-600 hover:text-slate-900">
-                ทำเป็นรูปหลัก
-              </button>
-            } @else {
-              <span></span>
-            }
-            <button type="button" (click)="remove(id)" [disabled]="isDisabled()" class="text-red-600 hover:text-red-800">ลบ</button>
-          </div>
-        </li>
-      }
-    </ul>
-  }
-
+  <!-- พื้นที่ลากวางหรือคลิกเลือกไฟล์ (Dropzone) แสดงด้านบนเพื่อให้เพิ่มรูปได้ง่าย -->
   @if (multiple() || ids().length === 0) {
     <label
-      class="inline-flex cursor-pointer items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 focus-within:ring-2 focus-within:ring-slate-200 hover:bg-slate-50"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      class="group flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-6 text-center transition-all focus-within:ring-2 focus-within:ring-brand-700/30"
+      [class]="
+        isDragging()
+          ? 'border-brand-700 bg-brand-900/5 text-brand-900'
+          : 'border-slate-300 bg-slate-50/60 text-slate-700 hover:border-brand-700/60 hover:bg-brand-900/[0.02]'
+      "
       [class.opacity-60]="isDisabled() || uploadingCount() > 0"
     >
-      {{ uploadingCount() > 0 ? 'กำลังอัปโหลด…' : multiple() ? 'เพิ่มไฟล์' : 'เลือกไฟล์' }}
+      <span
+        class="flex size-11 items-center justify-center rounded-full bg-white text-brand-800 shadow-xs ring-1 ring-slate-200 transition-transform group-hover:scale-105"
+        aria-hidden="true"
+      >
+        <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+          />
+        </svg>
+      </span>
+
+      <div class="space-y-0.5">
+        <p class="text-sm font-semibold text-brand-800 group-hover:text-brand-700">
+          {{ uploadingCount() > 0 ? 'กำลังอัปโหลด…' : multiple() ? 'คลิกเพื่อเพิ่มไฟล์ หรือลากไฟล์มาวางที่นี่' : 'คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวางที่นี่' }}
+        </p>
+        <p class="text-xs text-slate-500">{{ typeHint() }}</p>
+      </div>
+
       <input
         [id]="uid"
         type="file"
@@ -58,5 +50,104 @@
         (change)="onFilesChosen($event)"
       />
     </label>
+  }
+
+  <!-- รายการรูปภาพ/ไฟล์ที่อัปโหลดแล้ว -->
+  @if (ids().length > 0) {
+    @if (multiple()) {
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-100/80 px-3 py-2 text-xs text-slate-600">
+        <span>อัปโหลดแล้ว <strong class="font-semibold text-slate-900">{{ ids().length }}</strong> ไฟล์ · รูปแรกจะใช้เป็นรูปปก</span>
+        @if (ids().length > 1) {
+          <button
+            type="button"
+            (click)="clearAll()"
+            [disabled]="isDisabled()"
+            class="font-medium text-red-600 hover:text-red-800 hover:underline disabled:opacity-50"
+          >
+            ล้างทั้งหมด
+          </button>
+        }
+      </div>
+    }
+
+    <ul
+      class="mt-3 grid gap-4"
+      [class]="multiple() ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'"
+    >
+      @for (id of ids(); track id; let index = $index) {
+        <li
+          class="group relative flex flex-col overflow-hidden rounded-xl bg-white shadow-xs transition-all"
+          [class]="
+            multiple() && index === 0
+              ? 'ring-2 ring-brand-800'
+              : 'border border-slate-200 hover:border-slate-300'
+          "
+        >
+          <!-- ส่วนแสดงรูปภาพ -->
+          <div class="relative bg-slate-100">
+            @if (showsAsImage(id)) {
+              <img
+                [src]="url(id)"
+                alt=""
+                class="w-full"
+                [class]="multiple() ? 'h-44 object-cover' : 'max-h-96 min-h-48 object-contain'"
+                (error)="previewFailed(id)"
+              />
+            } @else {
+              <a
+                [href]="url(id)"
+                target="_blank"
+                rel="noopener"
+                class="flex h-44 items-center justify-center px-3 text-center text-sm font-medium text-brand-800 underline hover:text-brand-900"
+              >
+                {{ fileName(id) }}
+              </a>
+            }
+
+            <!-- ป้ายกำกับลำดับและรูปปก -->
+            @if (multiple() && index === 0) {
+              <span
+                class="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-brand-900 px-2.5 py-1 text-xs font-semibold text-gold-300 shadow-sm"
+              >
+                ★ รูปปก
+              </span>
+            } @else if (multiple()) {
+              <span
+                class="absolute left-2.5 top-2.5 rounded-full bg-slate-900/75 px-2.5 py-0.5 text-xs font-medium text-white backdrop-blur-xs"
+              >
+                รูปที่ {{ index + 1 }}
+              </span>
+            }
+          </div>
+
+          <!-- แถบปุ่มควบคุมด้านล่างของแต่ละรูป -->
+          <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-white px-3 py-2.5 text-xs">
+            @if (multiple() && index > 0) {
+              <button
+                type="button"
+                (click)="makeMain(id)"
+                [disabled]="isDisabled()"
+                class="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1.5 font-medium text-slate-700 transition-colors hover:bg-brand-800 hover:text-white disabled:opacity-50"
+              >
+                ตั้งเป็นรูปปก
+              </button>
+            } @else if (multiple() && index === 0) {
+              <span class="font-medium text-brand-800">รูปปกปัจจุบัน</span>
+            } @else {
+              <span></span>
+            }
+
+            <button
+              type="button"
+              (click)="remove(id)"
+              [disabled]="isDisabled()"
+              class="inline-flex items-center gap-1 rounded-lg bg-red-50 px-2.5 py-1.5 font-medium text-red-600 transition-colors hover:bg-red-600 hover:text-white disabled:opacity-50"
+            >
+              ลบ
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
   }
 </app-field>

@@ -54,7 +54,7 @@ export class Home implements OnInit {
     },
     {
       path: '/lecturers',
-      label: 'คณาจารย์',
+      label: 'อาจารย์',
       tag: 'FACULTY',
       description: 'รายชื่ออาจารย์ประจำสาขา ตำแหน่ง และความเชี่ยวชาญ',
       action: 'ดูรายชื่อ',

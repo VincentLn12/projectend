@@ -72,6 +72,114 @@ public class UserAdminService : IUserAdminService
         return result;
     }
 
+    public async Task<PagedResult<AdminStudentListItemDto>> GetStudentsAsync(AdminStudentQuery query, CancellationToken cancellationToken)
+    {
+        IQueryable<AppUser> studentQuery = _dbContext.Users
+            .AsNoTracking()
+            .Where(user => user.UserType == UserType.Student && user.StudentProfile != null);
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            string keyword = query.Search.Trim();
+            studentQuery = studentQuery.Where(user =>
+                user.FullName.Contains(keyword)
+                || (user.Email != null && user.Email.Contains(keyword))
+                || user.StudentProfile!.StudentCode.Contains(keyword));
+        }
+
+        if (query.EntryYear.HasValue)
+        {
+            short wantedYear = query.EntryYear.Value;
+            studentQuery = studentQuery.Where(user => user.StudentProfile!.EntryYear == wantedYear);
+        }
+
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        if (query.IsLocked.HasValue)
+        {
+            bool wantedLocked = query.IsLocked.Value;
+            studentQuery = studentQuery.Where(user => (user.LockoutEnd != null && user.LockoutEnd > now) == wantedLocked);
+        }
+
+        int total = await studentQuery.CountAsync(cancellationToken);
+
+        int itemsToSkip = (query.Page - 1) * query.PageSize;
+        List<AdminStudentListItemDto> items = await ApplyStudentOrdering(studentQuery, query.SortBy, query.SortDescending)
+            .Skip(itemsToSkip)
+            .Take(query.PageSize)
+            .Select(StudentProjection(now))
+            .ToListAsync(cancellationToken);
+
+        PagedResult<AdminStudentListItemDto> result = new PagedResult<AdminStudentListItemDto>();
+        result.Items = items;
+        result.Page = query.Page;
+        result.PageSize = query.PageSize;
+        result.Total = total;
+        return result;
+    }
+
+    public async Task<AdminStudentListItemDto> GetStudentByIdAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+
+        AdminStudentListItemDto? student = await _dbContext.Users
+            .AsNoTracking()
+            .Where(user => user.Id == userId && user.UserType == UserType.Student && user.StudentProfile != null)
+            .Select(StudentProjection(now))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (student == null)
+        {
+            throw new NotFoundException("Student not found.");
+        }
+
+        return student;
+    }
+
+    private static System.Linq.Expressions.Expression<Func<AppUser, AdminStudentListItemDto>> StudentProjection(DateTimeOffset now)
+    {
+        return user => new AdminStudentListItemDto
+        {
+            Id = user.Id,
+            FullName = user.FullName,
+            Email = user.Email ?? string.Empty,
+            ImageFileId = user.ImageFileId,
+            StudentCode = user.StudentProfile!.StudentCode,
+            EntryYear = user.StudentProfile.EntryYear,
+            PreviousSchool = user.StudentProfile.PreviousSchool,
+            Address = user.StudentProfile.Address,
+            JobHistoryCount = user.JobHistories.Count,
+            IsLocked = user.LockoutEnd != null && user.LockoutEnd > now,
+            CreatedAt = user.CreatedAt
+        };
+    }
+
+    public async Task<List<short>> GetStudentEntryYearsAsync(CancellationToken cancellationToken)
+    {
+        return await _dbContext.Users
+            .AsNoTracking()
+            .Where(user => user.UserType == UserType.Student && user.StudentProfile != null)
+            .Select(user => user.StudentProfile!.EntryYear)
+            .Distinct()
+            .OrderByDescending(year => year)
+            .ToListAsync(cancellationToken);
+    }
+
+    private static IOrderedQueryable<AppUser> ApplyStudentOrdering(IQueryable<AppUser> studentQuery, string? sortBy, bool descending)
+    {
+        IOrderedQueryable<AppUser> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("fullname", false) => studentQuery.OrderBy(user => user.FullName),
+            ("fullname", true) => studentQuery.OrderByDescending(user => user.FullName),
+            ("studentcode", false) => studentQuery.OrderBy(user => user.StudentProfile!.StudentCode),
+            ("studentcode", true) => studentQuery.OrderByDescending(user => user.StudentProfile!.StudentCode),
+            ("entryyear", false) => studentQuery.OrderBy(user => user.StudentProfile!.EntryYear),
+            ("entryyear", true) => studentQuery.OrderByDescending(user => user.StudentProfile!.EntryYear),
+            _ => studentQuery.OrderByDescending(user => user.StudentProfile!.EntryYear)
+        };
+
+        return ordered.ThenBy(user => user.StudentProfile!.StudentCode).ThenBy(user => user.Id);
+    }
+
     public async Task<AdminUserDto> GetByIdAsync(Guid userId, CancellationToken cancellationToken)
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;

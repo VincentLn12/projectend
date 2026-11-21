@@ -24,3 +24,7 @@ backend/src/ComSci.Api/uploads/
 .idea/
 .vscode/
 Thumbs.db
+
+## Database backups and macOS
+*.bak
+.DS_Store

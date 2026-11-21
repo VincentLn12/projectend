@@ -59,7 +59,7 @@ public class LecturerService : ILecturerService
         int total = await lecturerQuery.CountAsync(cancellationToken);
 
         int itemsToSkip = (query.Page - 1) * query.PageSize;
-        List<AdminLecturerDto> items = await SelectAdminDtos(lecturerQuery)
+        List<AdminLecturerDto> items = await SelectAdminDtos(ApplyAdminOrdering(lecturerQuery, query.SortBy, query.SortDescending))
             .Skip(itemsToSkip)
             .Take(query.PageSize)
             .ToListAsync(cancellationToken);
@@ -121,6 +121,34 @@ public class LecturerService : ILecturerService
         return await GetByIdAsync(lecturerId, cancellationToken);
     }
 
+    public async Task MoveAsync(Guid lecturerId, bool moveUp, CancellationToken cancellationToken)
+    {
+        List<Lecturer> orderedLecturers = await _dbContext.Lecturers
+            .OrderBy(lecturer => lecturer.SortOrder)
+            .ThenBy(lecturer => lecturer.FullName)
+            .ThenBy(lecturer => lecturer.Id)
+            .ToListAsync(cancellationToken);
+
+        int currentIndex = orderedLecturers.FindIndex(lecturer => lecturer.Id == lecturerId);
+        if (currentIndex < 0)
+        {
+            throw new NotFoundException("Lecturer not found.");
+        }
+
+        int targetIndex = moveUp ? currentIndex - 1 : currentIndex + 1;
+        if (targetIndex >= 0 && targetIndex < orderedLecturers.Count)
+        {
+            (orderedLecturers[currentIndex], orderedLecturers[targetIndex]) = (orderedLecturers[targetIndex], orderedLecturers[currentIndex]);
+        }
+
+        for (int position = 0; position < orderedLecturers.Count; position++)
+        {
+            orderedLecturers[position].SortOrder = position;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task DeleteAsync(Guid lecturerId, CancellationToken cancellationToken)
     {
         Lecturer lecturer = await LoadLecturerAsync(lecturerId, cancellationToken);
@@ -130,11 +158,27 @@ public class LecturerService : ILecturerService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    private static IQueryable<Lecturer> ApplyAdminOrdering(IQueryable<Lecturer> lecturerQuery, string? sortBy, bool descending)
+    {
+        IOrderedQueryable<Lecturer> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("fullname", false) => lecturerQuery.OrderBy(lecturer => lecturer.FullName),
+            ("fullname", true) => lecturerQuery.OrderByDescending(lecturer => lecturer.FullName),
+            ("position", false) => lecturerQuery.OrderBy(lecturer => lecturer.Position),
+            ("position", true) => lecturerQuery.OrderByDescending(lecturer => lecturer.Position),
+            ("sortorder", false) => lecturerQuery.OrderBy(lecturer => lecturer.SortOrder),
+            ("sortorder", true) => lecturerQuery.OrderByDescending(lecturer => lecturer.SortOrder),
+            ("status", false) => lecturerQuery.OrderBy(lecturer => lecturer.IsPublished),
+            ("status", true) => lecturerQuery.OrderByDescending(lecturer => lecturer.IsPublished),
+            _ => lecturerQuery.OrderBy(lecturer => lecturer.SortOrder)
+        };
+
+        return ordered.ThenBy(lecturer => lecturer.FullName).ThenBy(lecturer => lecturer.Id);
+    }
+
     private static IQueryable<AdminLecturerDto> SelectAdminDtos(IQueryable<Lecturer> lecturerQuery)
     {
         return lecturerQuery
-            .OrderBy(lecturer => lecturer.SortOrder)
-            .ThenBy(lecturer => lecturer.FullName)
             .Select(lecturer => new AdminLecturerDto
             {
                 Id = lecturer.Id,

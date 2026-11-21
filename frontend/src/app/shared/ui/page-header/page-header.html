@@ -1,0 +1,27 @@
+<header
+  class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-950 via-brand-900 to-brand-700 px-5 py-5 text-white shadow-md ring-1 ring-brand-950/40 sm:px-8 sm:py-7"
+>
+  <span class="pointer-events-none absolute -right-10 -top-16 size-52 rounded-full bg-gold-400/15" aria-hidden="true"></span>
+  <span class="pointer-events-none absolute -bottom-20 right-32 size-44 rounded-full bg-white/5" aria-hidden="true"></span>
+  <span class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-gold-500 via-gold-300 to-transparent" aria-hidden="true"></span>
+
+  <div class="relative flex flex-wrap items-center justify-between gap-4">
+    <div class="min-w-0 space-y-1.5">
+      <div class="flex flex-wrap items-center gap-3">
+        <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ title() }}</h1>
+        @if (count() !== null) {
+          <span class="rounded-full bg-gold-400 px-3.5 py-0.5 text-sm font-bold text-brand-950">
+            {{ count() }} {{ unit() }}
+          </span>
+        }
+      </div>
+      @if (description()) {
+        <p class="text-base text-white/75">{{ description() }}</p>
+      }
+    </div>
+
+    <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto [&>*]:flex-1 sm:[&>*]:flex-none">
+      <ng-content />
+    </div>
+  </div>
+</header>

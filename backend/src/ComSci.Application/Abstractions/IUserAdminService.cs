@@ -7,6 +7,12 @@ public interface IUserAdminService
 {
     Task<PagedResult<AdminUserListItemDto>> GetAllAsync(AdminUserQuery query, CancellationToken cancellationToken);
 
+    Task<PagedResult<AdminStudentListItemDto>> GetStudentsAsync(AdminStudentQuery query, CancellationToken cancellationToken);
+
+    Task<AdminStudentListItemDto> GetStudentByIdAsync(Guid userId, CancellationToken cancellationToken);
+
+    Task<List<short>> GetStudentEntryYearsAsync(CancellationToken cancellationToken);
+
     Task<AdminUserDto> GetByIdAsync(Guid userId, CancellationToken cancellationToken);
 
     Task<AdminUserDto> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken);

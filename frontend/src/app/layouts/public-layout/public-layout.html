@@ -1,6 +1,6 @@
 <div class="flex min-h-screen flex-col overflow-x-clip bg-[#f9f9ff]">
   <header class="sticky top-0 z-50 bg-[#f9f9ff]/90 shadow-[0_1px_8px_rgba(15,40,84,0.06)] backdrop-blur-xl">
-    <div class="mx-auto flex min-h-20 w-full max-w-[1800px] flex-wrap items-center justify-between gap-x-4 px-6 py-2 lg:flex-nowrap lg:px-12">
+    <div class="mx-auto flex min-h-20 w-full max-w-[1680px] flex-wrap items-center justify-between gap-x-4 px-6 py-2 lg:flex-nowrap lg:px-12">
       <a routerLink="/home" class="flex min-w-0 flex-1 items-center gap-3 lg:flex-none" (click)="menuOpen.set(false)">
         <img src="/logo.png" alt="ตรามหาวิทยาลัยราชภัฏกาญจนบุรี" class="h-14 w-11 shrink-0 object-contain" />
         <span class="min-w-0 leading-tight">
@@ -10,8 +10,40 @@
       </a>
 
       <div class="flex items-center gap-2 lg:order-last">
+        @if (auth.user(); as user) {
+          <div class="relative">
+            <button
+              type="button"
+              app-button
+              variant="secondary"
+              size="sm"
+              [attr.aria-expanded]="memberMenuOpen()"
+              aria-haspopup="menu"
+              (click)="memberMenuOpen.set(!memberMenuOpen())"
+            >
+              <span class="max-w-32 truncate sm:max-w-48">{{ user.fullName }}</span>
+              <span aria-hidden="true" class="ml-1">▾</span>
+            </button>
+            @if (memberMenuOpen()) {
+              <div role="menu" class="absolute right-0 z-50 mt-2 flex w-56 flex-col gap-1 rounded-xl border-2 border-slate-300 bg-white p-2 shadow-lg">
+                <p class="px-3 py-1 text-sm text-slate-500">สมาชิก</p>
+                <a role="menuitem" routerLink="/my/profile" (click)="memberMenuOpen.set(false); menuOpen.set(false)" class="rounded-lg px-3 py-2 text-base text-[#0f2854] hover:bg-[#f0f3ff]">โปรไฟล์ของฉัน</a>
+                @if (auth.isStudent()) {
+                  <a role="menuitem" routerLink="/my/student-projects" (click)="memberMenuOpen.set(false); menuOpen.set(false)" class="rounded-lg px-3 py-2 text-base text-[#0f2854] hover:bg-[#f0f3ff]">โครงงานนักศึกษาของฉัน</a>
+                  <a role="menuitem" routerLink="/my/projects" (click)="memberMenuOpen.set(false); menuOpen.set(false)" class="rounded-lg px-3 py-2 text-base text-[#0f2854] hover:bg-[#f0f3ff]">โครงงานวิจัยของฉัน</a>
+                }
+                @if (auth.isAdmin()) {
+                  <a role="menuitem" routerLink="/admin" (click)="memberMenuOpen.set(false); menuOpen.set(false)" class="rounded-lg px-3 py-2 text-base text-[#0f2854] hover:bg-[#f0f3ff]">จัดการเว็บไซต์</a>
+                }
+                <button type="button" role="menuitem" app-button variant="ghost" class="justify-start!" (click)="logout()">ออกจากระบบ</button>
+              </div>
+            }
+          </div>
+        } @else {
+          <a app-button variant="secondary" size="sm" class="whitespace-nowrap" routerLink="/login" (click)="menuOpen.set(false)">เข้าสู่ระบบ</a>
+        }
         @if (siteSettings.settings()?.registerUrl; as registerUrl) {
-          <a [href]="registerUrl" target="_blank" rel="noopener noreferrer" class="hidden rounded-lg bg-[#f7be33] px-5 py-2 text-base font-semibold text-[#261a00] shadow-sm transition-colors hover:bg-[#ffdf9f] sm:inline-flex">สมัครเรียน</a>
+          <a [href]="registerUrl" target="_blank" rel="noopener noreferrer" class="hidden whitespace-nowrap rounded-lg bg-[#f7be33] px-5 py-2 text-base font-semibold text-[#261a00] shadow-sm transition-colors hover:bg-[#ffdf9f] sm:inline-flex">สมัครเรียน</a>
         }
         <button
           type="button"
@@ -62,7 +94,7 @@
   </main>
 
   <footer class="bg-[#f0f3ff] text-[#111c2c] shadow-[0_-1px_6px_rgba(15,40,84,0.03)]">
-    <div class="mx-auto w-full max-w-[1800px] px-6 py-10 lg:px-12">
+    <div class="mx-auto w-full max-w-[1680px] px-6 py-10 lg:px-12">
       <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-12">
         <div class="flex flex-col gap-2 lg:col-span-5">
           <div class="flex items-center gap-3">

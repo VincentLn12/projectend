@@ -4,7 +4,5 @@ export interface Lecturer {
   fullName: string;
   position: string | null;
   expertise: string | null;
-  educationLevel: string | null;
-  program: string | null;
   imageFileId: string | null;
 }

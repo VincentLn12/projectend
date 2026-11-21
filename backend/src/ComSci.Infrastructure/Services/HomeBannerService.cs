@@ -22,6 +22,8 @@ public class HomeBannerService : IHomeBannerService
             .AsNoTracking()
             .Where(banner => banner.IsPublished)
             .OrderBy(banner => banner.SortOrder)
+            .ThenBy(banner => banner.CreatedAt)
+            .ThenBy(banner => banner.Id)
             .Select(banner => new HomeBannerDto
             {
                 Id = banner.Id,
@@ -91,6 +93,34 @@ public class HomeBannerService : IHomeBannerService
         return await GetByIdAsync(bannerId, cancellationToken);
     }
 
+    public async Task MoveAsync(Guid bannerId, bool moveUp, CancellationToken cancellationToken)
+    {
+        List<HomeBanner> orderedBanners = await _dbContext.HomeBanners
+            .OrderBy(banner => banner.SortOrder)
+            .ThenBy(banner => banner.CreatedAt)
+            .ThenBy(banner => banner.Id)
+            .ToListAsync(cancellationToken);
+
+        int currentIndex = orderedBanners.FindIndex(banner => banner.Id == bannerId);
+        if (currentIndex < 0)
+        {
+            throw new NotFoundException("Banner not found.");
+        }
+
+        int targetIndex = moveUp ? currentIndex - 1 : currentIndex + 1;
+        if (targetIndex >= 0 && targetIndex < orderedBanners.Count)
+        {
+            (orderedBanners[currentIndex], orderedBanners[targetIndex]) = (orderedBanners[targetIndex], orderedBanners[currentIndex]);
+        }
+
+        for (int position = 0; position < orderedBanners.Count; position++)
+        {
+            orderedBanners[position].SortOrder = position;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task DeleteAsync(Guid bannerId, CancellationToken cancellationToken)
     {
         HomeBanner banner = await LoadBannerAsync(bannerId, cancellationToken);
@@ -104,6 +134,7 @@ public class HomeBannerService : IHomeBannerService
         return query
             .OrderBy(banner => banner.SortOrder)
             .ThenBy(banner => banner.CreatedAt)
+            .ThenBy(banner => banner.Id)
             .Select(banner => new AdminHomeBannerDto
             {
                 Id = banner.Id,

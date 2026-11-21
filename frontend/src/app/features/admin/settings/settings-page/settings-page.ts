@@ -18,7 +18,7 @@ const QUICK_MENU_LABELS: Record<string, string> = {
   syllabus: 'หลักสูตร',
   'tech-subjects': 'เราเรียนอะไร',
   projects: 'โครงงานวิจัย',
-  lecturers: 'คณาจารย์',
+  lecturers: 'อาจารย์',
   courses: 'หลักสูตรอบรม',
   news: 'ข่าวสาร',
 };

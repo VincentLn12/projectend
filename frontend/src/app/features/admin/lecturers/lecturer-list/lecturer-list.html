@@ -1,16 +1,24 @@
 <section class="space-y-4">
-  <div class="flex flex-wrap items-end justify-between gap-3">
-    <div>
-      <h1 class="text-2xl font-semibold text-slate-900">จัดการอาจารย์</h1>
-      <p class="text-base text-slate-500">ทั้งหมด {{ list.total() }} คน</p>
-    </div>
-    <a app-button routerLink="/admin/lecturers/new">เพิ่มอาจารย์</a>
-  </div>
+  <app-page-header title="จัดการอาจารย์" [count]="list.total()" unit="คน">
+    <a app-button variant="accent" routerLink="/admin/lecturers/new">เพิ่มอาจารย์</a>
+  </app-page-header>
 
   <div class="flex flex-wrap items-end gap-3">
     <div class="min-w-60 flex-1">
       <app-search-box placeholder="ค้นหาชื่อ-สกุล" (searchChange)="list.setSearch($event)" />
     </div>
+    <div class="w-full sm:w-44">
+      <app-select-input
+        label="สถานะ"
+        shape="soft"
+        placeholder="ทุกสถานะ"
+        [options]="statusOptions"
+        [formControl]="statusControl"
+      />
+    </div>
+    @if (hasFilters()) {
+      <button type="button" app-button variant="ghost" class="rounded-lg" (click)="clearFilters()">ล้างตัวกรอง</button>
+    }
   </div>
 
   <app-data-table
@@ -19,11 +27,29 @@
     [trackBy]="rowKey"
     [loading]="list.loading()"
     [error]="list.error()"
-    emptyMessage="ยังไม่มีอาจารย์"
+    [sort]="list.sort()"
+    [emptyMessage]="hasFilters() || list.search() ? 'ไม่พบอาจารย์ที่ตรงกับตัวกรอง' : 'ยังไม่มีอาจารย์'"
+    (sortChange)="list.toggleSort($event)"
     (retry)="list.reload()"
   >
     <ng-template appCell="fullName" let-row>
-      <a [routerLink]="['/admin/lecturers', row.id]" class="font-medium text-slate-900 hover:underline">{{ row.prefix }}{{ row.fullName }}</a>
+      <div class="flex items-center gap-3">
+        <app-file-image
+          [fileId]="row.imageFileId"
+          [alt]="row.fullName"
+          class="size-11 shrink-0 rounded-full ring-1 ring-slate-200"
+        />
+        <a [routerLink]="['/admin/lecturers', row.id]" class="font-medium text-slate-900 hover:underline">{{ row.prefix }}{{ row.fullName }}</a>
+      </div>
+    </ng-template>
+    <ng-template appCell="sortOrder" let-row let-index="index">
+      <div class="flex items-center gap-1.5">
+        @if (canReorder()) {
+          <button type="button" app-button size="sm" variant="ghost" aria-label="เลื่อนขึ้น" [disabled]="isFirst(index)" (click)="move(row, 'up')">▲</button>
+          <button type="button" app-button size="sm" variant="ghost" aria-label="เลื่อนลง" [disabled]="isLast(index)" (click)="move(row, 'down')">▼</button>
+        }
+        <span>{{ row.sortOrder }}</span>
+      </div>
     </ng-template>
     <ng-template appCell="status" let-row>
       <span

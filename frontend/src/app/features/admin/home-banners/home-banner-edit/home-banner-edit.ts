@@ -1,8 +1,12 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { startWith } from 'rxjs';
+import { HasUnsavedChanges } from '../../../../shared/forms/unsaved-changes.guard';
 import { applyServerErrors, describeHttpError } from '../../../../shared/forms/server-errors';
 import { urlValidator } from '../../../../shared/forms/validators';
+import { BackLink } from '../../../../shared/navigation/back-link';
 import { Button } from '../../../../shared/ui/button/button';
 import { DataState } from '../../../../shared/ui/data-state/data-state';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
@@ -14,10 +18,10 @@ import { AdminHomeBanner, SaveHomeBannerRequest } from '../types/home-banner.typ
 
 @Component({
   selector: 'app-home-banner-edit',
-  imports: [ReactiveFormsModule, RouterLink, Button, DataState, FileUpload, TextInput, Toggle],
+  imports: [ReactiveFormsModule, RouterLink, BackLink, Button, DataState, FileUpload, TextInput, Toggle],
   templateUrl: './home-banner-edit.html',
 })
-export class HomeBannerEdit implements OnInit {
+export class HomeBannerEdit implements OnInit, HasUnsavedChanges {
   private readonly api = inject(AdminHomeBannersApi);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -33,6 +37,11 @@ export class HomeBannerEdit implements OnInit {
     sortOrder: [0 as number | null],
     isPublished: [false],
   });
+
+  protected readonly formValue = toSignal(
+    this.form.valueChanges.pipe(startWith(this.form.getRawValue())),
+    { initialValue: this.form.getRawValue() },
+  );
 
   protected readonly loading = signal(false);
   protected readonly loadError = signal<string | null>(null);
@@ -61,6 +70,19 @@ export class HomeBannerEdit implements OnInit {
     });
   }
 
+  hasUnsavedChanges(): boolean {
+    return this.form.dirty;
+  }
+
+  protected resetForm(): void {
+    this.formError.set(null);
+    if (this.isNew) {
+      this.form.reset({ title: '', fileId: null, linkUrl: '', sortOrder: 0, isPublished: false });
+    } else {
+      this.load();
+    }
+  }
+
   protected save(): void {
     if (this.saving()) {
       return;
@@ -77,6 +99,7 @@ export class HomeBannerEdit implements OnInit {
     const call = this.isNew ? this.api.create(request) : this.api.update(this.itemId!, request);
     call.subscribe({
       next: () => {
+        this.form.markAsPristine();
         this.toast.success('บันทึกแบนเนอร์แล้ว');
         this.router.navigateByUrl('/admin/home-banners');
       },

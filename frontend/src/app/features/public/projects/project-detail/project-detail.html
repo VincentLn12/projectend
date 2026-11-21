@@ -1,62 +1,128 @@
-<article class="mx-auto max-w-3xl space-y-4">
-  <a routerLink="/projects" class="text-sm text-slate-600 underline hover:text-slate-900">← โครงงานทั้งหมด</a>
-
-  <app-data-state [loading]="loading()" [error]="error()" (retry)="load()">
-    @if (project(); as item) {
-      <div class="space-y-5 rounded-xl bg-white p-6 shadow-sm">
-        <app-file-image [fileId]="item.imageFileId" [alt]="item.nameTH" class="h-64 w-full rounded-lg" />
-
-        <header class="space-y-1">
-          <h1 class="text-2xl font-semibold text-slate-900">{{ item.nameTH }}</h1>
+<div class="relative left-1/2 -my-8 min-h-[60vh] w-screen -translate-x-1/2 bg-[#f9f9ff] text-[#111c2c]">
+  <div class="mx-auto flex w-full max-w-[1680px] flex-col gap-5 px-4 py-6 sm:gap-6 sm:px-6 sm:py-8 lg:px-12 lg:py-10">
+    <app-data-state [loading]="loading()" [error]="error()" (retry)="load()">
+      @if (project(); as item) {
+        <div class="flex flex-col gap-6 sm:gap-8">
+        <header class="space-y-3 border-b-2 border-[#0f2854] pb-4">
+          <nav aria-label="เส้นทางหน้า" class="flex flex-wrap items-center gap-2 text-sm text-slate-600 sm:text-base">
+            <a routerLink="/home" class="hover:text-[#0f2854] hover:underline">หน้าหลัก</a>
+            <span aria-hidden="true">›</span>
+            <a routerLink="/projects" class="hover:text-[#0f2854] hover:underline">โครงงานวิจัยนักศึกษา</a>
+          </nav>
+          <h1 class="text-2xl font-bold leading-snug text-[#0f2854] sm:text-3xl lg:text-4xl">{{ item.nameTH }}</h1>
           @if (item.nameEN) {
-            <p class="text-slate-500">{{ item.nameEN }}</p>
+            <p class="text-base leading-relaxed text-slate-700 sm:text-lg">{{ item.nameEN }}</p>
           }
         </header>
 
-        <dl class="grid gap-3 text-sm sm:grid-cols-2">
-          <div>
-            <dt class="text-slate-500">นักศึกษา</dt>
-            <dd class="text-slate-900">{{ item.studentName }}</dd>
-          </div>
-          <div>
-            <dt class="text-slate-500">ปีการศึกษา</dt>
-            <dd class="text-slate-900">{{ item.academicYear }}</dd>
-          </div>
-          @for (advisor of item.advisors; track advisor.lecturerId) {
-            <div>
-              <dt class="text-slate-500">{{ roleLabel(advisor.role) }}</dt>
-              <dd class="text-slate-900">{{ advisor.lecturerName }}</dd>
+        <div class="grid grid-cols-[minmax(0,1fr)] items-start gap-5 sm:gap-6 lg:grid-cols-12">
+          @if (videoEmbedUrl(); as embedUrl) {
+            <div class="overflow-hidden rounded-2xl border-2 border-slate-300 bg-black lg:col-span-8 lg:col-start-1 lg:row-start-1">
+              <iframe
+                class="aspect-video w-full border-0"
+                [src]="embedUrl"
+                [title]="'วิดีโอโครงงาน ' + item.nameTH"
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+              ></iframe>
             </div>
+          } @else {
+            <app-file-image
+              [fileId]="item.imageFileId"
+              [alt]="item.nameTH"
+              class="h-64 w-full rounded-2xl border-2 border-slate-300 sm:h-80 lg:col-span-8 lg:col-start-1 lg:row-start-1 lg:h-[26rem]"
+            />
           }
-        </dl>
 
-        @if (item.description) {
-          <p class="whitespace-pre-line text-slate-800">{{ item.description }}</p>
-        }
+          <aside class="space-y-5 rounded-2xl border-2 border-slate-300 bg-white p-4 sm:p-6 lg:sticky lg:top-24 lg:col-span-4 lg:col-start-9 lg:row-span-2 lg:row-start-1">
+            <h2 class="border-b-2 border-[#f7be33] pb-2 text-xl font-bold text-[#0f2854]">ข้อมูลโครงงาน</h2>
+            <dl class="divide-y divide-slate-200">
+              <div class="py-3 first:pt-0">
+                <dt class="text-base text-slate-600">ปีการศึกษา</dt>
+                <dd class="text-lg font-bold text-[#0f2854]">{{ item.academicYear }}</dd>
+              </div>
+              <div class="py-3">
+                <dt class="text-base text-slate-600">ผู้จัดทำ</dt>
+                <dd class="text-lg font-bold text-[#0f2854]">{{ item.studentName }}</dd>
+              </div>
+              @if (item.advisors.length > 0) {
+                <div class="py-3">
+                  <dt class="text-base text-slate-600">อาจารย์ที่ปรึกษา</dt>
+                  <dd class="text-lg font-semibold leading-snug text-[#111c2c]">{{ advisorNames() }}</dd>
+                </div>
+              }
+            </dl>
 
-        @if (keywords().length > 0) {
-          <ul class="flex flex-wrap gap-2">
-            @for (word of keywords(); track word) {
-              <li class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">{{ word }}</li>
+            @if (keywords().length > 0) {
+              <div class="space-y-2">
+                <p class="text-base text-slate-600">คำสำคัญ</p>
+                <ul class="flex flex-wrap gap-2">
+                  @for (word of keywords(); track word) {
+                    <li class="rounded-md bg-[#f0f3ff] px-2.5 py-1 text-base font-medium text-[#0f2854]">{{ word }}</li>
+                  }
+                </ul>
+              </div>
             }
-          </ul>
-        }
 
-        <div class="flex flex-wrap gap-2">
-          @if (item.videoUrl) {
-            <a app-button variant="secondary" size="sm" [href]="item.videoUrl" target="_blank" rel="noopener noreferrer">วิดีโอ</a>
-          }
-          @if (item.webUrl) {
-            <a app-button variant="secondary" size="sm" [href]="item.webUrl" target="_blank" rel="noopener noreferrer">เว็บไซต์</a>
-          }
-          @if (item.githubUrl) {
-            <a app-button variant="secondary" size="sm" [href]="item.githubUrl" target="_blank" rel="noopener noreferrer">GitHub</a>
-          }
-          @if (pdfUrl(); as url) {
-            <a app-button size="sm" [href]="url" target="_blank" rel="noopener noreferrer">เอกสาร PDF</a>
+            @if (pdfUrl() || item.webUrl || item.githubUrl || item.videoUrl) {
+              <div class="flex flex-col gap-2 border-t-2 border-slate-200 pt-4">
+                @if (pdfUrl(); as url) {
+                  <a app-button variant="red" class="w-full gap-2" [href]="url" target="_blank" rel="noopener noreferrer">
+                    <svg class="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    </svg>
+                    <span>เปิดเอกสาร PDF</span>
+                  </a>
+                }
+                @if (item.webUrl) {
+                  <a app-button variant="secondary" class="w-full" [href]="item.webUrl" target="_blank" rel="noopener noreferrer">เว็บไซต์โครงงาน ↗</a>
+                }
+                @if (item.githubUrl) {
+                  <a app-button variant="secondary" class="w-full" [href]="item.githubUrl" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+                }
+                @if (item.videoUrl && !videoEmbedUrl()) {
+                  <a app-button variant="secondary" class="w-full" [href]="item.videoUrl" target="_blank" rel="noopener noreferrer">ดูวิดีโอ ↗</a>
+                }
+              </div>
+            }
+          </aside>
+
+          @if (item.description) {
+            <section class="space-y-3 rounded-2xl border-2 border-slate-300 bg-white p-4 sm:p-8 lg:col-span-8 lg:col-start-1 lg:row-start-2">
+              <h2 class="border-b-2 border-[#f7be33] pb-2 text-xl font-bold text-[#0f2854] sm:text-2xl">รายละเอียดโครงงาน</h2>
+              <p class="whitespace-pre-line text-lg leading-8 text-[#111c2c] sm:text-xl sm:leading-9">{{ item.description }}</p>
+            </section>
           }
         </div>
-      </div>
-    }
-  </app-data-state>
-</article>
+
+        <a
+          routerLink="/projects"
+          class="inline-flex w-fit items-center gap-2 rounded-xl border-2 border-[#0f2854] px-5 py-2.5 text-base font-semibold text-[#0f2854] transition-colors hover:bg-[#0f2854] hover:text-white"
+          >← กลับไปโครงงานทั้งหมด</a
+        >
+
+        @if (otherProjects().length > 0) {
+          <section class="space-y-3">
+            <h2 class="border-b-2 border-[#f7be33] pb-2 text-xl font-bold text-[#0f2854] sm:text-2xl">โครงงานอื่นๆ</h2>
+            <ul class="grid gap-4 md:grid-cols-3">
+              @for (other of otherProjects(); track other.id) {
+                <li>
+                  <a
+                    [routerLink]="['/projects', other.id]"
+                    class="group flex h-full flex-col gap-2 rounded-2xl border-2 border-slate-300 bg-white p-4 transition-colors hover:border-[#1c5bb8]"
+                  >
+                    <span class="w-fit rounded-md bg-[#ffdf9f] px-2.5 py-0.5 text-sm font-bold text-[#261a00]">ปีการศึกษา {{ other.academicYear }}</span>
+                    <span class="text-lg font-bold leading-snug text-[#0f2854] group-hover:text-[#1c5bb8]">{{ other.nameTH }}</span>
+                    <span class="mt-auto pt-1 text-base text-slate-700"><span class="font-semibold text-[#0f2854]">ผู้จัดทำ</span> {{ other.studentName }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+        </div>
+      }
+    </app-data-state>
+  </div>
+</div>

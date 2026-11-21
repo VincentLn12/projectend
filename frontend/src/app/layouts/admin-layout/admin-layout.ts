@@ -53,10 +53,10 @@ export class AdminLayout {
       groupName: 'งานวิชาการและบุคลากร',
       items: [
         { label: 'ข้อมูลอาจารย์', path: '/admin/lecturers', exact: false, icon: 'lecturers' },
+        { label: 'ข้อมูลนักศึกษา', path: '/admin/students', exact: false, icon: 'students' },
         { label: 'หลักสูตรการศึกษา', path: '/admin/syllabuses', exact: false, icon: 'syllabuses' },
         { label: 'อบรม', path: '/admin/short-courses', exact: false, icon: 'courses' },
         { label: 'รายวิชาเทคโนโลยี', path: '/admin/tech-subjects', exact: false, icon: 'tech-subjects' },
-        { label: 'ประวัติการทำงานศิษย์เก่า', path: '/admin/job-histories', exact: false, icon: 'job-histories' },
       ],
     },
     {

@@ -1,17 +1,25 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { describeHttpError } from '../../../../shared/forms/server-errors';
+import { ThaiDatePipe } from '../../../../shared/pipes/thai-date.pipe';
 import { Button } from '../../../../shared/ui/button/button';
 import { ConfirmService } from '../../../../shared/ui/confirm-dialog/confirm.service';
-import { CellTemplate } from '../../../../shared/ui/data-table/cell-template';
-import { DataTable, TableColumn } from '../../../../shared/ui/data-table/data-table';
+import { DataState } from '../../../../shared/ui/data-state/data-state';
+import { FileImage } from '../../../../shared/ui/file-image/file-image';
+import { SearchBox } from '../../../../shared/ui/search-box/search-box';
+import { PageHeader } from '../../../../shared/ui/page-header/page-header';
+import { SelectInput, SelectOption } from '../../../../shared/ui/select-input/select-input';
 import { ToastService } from '../../../../shared/ui/toast/toast.service';
 import { AdminHomeBannersApi } from '../api/home-banners.api';
 import { AdminHomeBanner } from '../types/home-banner.types';
 
+export type BannerStatusFilter = 'all' | 'published' | 'draft';
+
 @Component({
   selector: 'app-home-banner-list',
-  imports: [RouterLink, Button, DataTable, CellTemplate],
+  imports: [RouterLink, ReactiveFormsModule, ThaiDatePipe, Button, DataState, FileImage, PageHeader, SearchBox, SelectInput],
   templateUrl: './home-banner-list.html',
 })
 export class HomeBannerList implements OnInit {
@@ -22,19 +30,61 @@ export class HomeBannerList implements OnInit {
   protected readonly rows = signal<AdminHomeBanner[]>([]);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly statusFilter = signal<BannerStatusFilter>('all');
 
-  protected readonly columns: TableColumn<AdminHomeBanner>[] = [
-    { key: 'title', header: 'ชื่อ' },
-    { key: 'linkUrl', header: 'ลิงก์', value: (row) => row.linkUrl },
-    { key: 'sortOrder', header: 'ลำดับ', value: (row) => row.sortOrder },
-    { key: 'status', header: 'สถานะ' },
-    { key: 'actions', header: '', align: 'right' },
+  protected readonly statusOptions: SelectOption<BannerStatusFilter>[] = [
+    { value: 'published', label: 'เผยแพร่' },
+    { value: 'draft', label: 'ฉบับร่าง' },
   ];
+  protected readonly statusControl = new FormControl<BannerStatusFilter | null>(null);
 
-  protected readonly rowKey = (row: AdminHomeBanner) => row.id;
+  protected readonly searchText = signal('');
+
+  protected readonly filteredRows = computed(() => {
+    const filter = this.statusFilter();
+    const keyword = this.searchText().trim().toLowerCase();
+    return this.rows().filter((row) => {
+      if (filter === 'published' && !row.isPublished) {
+        return false;
+      }
+      if (filter === 'draft' && row.isPublished) {
+        return false;
+      }
+      return keyword === '' || `${row.title ?? ''} ${row.linkUrl ?? ''}`.toLowerCase().includes(keyword);
+    });
+  });
+
+  protected readonly canReorder = computed(
+    () => this.statusFilter() === 'all' && this.searchText().trim() === '' && !this.loading(),
+  );
+
+  constructor() {
+    this.statusControl.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((value) => this.statusFilter.set(value ?? 'all'));
+  }
 
   ngOnInit(): void {
     this.load();
+  }
+
+  protected clearFilter(): void {
+    this.statusControl.setValue(null);
+  }
+
+  protected isFirst(index: number): boolean {
+    return index === 0;
+  }
+
+  protected isLast(index: number): boolean {
+    return index === this.filteredRows().length - 1;
+  }
+
+  protected move(row: AdminHomeBanner, direction: 'up' | 'down'): void {
+    this.api.move(row.id, direction).subscribe({
+      next: () => this.load(),
+      error: (error: unknown) => this.toast.error(describeHttpError(error)),
+    });
   }
 
   protected load(): void {

@@ -13,6 +13,7 @@ export { Field } from './field/field';
 export { FileUpload } from './file-upload/file-upload';
 export { Pagination } from './pagination/pagination';
 export { SearchBox } from './search-box/search-box';
+export { PageHeader } from './page-header/page-header';
 export { SelectInput } from './select-input/select-input';
 export type { SelectOption } from './select-input/select-input';
 export { TextArea } from './text-area/text-area';

@@ -1,9 +1,16 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { startWith } from 'rxjs';
 import { describeHttpError } from '../../../../shared/forms/server-errors';
+import { HasUnsavedChanges } from '../../../../shared/forms/unsaved-changes.guard';
+import { ThaiDatePipe } from '../../../../shared/pipes/thai-date.pipe';
+import { BackLink } from '../../../../shared/navigation/back-link';
 import { Button } from '../../../../shared/ui/button/button';
+import { ConfirmService } from '../../../../shared/ui/confirm-dialog/confirm.service';
 import { DataState } from '../../../../shared/ui/data-state/data-state';
+import { FileImage } from '../../../../shared/ui/file-image/file-image';
 import { SelectInput, SelectOption } from '../../../../shared/ui/select-input/select-input';
 import { TextArea } from '../../../../shared/ui/text-area/text-area';
 import { TextInput } from '../../../../shared/ui/text-input/text-input';
@@ -22,14 +29,15 @@ const MIN_PASSWORD_LENGTH = 8;
 
 @Component({
   selector: 'app-user-edit',
-  imports: [ReactiveFormsModule, RouterLink, Button, DataState, SelectInput, TextArea, TextInput],
+  imports: [ReactiveFormsModule, RouterLink, ThaiDatePipe, BackLink, Button, DataState, FileImage, SelectInput, TextArea, TextInput],
   templateUrl: './user-edit.html',
 })
-export class UserEdit implements OnInit {
+export class UserEdit implements OnInit, HasUnsavedChanges {
   private readonly api = inject(AdminUsersApi);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
+  private readonly confirm = inject(ConfirmService);
 
   protected readonly userId = this.route.snapshot.paramMap.get('id');
   protected readonly isNew = this.userId === null;
@@ -54,7 +62,15 @@ export class UserEdit implements OnInit {
     newPassword: ['', [Validators.required, Validators.minLength(MIN_PASSWORD_LENGTH), Validators.maxLength(128)]],
   });
 
+  protected readonly userTypeLabels = USER_TYPE_LABELS;
+  protected readonly formValue = toSignal(
+    this.form.valueChanges.pipe(startWith(this.form.getRawValue())),
+    { initialValue: this.form.getRawValue() },
+  );
+
   protected readonly user = signal<AdminUser | null>(null);
+  protected readonly showPasswordForm = signal(false);
+  protected readonly locking = signal(false);
   protected readonly loading = signal(false);
   protected readonly loadError = signal<string | null>(null);
   protected readonly saving = signal(false);
@@ -95,6 +111,53 @@ export class UserEdit implements OnInit {
     });
   }
 
+  hasUnsavedChanges(): boolean {
+    return this.form.dirty;
+  }
+
+  protected resetForm(): void {
+    this.formError.set(null);
+    const existing = this.user();
+    if (existing) {
+      this.fillForm(existing);
+    } else {
+      this.form.reset({ email: '', fullName: '', password: '', userType: USER_TYPE_GENERAL, studentCode: '', entryYear: null, previousSchool: '', address: '' });
+      this.selectedType.set(USER_TYPE_GENERAL);
+    }
+  }
+
+  protected async toggleLocked(): Promise<void> {
+    const current = this.user();
+    if (!current || this.locking()) {
+      return;
+    }
+    const lock = !current.isLocked;
+    if (lock) {
+      const confirmed = await this.confirm.ask({
+        title: 'ล็อกบัญชีนี้?',
+        message: `"${current.fullName}" จะเข้าสู่ระบบไม่ได้จนกว่าจะปลดล็อก`,
+        confirmText: 'ล็อกบัญชี',
+        danger: true,
+      });
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    this.locking.set(true);
+    this.api.setLocked(current.id, lock).subscribe({
+      next: () => {
+        this.locking.set(false);
+        this.user.update((user) => (user ? { ...user, isLocked: lock } : user));
+        this.toast.success(lock ? 'ล็อกบัญชีแล้ว' : 'ปลดล็อกบัญชีแล้ว');
+      },
+      error: (error: unknown) => {
+        this.locking.set(false);
+        this.toast.error(describeUserError(error));
+      },
+    });
+  }
+
   protected save(): void {
     if (this.saving()) {
       return;
@@ -119,6 +182,7 @@ export class UserEdit implements OnInit {
     const call = this.isNew ? this.api.create(this.buildCreateRequest()) : this.api.update(this.userId!, this.buildUpdateRequest());
     call.subscribe({
       next: () => {
+        this.form.markAsPristine();
         this.toast.success('บันทึกผู้ใช้แล้ว');
         this.router.navigateByUrl('/admin/users');
       },
@@ -143,6 +207,7 @@ export class UserEdit implements OnInit {
       next: () => {
         this.resetting.set(false);
         this.passwordForm.reset({ newPassword: '' });
+        this.showPasswordForm.set(false);
         this.toast.success('ตั้งรหัสผ่านใหม่แล้ว ผู้ใช้ต้องเข้าสู่ระบบใหม่');
       },
       error: (error: unknown) => {

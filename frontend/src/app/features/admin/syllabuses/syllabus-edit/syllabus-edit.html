@@ -1,77 +1,485 @@
-<section class="space-y-4">
-  <div class="flex items-baseline justify-between gap-3">
-    <h1 class="text-xl font-semibold text-slate-900">{{ isNew ? 'เพิ่มหลักสูตร' : 'แก้ไขหลักสูตร' }}</h1>
-    <a routerLink="/admin/syllabuses" class="text-sm text-slate-600 underline hover:text-slate-900">← กลับไปรายการหลักสูตร</a>
-  </div>
+<section class="w-full space-y-6 pb-10">
+  <!-- ส่วนหัวของหน้า -->
+  <header class="relative overflow-hidden rounded-2xl bg-white p-5 shadow-xs ring-1 ring-slate-200/90 sm:p-6">
+    <div
+      class="pointer-events-none absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-brand-900 via-brand-700 to-gold-400"
+      aria-hidden="true"
+    ></div>
+
+    <div class="flex flex-wrap items-center justify-between gap-4 pt-1">
+      <div class="space-y-1.5">
+        <nav aria-label="เส้นทาง" class="flex flex-wrap items-center gap-1.5 text-sm text-slate-500">
+          <a
+            routerLink="/admin/syllabuses"
+            class="inline-flex items-center gap-1.5 font-medium text-brand-800 transition-colors hover:text-brand-700 hover:underline"
+          >
+            หลักสูตรการเรียนการสอน
+          </a>
+          <span class="text-slate-300" aria-hidden="true">/</span>
+          <span class="font-medium text-slate-700">{{ isNew ? 'เพิ่มหลักสูตรใหม่' : 'แก้ไขหลักสูตร' }}</span>
+        </nav>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <h1 class="text-2xl font-bold tracking-tight text-slate-900">
+            {{ isNew ? 'เพิ่มหลักสูตรการเรียนการสอนใหม่' : 'แก้ไขข้อมูลหลักสูตร' }}
+          </h1>
+
+          @if (formValue().isCurrent) {
+            <span
+              class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-600/20"
+            >
+              ★ หลักสูตรฉบับปัจจุบัน
+            </span>
+          }
+
+          @if (formValue().isPublished) {
+            <span
+              class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-600/20"
+            >
+              <span class="size-2 rounded-full bg-emerald-500" aria-hidden="true"></span>
+              เผยแพร่สาธารณะ
+            </span>
+          } @else {
+            <span
+              class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-600/20"
+            >
+              <span class="size-2 rounded-full bg-amber-500" aria-hidden="true"></span>
+              ฉบับร่าง
+            </span>
+          }
+
+          @if (form.dirty) {
+            <span
+              class="inline-flex items-center gap-1 rounded-full bg-brand-900/5 px-2.5 py-0.5 text-xs font-medium text-brand-800"
+            >
+              มีการแก้ไขที่ยังไม่ได้บันทึก
+            </span>
+          }
+        </div>
+      </div>
+
+      <a appBack="/admin/syllabuses" href="/admin/syllabuses" app-button variant="secondary" class="gap-1.5">
+        <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        กลับไปรายการหลักสูตร
+      </a>
+    </div>
+  </header>
 
   <app-data-state [loading]="loading()" [error]="loadError()" (retry)="load()">
-    <form [formGroup]="form" (ngSubmit)="save()" class="space-y-6 rounded-xl bg-white p-6 shadow-sm">
-      <div class="space-y-4">
-        <app-text-input label="ชื่อหลักสูตร (ไทย)" formControlName="nameTH" [maxLength]="300" />
-        <app-text-input label="ชื่อหลักสูตร (อังกฤษ)" formControlName="nameEN" [maxLength]="300" />
-        <div class="grid gap-4 sm:grid-cols-3">
-          <app-text-input label="ฉบับปี พ.ศ." type="number" formControlName="year" />
-          <app-text-input label="หน่วยกิตรวม" type="number" formControlName="totalCredits" />
-        </div>
-        <app-text-input label="ชื่อปริญญา (ไทย)" formControlName="degreeTH" [maxLength]="200" />
-        <app-text-input label="ชื่อปริญญา (อังกฤษ)" formControlName="degreeEN" [maxLength]="200" />
-        <app-file-upload label="เอกสารหลักสูตร (PDF)" formControlName="pdfFileId" accept="pdf" />
-        <app-checkbox label="เป็นฉบับปัจจุบัน (ฉบับอื่นจะถูกยกเลิกสถานะปัจจุบัน)" formControlName="isCurrent" />
-        <app-toggle label="เผยแพร่" formControlName="isPublished" />
-      </div>
+    <form [formGroup]="form" (ngSubmit)="save()" class="grid w-full items-start gap-6 lg:grid-cols-12">
+      <!-- คอลัมน์ซ้าย: รายละเอียดหลักสูตร วัตถุประสงค์ อาชีพ และรายวิชา -->
+      <div class="space-y-6 lg:col-span-8 xl:col-span-9">
+        <!-- การ์ด 1: ข้อมูลหลักสูตรและปริญญา -->
+        <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
+          <div class="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div class="flex items-center gap-3">
+              <div>
+                <h2 class="text-lg font-semibold text-slate-900">ข้อมูลหลักสูตรและชื่อปริญญา</h2>
+              </div>
+            </div>
 
-      <section class="space-y-3">
-        <div class="flex items-center justify-between">
-          <h2 class="font-semibold text-slate-900">วัตถุประสงค์ของหลักสูตร</h2>
-          <button type="button" app-button size="sm" variant="secondary" (click)="addObjective()">เพิ่มข้อ</button>
-        </div>
-        @for (control of objectives.controls; track control; let index = $index) {
-          <div class="flex items-start gap-2">
-            <div class="flex-1"><app-text-input [label]="'ข้อ ' + (index + 1)" [formControl]="control" /></div>
-            <button type="button" app-button size="sm" variant="ghost" class="mt-7" (click)="removeAt(objectives, index)">ลบ</button>
+            @if (formValue().year; as y) {
+              <span class="rounded-full bg-brand-900/5 px-3 py-1 text-xs font-semibold text-brand-800">
+                หลักสูตร พ.ศ. {{ y }}
+              </span>
+            }
           </div>
-        }
-      </section>
 
-      <section class="space-y-3">
-        <div class="flex items-center justify-between">
-          <h2 class="font-semibold text-slate-900">อาชีพหลังสำเร็จการศึกษา</h2>
-          <button type="button" app-button size="sm" variant="secondary" (click)="addOccupation()">เพิ่มอาชีพ</button>
-        </div>
-        @for (control of occupations.controls; track control; let index = $index) {
-          <div class="flex items-start gap-2">
-            <div class="flex-1"><app-text-input [label]="'อาชีพที่ ' + (index + 1)" [formControl]="control" /></div>
-            <button type="button" app-button size="sm" variant="ghost" class="mt-7" (click)="removeAt(occupations, index)">ลบ</button>
+          <div class="space-y-5">
+            <div class="grid gap-5 sm:grid-cols-2">
+              <app-text-input
+                label="ชื่อหลักสูตร (ภาษาไทย)"
+                placeholder="เช่น หลักสูตรวิทยาศาสตรบัณฑิต สาขาวิชาวิทยาการคอมพิวเตอร์"
+                formControlName="nameTH"
+                [maxLength]="300"
+              />
+              <app-text-input
+                label="ชื่อหลักสูตร (ภาษาอังกฤษ)"
+                placeholder="e.g. Bachelor of Science Program in Computer Science"
+                formControlName="nameEN"
+                [maxLength]="300"
+              />
+            </div>
+
+            <div class="grid gap-5 sm:grid-cols-2">
+              <app-text-input
+                label="ชื่อปริญญา (ภาษาไทย)"
+                placeholder="เช่น วิทยาศาสตรบัณฑิต (วิทยาการคอมพิวเตอร์)"
+                formControlName="degreeTH"
+                [maxLength]="200"
+              />
+              <app-text-input
+                label="ชื่อปริญญา (ภาษาอังกฤษ)"
+                placeholder="e.g. Bachelor of Science (Computer Science)"
+                formControlName="degreeEN"
+                [maxLength]="200"
+              />
+            </div>
+
+            <div class="grid gap-5 sm:grid-cols-2">
+              <app-text-input
+                label="หลักสูตรปรับปรุง พ.ศ."
+                placeholder="เช่น 2569"
+                hint="ระบุปีพุทธศักราชของเล่มหลักสูตร"
+                type="number"
+                formControlName="year"
+              />
+              <app-text-input
+                label="หน่วยกิตรวมตลอดหลักสูตร"
+                placeholder="เช่น 126"
+                hint="จำนวนหน่วยกิตขั้นต่ำตามเกณฑ์สำเร็จการศึกษา"
+                type="number"
+                formControlName="totalCredits"
+              />
+            </div>
+
+            @if (creditsDifference(); as difference) {
+              <p role="status" class="rounded-lg bg-amber-50 px-3.5 py-2.5 text-sm text-amber-800 ring-1 ring-amber-600/20">
+                หน่วยกิตของรายวิชาที่กรอกรวม {{ subjectCreditsSum() }} ไม่ตรงกับหน่วยกิตรวมที่กำหนด
+                ({{ difference > 0 ? 'ขาดอีก ' + difference : 'เกิน ' + -difference }} หน่วยกิต)
+              </p>
+            }
           </div>
-        }
-      </section>
-
-      <section class="space-y-3">
-        <div class="flex items-center justify-between">
-          <h2 class="font-semibold text-slate-900">รายวิชา / กลุ่มวิชา</h2>
-          <button type="button" app-button size="sm" variant="secondary" (click)="addSubject()">เพิ่มรายวิชา</button>
         </div>
-        @for (group of subjects.controls; track group; let index = $index) {
-          <div [formGroup]="group" class="grid items-start gap-3 rounded-lg border border-slate-200 p-3 sm:grid-cols-12">
-            <div class="sm:col-span-2"><app-text-input label="รหัสวิชา" formControlName="code" /></div>
-            <div class="sm:col-span-4"><app-text-input label="ชื่อ" formControlName="name" /></div>
-            <div class="sm:col-span-2"><app-text-input label="หน่วยกิต" type="number" formControlName="credit" /></div>
-            <div class="sm:col-span-3"><app-select-input label="หมวด" formControlName="subjectCategory" [options]="categoryOptions" /></div>
-            <div class="sm:col-span-1">
-              <button type="button" app-button size="sm" variant="ghost" class="sm:mt-7" (click)="removeAt(subjects, index)">ลบ</button>
+
+        <!-- การ์ด 2: วัตถุประสงค์ของหลักสูตร (เต็มความกว้าง รองรับข้อความยาวหลายบรรทัด) -->
+        <section class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
+          <div class="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div class="flex items-center gap-3">
+              <div>
+                <h2 class="text-lg font-semibold text-slate-900">วัตถุประสงค์ของหลักสูตร</h2>
+              </div>
+            </div>
+
+            <button type="button" app-button size="sm" variant="secondary" class="gap-1.5" (click)="addObjective()">
+              + เพิ่มวัตถุประสงค์
+            </button>
+          </div>
+
+          @if (objectives.length === 0) {
+            <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-8 text-center">
+              <p class="text-sm text-slate-500">ยังไม่มีวัตถุประสงค์ของหลักสูตร</p>
+              <button type="button" app-button size="sm" variant="ghost" class="mt-2" (click)="addObjective()">
+                + เพิ่มวัตถุประสงค์ข้อแรก
+              </button>
+            </div>
+          } @else {
+            <div class="space-y-4">
+              @for (control of objectives.controls; track control; let index = $index) {
+                <div class="rounded-xl border border-slate-200/80 bg-slate-50/40 p-4 transition-colors hover:border-slate-300 hover:bg-white">
+                  <div class="mb-2 flex items-center justify-between gap-2">
+                    <span class="inline-flex items-center gap-2 text-sm font-semibold text-brand-900">
+                      <span
+                        class="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-900/10 text-xs font-bold text-brand-900"
+                      >
+                        {{ index + 1 }}
+                      </span>
+                      วัตถุประสงค์ข้อที่ {{ index + 1 }}
+                    </span>
+                    <button
+                      type="button"
+                      app-button
+                      size="sm"
+                      variant="ghost"
+                      class="text-red-600! hover:bg-red-50!"
+                      (click)="removeAt(objectives, index)"
+                    >
+                      ลบข้อนี้
+                    </button>
+                  </div>
+
+                  <app-text-area
+                    [label]="'รายละเอียดข้อที่ ' + (index + 1)"
+                    placeholder="ระบุรายละเอียดวัตถุประสงค์ของหลักสูตร..."
+                    [rows]="3"
+                    [maxLength]="1000"
+                    [formControl]="control"
+                  />
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+        <!-- การ์ด 3: อาชีพหลังสำเร็จการศึกษา -->
+        <section class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
+          <div class="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div class="flex items-center gap-3">
+              <div>
+                <h2 class="text-lg font-semibold text-slate-900">อาชีพหลังสำเร็จการศึกษา</h2>
+              </div>
+            </div>
+
+            <button type="button" app-button size="sm" variant="secondary" class="gap-1.5" (click)="addOccupation()">
+              + เพิ่มอาชีพ
+            </button>
+          </div>
+
+          @if (occupations.length === 0) {
+            <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-8 text-center">
+              <p class="text-sm text-slate-500">ยังไม่มีรายการอาชีพที่ประกอบได้</p>
+              <button type="button" app-button size="sm" variant="ghost" class="mt-2" (click)="addOccupation()">
+                + เพิ่มอาชีพแรก
+              </button>
+            </div>
+          } @else {
+            <div class="grid gap-3 sm:grid-cols-2">
+              @for (control of occupations.controls; track control; let index = $index) {
+                <div class="flex items-start gap-2.5 rounded-xl border border-slate-200/80 bg-slate-50/40 p-3">
+                  <span
+                    class="mt-7 flex size-6 shrink-0 items-center justify-center rounded-full bg-gold-400/25 text-xs font-bold text-brand-950"
+                  >
+                    {{ index + 1 }}
+                  </span>
+                  <div class="min-w-0 flex-1">
+                    <app-text-input
+                      [label]="'อาชีพที่ ' + (index + 1)"
+                      placeholder="เช่น นักพัฒนาซอฟต์แวร์, นักวิเคราะห์ระบบ..."
+                      [formControl]="control"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    app-button
+                    size="sm"
+                    variant="ghost"
+                    class="mt-6 text-red-600! hover:bg-red-50!"
+                    (click)="removeAt(occupations, index)"
+                  >
+                    ลบ
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </section>
+
+        <!-- การ์ด 3: โครงสร้างรายวิชาในหลักสูตร -->
+        <section class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div class="flex items-center gap-3">
+              <div>
+                <h2 class="text-lg font-semibold text-slate-900">รายวิชาและหมวดวิชา</h2>
+                <p class="text-sm text-slate-500">
+                  ทั้งหมด {{ subjects.length }} รายวิชา · รวม {{ subjectCreditsSum() }} หน่วยกิต
+                </p>
+              </div>
+            </div>
+
+            <button type="button" app-button size="sm" class="gap-1.5" (click)="addSubject()">
+              + เพิ่มรายวิชา
+            </button>
+          </div>
+
+          <!-- แถบกรองตามหมวดวิชา -->
+          <div class="mt-4 flex flex-wrap items-center gap-2 border-b border-slate-100 pb-4">
+            <button
+              type="button"
+              app-button
+              size="sm"
+              [variant]="activeSubjectCategory() === 'all' ? 'primary' : 'ghost'"
+              class="rounded-full!"
+              (click)="setSubjectCategoryFilter('all')"
+            >
+              ทุกหมวด ({{ subjects.length }})
+            </button>
+            @for (cat of categorySummary(); track cat.value) {
+              <button
+                type="button"
+                app-button
+                size="sm"
+                [variant]="activeSubjectCategory() === cat.value ? 'primary' : 'ghost'"
+                class="rounded-full!"
+                (click)="setSubjectCategoryFilter(cat.value)"
+              >
+                {{ cat.label }} ({{ cat.count }} วิชา · {{ cat.credits }} นก.)
+              </button>
+            }
+          </div>
+
+          @if (subjects.length === 0) {
+            <div class="mt-5 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-4 py-10 text-center">
+              <p class="text-sm text-slate-500">ยังไม่มีรายวิชาในหลักสูตรนี้</p>
+              <button type="button" app-button size="sm" variant="secondary" class="mt-3" (click)="addSubject()">
+                + เพิ่มรายวิชาแรก
+              </button>
+            </div>
+          } @else {
+            <div class="mt-5">
+              <div class="hidden gap-3 px-1 pb-2 text-sm font-medium text-slate-600 sm:grid sm:grid-cols-12">
+                <span class="sm:col-span-6">ชื่อรายวิชา</span>
+                <span class="sm:col-span-1">หน่วยกิต</span>
+                <span class="sm:col-span-3">หมวดวิชา</span>
+                <span class="sm:col-span-2"></span>
+              </div>
+
+              <div class="space-y-3 sm:space-y-2">
+                @for (group of subjects.controls; track group; let index = $index) {
+                  @if (matchesSubjectFilter(group)) {
+                    <div
+                      [formGroup]="group"
+                      class="grid items-start gap-3 rounded-xl border border-slate-200/90 bg-slate-50/40 p-3 sm:grid-cols-12 sm:border-0 sm:bg-transparent sm:p-0 sm:[&_label]:sr-only"
+                    >
+                      <div class="sm:col-span-6">
+                        <app-text-input label="ชื่อรายวิชา" placeholder="ระบุชื่อวิชา" formControlName="name" />
+                      </div>
+                      <div class="sm:col-span-1">
+                        <app-text-input label="หน่วยกิต" type="number" formControlName="credit" />
+                      </div>
+                      <div class="sm:col-span-3">
+                        <app-select-input label="หมวดวิชา" formControlName="subjectCategory" [options]="categoryOptions" />
+                      </div>
+                      <div class="flex items-center justify-end gap-1 sm:col-span-2">
+                        @if (activeSubjectCategory() === 'all') {
+                          <button
+                            type="button"
+                            app-button
+                            size="sm"
+                            variant="ghost"
+                            aria-label="เลื่อนขึ้น"
+                            [disabled]="index === 0"
+                            (click)="moveSubject(index, -1)"
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            app-button
+                            size="sm"
+                            variant="ghost"
+                            aria-label="เลื่อนลง"
+                            [disabled]="index === subjects.length - 1"
+                            (click)="moveSubject(index, 1)"
+                          >
+                            ▼
+                          </button>
+                        }
+                        <button
+                          type="button"
+                          app-button
+                          size="sm"
+                          variant="ghost"
+                          class="text-red-600! hover:bg-red-50!"
+                          aria-label="ลบรายวิชานี้"
+                          (click)="removeAt(subjects, index)"
+                        >
+                          ลบ
+                        </button>
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+        </section>
+
+        <!-- การ์ด 4: ไฟล์เอกสารเล่มหลักสูตร (PDF) -->
+        <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90 sm:p-7">
+          <div class="mb-5 flex items-center gap-3 border-b border-slate-100 pb-4">
+            <div>
+              <h2 class="text-lg font-semibold text-slate-900">เอกสารเล่มหลักสูตร (PDF)</h2>
             </div>
           </div>
-        }
-      </section>
 
-      @if (formError(); as message) {
-        <p role="alert" class="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ message }}</p>
-      }
-
-      <div class="flex justify-end gap-2">
-        <a app-button variant="secondary" routerLink="/admin/syllabuses">ยกเลิก</a>
-        <button type="submit" app-button [loading]="saving()">บันทึก</button>
+          <app-file-upload label="เอกสารหลักสูตร (PDF)" formControlName="pdfFileId" accept="pdf" />
+        </div>
       </div>
+
+      <!-- คอลัมน์ขวา (Sidebar): สถานะหลักสูตร สรุปภาพรวม และปุ่มบันทึก -->
+      <aside class="space-y-6 lg:col-span-4 xl:col-span-3 lg:sticky lg:top-24">
+        <!-- การ์ดสถานะและการเผยแพร่ -->
+        <div class="rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90">
+          <h2 class="border-b border-slate-100 pb-3 text-lg font-semibold text-slate-900">สถานะและการแสดงผล</h2>
+
+          <div class="mt-4 space-y-4">
+            <app-toggle label="เผยแพร่หลักสูตร" tone="success" boxed onHint="เผยแพร่แล้ว แสดงบนหน้าเว็บไซต์" offHint="ยังไม่เผยแพร่ เปิดเพื่อให้แสดงบนหน้าเว็บไซต์" formControlName="isPublished" />
+
+            <app-toggle
+              label="ตั้งเป็นหลักสูตรฉบับปัจจุบัน"
+              tone="info"
+              boxed
+              onHint="ฉบับปัจจุบัน ฉบับอื่นจะถูกยกเลิกสถานะนี้เมื่อบันทึก"
+              offHint="เปิดเพื่อใช้ฉบับนี้เป็นฉบับปัจจุบัน ฉบับอื่นจะถูกยกเลิกสถานะนี้"
+              formControlName="isCurrent"
+            />
+          </div>
+
+          <!-- สรุปข้อมูลภาพรวมของหลักสูตร -->
+          <dl class="mt-5 space-y-2.5 border-t border-slate-100 pt-4 text-xs text-slate-600">
+            <div class="flex items-center justify-between gap-2">
+              <dt class="text-slate-500">ปีหลักสูตร</dt>
+              <dd class="font-semibold text-slate-800">
+                {{ formValue().year ? 'พ.ศ. ' + formValue().year : '-' }}
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <dt class="text-slate-500">หน่วยกิตรวมที่กำหนด</dt>
+              <dd class="font-semibold text-slate-800">
+                {{ formValue().totalCredits ? formValue().totalCredits + ' หน่วยกิต' : 'ไม่ได้ระบุ' }}
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <dt class="text-slate-500">วัตถุประสงค์ / อาชีพ</dt>
+              <dd class="font-medium text-slate-800">
+                {{ objectives.length }} ข้อ · {{ occupations.length }} อาชีพ
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <dt class="text-slate-500">รายวิชาที่กรอก</dt>
+              <dd class="font-medium text-slate-800">
+                {{ subjects.length }} วิชา ({{ subjectCreditsSum() }} นก.)
+              </dd>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <dt class="text-slate-500">ไฟล์เล่มหลักสูตร</dt>
+              <dd>
+                <span
+                  class="rounded px-1.5 py-0.5 font-medium"
+                  [class]="formValue().pdfFileId ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'"
+                >
+                  {{ formValue().pdfFileId ? 'แนบไฟล์ PDF แล้ว' : 'ยังไม่มีไฟล์ PDF' }}
+                </span>
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- การ์ดปุ่มบันทึกและการจัดการ -->
+        <div class="space-y-3 rounded-2xl bg-white p-6 shadow-xs ring-1 ring-slate-200/90">
+          @if (formError(); as message) {
+            <p
+              role="alert"
+              class="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700 ring-1 ring-red-200"
+            >
+              {{ message }}
+            </p>
+          }
+
+          <button type="submit" app-button class="w-full gap-2 py-2.5!" [loading]="saving()">
+            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            บันทึกหลักสูตร
+          </button>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              app-button
+              variant="ghost"
+              class="w-full"
+              [disabled]="!form.dirty || saving()"
+              (click)="resetForm()"
+            >
+              คืนค่าเดิม
+            </button>
+            <a app-button variant="secondary" class="w-full" appBack="/admin/syllabuses" href="/admin/syllabuses">ยกเลิก</a>
+          </div>
+        </div>
+      </aside>
     </form>
   </app-data-state>
 </section>

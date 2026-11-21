@@ -10,6 +10,7 @@ import { ConfirmService } from '../../../../shared/ui/confirm-dialog/confirm.ser
 import { CellTemplate } from '../../../../shared/ui/data-table/cell-template';
 import { DataTable, TableColumn } from '../../../../shared/ui/data-table/data-table';
 import { DateInput } from '../../../../shared/ui/date-input/date-input';
+import { PageHeader } from '../../../../shared/ui/page-header/page-header';
 import { Pagination } from '../../../../shared/ui/pagination/pagination';
 import { SearchBox } from '../../../../shared/ui/search-box/search-box';
 import { SelectInput, SelectOption } from '../../../../shared/ui/select-input/select-input';
@@ -27,7 +28,7 @@ import { AdminNewsListItem } from '../types/news.types';
     DataTable,
     CellTemplate,
     DateInput,
-    Pagination,
+    PageHeader, Pagination,
     SearchBox,
     SelectInput,
   ],

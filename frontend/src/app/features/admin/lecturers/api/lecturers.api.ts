@@ -17,6 +17,12 @@ export class AdminLecturersApi {
     if (query.search) {
       params = params.set('search', query.search);
     }
+    if (query.sort) {
+      params = params.set('sortBy', query.sort.key).set('sortDescending', query.sort.direction === 'desc');
+    }
+    for (const [name, value] of Object.entries(query.filters ?? {})) {
+      params = params.set(name, value);
+    }
     return this.http.get<PagedResult<AdminLecturer>>(LECTURERS_URL, { params });
   }
 
@@ -34,6 +40,10 @@ export class AdminLecturersApi {
 
   setPublished(id: string, isPublished: boolean): Observable<AdminLecturer> {
     return this.http.patch<AdminLecturer>(`${LECTURERS_URL}/${id}/published`, { isPublished });
+  }
+
+  move(id: string, direction: 'up' | 'down'): Observable<void> {
+    return this.http.post<void>(`${LECTURERS_URL}/${id}/move`, { direction });
   }
 
   delete(id: string): Observable<void> {
